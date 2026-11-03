@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const fr: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'Notez chaque voyage. Illuminez votre monde. Un globe 3D privé de toutes les villes et tous les pays visités, avec tampons de passeport et carnet de voyage.',
-  'app.noscript': 'Tripglobe a besoin de JavaScript pour dessiner votre globe.',
 
   'n.country': { one: '{n} pays', other: '{n} pays' },
   'n.city': { one: '{n} ville', other: '{n} villes' },
@@ -79,7 +78,6 @@ const fr: Dict = {
   'section.upcoming': 'À venir',
   'section.dreams': 'Liste de rêves',
   'section.recent': 'Voyages récents',
-  'section.settings': 'Réglages',
   'when.today': "Aujourd'hui",
   'when.tomorrow': 'Demain',
   'when.inDays': 'Dans {n} jours',
@@ -87,9 +85,6 @@ const fr: Dict = {
   'dream.plan': 'Le planifier',
   'dream.remove': 'Retirer de la liste de rêves',
   'dream.empty': 'Touchez une ville ou un pays sur la carte et choisissez « Ajouter à la liste de rêves ». Les lieux que vous rêvez de voir brillent en drapeaux pointillés.',
-  'set.light': 'Mode clair',
-  'set.dark': 'Mode sombre',
-  'set.look': "Changer l'apparence",
   'set.home': 'Domicile : {name}',
   'set.chooseHome': 'Choisir votre ville d’origine',
   'set.homeNote': 'Sert à mesurer les distances',
@@ -98,7 +93,6 @@ const fr: Dict = {
   'set.import': 'Importer une sauvegarde',
   'set.importNote': 'Restaurer depuis un fichier',
   'set.language': 'Langue',
-  'set.languageNote': 'Choisissez comment Tripglobe vous parle',
   'set.fine': 'Vos voyages restent sur ce téléphone. Villes et frontières : Natural Earth, drapeaux : country-flag-icons.',
   'set.fineCloud': 'Vos voyages restent sur ce téléphone et, si vous vous connectez, dans votre compte privé. Villes et frontières : Natural Earth, drapeaux : country-flag-icons.',
 
@@ -176,7 +170,6 @@ const fr: Dict = {
 
   'acct.row': 'Se connecter',
   'acct.rowNote': 'Sauvegarde et synchronisation entre appareils',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'Votre compte',
   'acct.lede': 'Sauvegardez votre carte et retrouvez-la sur tous vos appareils. Vos voyages restent privés tant que vous ne décidez pas le contraire.',
   'acct.google': 'Continuer avec Google',
@@ -263,7 +256,6 @@ const fr: Dict = {
   'fr.reported': "Merci. Nous allons examiner cela.",
   'fr.copyLink': "Copier mon lien public",
   'fr.linkCopied': "Lien copié.",
-  'fr.newRequest': "@{handle} vous a envoyé une demande d’ami.",
   'fr.overlayOn': "Affichage des lieux de @{handle} sur votre carte.",
   'pub.title': "Carte de {name}",
   'pub.notFound': "Cette carte est privée ou n'existe pas.",
@@ -321,7 +313,6 @@ const fr: Dict = {
   'set.erased': "Tous les voyages ont été effacés.",
   'set.version': "Version {v}",
   'set.contact': "Contact",
-  'set.open': "Ouvrir",
   'tile.miUnit': "mi",
   'story.farthestMi': "Le plus loin de chez vous : {name}, {mi} mi.",
   'map.settings': "Réglages",

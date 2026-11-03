@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const he: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'תעדו כל טיול. הדליקו את העולם שלכם. גלובוס תלת־ממדי פרטי של כל עיר ומדינה שביקרתם בהן, עם חותמות דרכון ויומן מסע.',
-  'app.noscript': 'Tripglobe זקוק ל־JavaScript כדי לצייר את הגלובוס שלכם.',
 
   'n.country': { one: 'מדינה אחת', two: 'שתי מדינות', many: '{n} מדינות', other: '{n} מדינות' },
   'n.city': { one: 'עיר אחת', two: 'שתי ערים', many: '{n} ערים', other: '{n} ערים' },
@@ -79,7 +78,6 @@ const he: Dict = {
   'section.upcoming': 'בקרוב',
   'section.dreams': 'רשימת חלומות',
   'section.recent': 'טיולים אחרונים',
-  'section.settings': 'הגדרות',
   'when.today': 'היום',
   'when.tomorrow': 'מחר',
   'when.inDays': { one: 'בעוד יום', two: 'בעוד יומיים', many: 'בעוד {n} ימים', other: 'בעוד {n} ימים' },
@@ -87,9 +85,6 @@ const he: Dict = {
   'dream.plan': 'לתכנן',
   'dream.remove': 'הסרה מרשימת החלומות',
   'dream.empty': 'הקישו על עיר או מדינה כלשהי במפה ובחרו ״הוספה לרשימת החלומות״. מקומות שאתם חולמים לראות זוהרים כדגלים מקווקווים.',
-  'set.light': 'מצב בהיר',
-  'set.dark': 'מצב כהה',
-  'set.look': 'שינוי המראה',
   'set.home': 'בית: {name}',
   'set.chooseHome': 'בחירת עיר המגורים',
   'set.homeNote': 'משמש למדידת מרחקים',
@@ -98,7 +93,6 @@ const he: Dict = {
   'set.import': 'ייבוא גיבוי',
   'set.importNote': 'שחזור מקובץ',
   'set.language': 'שפה',
-  'set.languageNote': 'בחרו באיזו שפה Tripglobe ידבר איתכם',
   'set.fine': 'הטיולים שלכם נשמרים בטלפון הזה. ערים וגבולות מ־Natural Earth, דגלים מ־country-flag-icons.',
   'set.fineCloud': 'הטיולים שלכם נשמרים בטלפון הזה, ואם תתחברו, גם בחשבון הפרטי שלכם. ערים וגבולות מ־Natural Earth, דגלים מ־country-flag-icons.',
 
@@ -176,7 +170,6 @@ const he: Dict = {
 
   'acct.row': 'התחברות',
   'acct.rowNote': 'גיבוי וסנכרון בין מכשירים',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'החשבון שלכם',
   'acct.lede': 'גבו את המפה וראו אותה בכל מכשיר. הטיולים שלכם נשארים פרטיים עד שתחליטו אחרת.',
   'acct.google': 'המשך עם Google',
@@ -263,7 +256,6 @@ const he: Dict = {
   'fr.reported': "תודה. נבדוק את זה.",
   'fr.copyLink': "העתקת הקישור הציבורי שלי",
   'fr.linkCopied': "הקישור הועתק.",
-  'fr.newRequest': "@{handle} שלח/ה לכם בקשת חברות.",
   'fr.overlayOn': "המקומות של @{handle} מוצגים במפה שלכם.",
   'pub.title': "המפה של {name}",
   'pub.notFound': "המפה הזו פרטית או שאינה קיימת.",
@@ -321,7 +313,6 @@ const he: Dict = {
   'set.erased': "כל הטיולים נמחקו.",
   'set.version': "גרסה {v}",
   'set.contact': "יצירת קשר",
-  'set.open': "פתיחה",
   'tile.miUnit': "מייל",
   'story.farthestMi': "הכי רחוק מהבית: {name}, {mi} מייל.",
   'map.settings': "הגדרות",

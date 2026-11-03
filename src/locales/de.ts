@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const de: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'Halte jede Reise fest. Bring deine Welt zum Leuchten. Ein privater 3D-Globus mit allen Städten und Ländern, in denen du warst, mit Passstempeln und Reisetagebuch.',
-  'app.noscript': 'Tripglobe braucht JavaScript, um deinen Globus zu zeichnen.',
 
   'n.country': { one: '{n} Land', other: '{n} Länder' },
   'n.city': { one: '{n} Stadt', other: '{n} Städte' },
@@ -79,7 +78,6 @@ const de: Dict = {
   'section.upcoming': 'Demnächst',
   'section.dreams': 'Traumliste',
   'section.recent': 'Letzte Reisen',
-  'section.settings': 'Einstellungen',
   'when.today': 'Heute',
   'when.tomorrow': 'Morgen',
   'when.inDays': 'In {n} Tagen',
@@ -87,9 +85,6 @@ const de: Dict = {
   'dream.plan': 'Planen',
   'dream.remove': 'Von der Traumliste entfernen',
   'dream.empty': 'Tippe auf der Karte auf eine Stadt oder ein Land und wähle „Zur Traumliste hinzufügen“. Orte, die du sehen willst, leuchten als gestrichelte Flaggen.',
-  'set.light': 'Heller Modus',
-  'set.dark': 'Dunkler Modus',
-  'set.look': 'Aussehen ändern',
   'set.home': 'Zuhause: {name}',
   'set.chooseHome': 'Heimatstadt wählen',
   'set.homeNote': 'Zum Messen von Entfernungen',
@@ -98,7 +93,6 @@ const de: Dict = {
   'set.import': 'Sicherung importieren',
   'set.importNote': 'Aus einer Datei wiederherstellen',
   'set.language': 'Sprache',
-  'set.languageNote': 'Wähle, wie Tripglobe mit dir spricht',
   'set.fine': 'Deine Reisen liegen auf diesem Handy. Städte und Grenzen von Natural Earth, Flaggen von country-flag-icons.',
   'set.fineCloud': 'Deine Reisen liegen auf diesem Handy und, wenn du dich anmeldest, in deinem privaten Konto. Städte und Grenzen von Natural Earth, Flaggen von country-flag-icons.',
 
@@ -176,7 +170,6 @@ const de: Dict = {
 
   'acct.row': 'Anmelden',
   'acct.rowNote': 'Sichern und auf allen Geräten synchronisieren',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'Dein Konto',
   'acct.lede': 'Sichere deine Karte und sieh sie auf jedem Gerät. Deine Reisen bleiben privat, bis du etwas anderes festlegst.',
   'acct.google': 'Weiter mit Google',
@@ -263,7 +256,6 @@ const de: Dict = {
   'fr.reported': "Danke. Wir prüfen das.",
   'fr.copyLink': "Meinen öffentlichen Link kopieren",
   'fr.linkCopied': "Link kopiert.",
-  'fr.newRequest': "@{handle} hat dir eine Freundschaftsanfrage geschickt.",
   'fr.overlayOn': "Die Orte von @{handle} werden auf deiner Karte angezeigt.",
   'pub.title': "Karte von {name}",
   'pub.notFound': "Diese Karte ist privat oder existiert nicht.",
@@ -321,7 +313,6 @@ const de: Dict = {
   'set.erased': "Alle Reisen gelöscht.",
   'set.version': "Version {v}",
   'set.contact': "Kontakt",
-  'set.open': "Öffnen",
   'tile.miUnit': "mi",
   'story.farthestMi': "Am weitesten von zu Hause: {name}, {mi} mi.",
   'map.settings': "Einstellungen",

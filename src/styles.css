@@ -112,7 +112,7 @@ kbd { font: 600 11px/1 var(--body); color: var(--dim); background: var(--surface
 .t-big { margin: 14px 0 0; font: 700 62px/1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums }
 .t-big span { font-size: 22px; font-weight: 500; letter-spacing: 0; color: var(--dim) }
 .t-note { margin: 10px 0 0; color: var(--dim); font-size: 15px }
-.bar-fill, .tile .bar { height: 12px; margin-top: 18px; border-radius: 99px; background: var(--chip-on-glass); overflow: hidden }
+.tile .bar { height: 12px; margin-top: 18px; border-radius: 99px; background: var(--chip-on-glass); overflow: hidden }
 .tile .bar i { display: block; height: 100%; border-radius: 99px; background: var(--accent) }
 .cont { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none }
 .cont li { padding: 6px 13px; border-radius: 99px; background: var(--chip-on-glass); color: var(--dim); font-size: 13px; font-weight: 600 }

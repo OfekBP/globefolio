@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const es: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'Registra cada viaje. Ilumina tu mundo. Un globo 3D privado con todas las ciudades y países que has visitado, con sellos de pasaporte y diario de viaje.',
-  'app.noscript': 'Tripglobe necesita JavaScript para dibujar tu globo.',
 
   'n.country': { one: '{n} país', other: '{n} países' },
   'n.city': { one: '{n} ciudad', other: '{n} ciudades' },
@@ -79,7 +78,6 @@ const es: Dict = {
   'section.upcoming': 'Próximamente',
   'section.dreams': 'Lista de sueños',
   'section.recent': 'Viajes recientes',
-  'section.settings': 'Ajustes',
   'when.today': 'Hoy',
   'when.tomorrow': 'Mañana',
   'when.inDays': 'En {n} días',
@@ -87,9 +85,6 @@ const es: Dict = {
   'dream.plan': 'Planéalo',
   'dream.remove': 'Quitar de la lista de sueños',
   'dream.empty': 'Toca cualquier ciudad o país del mapa y elige «Añadir a la lista de sueños». Los lugares que sueñas ver brillan como banderas punteadas.',
-  'set.light': 'Modo claro',
-  'set.dark': 'Modo oscuro',
-  'set.look': 'Cambia el aspecto',
   'set.home': 'Casa: {name}',
   'set.chooseHome': 'Elige tu ciudad de origen',
   'set.homeNote': 'Se usa para medir distancias',
@@ -98,7 +93,6 @@ const es: Dict = {
   'set.import': 'Importar copia',
   'set.importNote': 'Restaurar desde un archivo',
   'set.language': 'Idioma',
-  'set.languageNote': 'Elige cómo te habla Tripglobe',
   'set.fine': 'Tus viajes viven en este teléfono. Ciudades y fronteras de Natural Earth, banderas de country-flag-icons.',
   'set.fineCloud': 'Tus viajes viven en este teléfono y, si inicias sesión, en tu cuenta privada. Ciudades y fronteras de Natural Earth, banderas de country-flag-icons.',
 
@@ -176,7 +170,6 @@ const es: Dict = {
 
   'acct.row': 'Iniciar sesión',
   'acct.rowNote': 'Copia de seguridad y sincronización entre dispositivos',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'Tu cuenta',
   'acct.lede': 'Guarda tu mapa y velo en todos tus dispositivos. Tus viajes siguen siendo privados hasta que decidas lo contrario.',
   'acct.google': 'Continuar con Google',
@@ -263,7 +256,6 @@ const es: Dict = {
   'fr.reported': "Gracias. Lo revisaremos.",
   'fr.copyLink': "Copiar mi enlace público",
   'fr.linkCopied': "Enlace copiado.",
-  'fr.newRequest': "@{handle} te ha enviado una solicitud de amistad.",
   'fr.overlayOn': "Mostrando los lugares de @{handle} en tu mapa.",
   'pub.title': "Mapa de {name}",
   'pub.notFound': "Este mapa es privado o no existe.",
@@ -321,7 +313,6 @@ const es: Dict = {
   'set.erased': "Se borraron todos los viajes.",
   'set.version': "Versión {v}",
   'set.contact': "Contacto",
-  'set.open': "Abrir",
   'tile.miUnit': "mi",
   'story.farthestMi': "Lo más lejos de casa: {name}, {mi} mi.",
   'map.settings': "Ajustes",

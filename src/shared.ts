@@ -29,7 +29,6 @@ export async function createShared(title: string): Promise<string> {
   return data!.id as string
 }
 
-export const renameShared = async (id: string, title: string) => fail((await need().from('shared_trips').update({ title: title.trim().slice(0, 80) }).eq('id', id)).error)
 export const deleteShared = async (id: string) => fail((await need().from('shared_trips').delete().eq('id', id)).error)
 
 export async function getStops(tripId: string): Promise<Stop[]> {

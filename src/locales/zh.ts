@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const zh: Dict = {
   'app.title': 'Tripglobe',
   'app.description': '记录每一次旅行，点亮你的世界。一个私密的 3D 地球，收录你去过的每座城市和每个国家，配有护照印章和旅行日记。',
-  'app.noscript': 'Tripglobe 需要 JavaScript 才能绘制你的地球。',
 
   'n.country': { other: '{n} 个国家' },
   'n.city': { other: '{n} 座城市' },
@@ -79,7 +78,6 @@ const zh: Dict = {
   'section.upcoming': '即将出发',
   'section.dreams': '心愿清单',
   'section.recent': '最近的旅行',
-  'section.settings': '设置',
   'when.today': '今天',
   'when.tomorrow': '明天',
   'when.inDays': { other: '{n} 天后' },
@@ -87,9 +85,6 @@ const zh: Dict = {
   'dream.plan': '去计划',
   'dream.remove': '从心愿清单移除',
   'dream.empty': '在地图上点按任意城市或国家，选择“加入心愿清单”。你想去的地方会以虚线旗帜发光。',
-  'set.light': '浅色模式',
-  'set.dark': '深色模式',
-  'set.look': '切换外观',
   'set.home': '家：{name}',
   'set.chooseHome': '选择你的家乡城市',
   'set.homeNote': '用于计算距离',
@@ -98,7 +93,6 @@ const zh: Dict = {
   'set.import': '导入备份',
   'set.importNote': '从文件恢复',
   'set.language': '语言',
-  'set.languageNote': '选择 Tripglobe 使用的语言',
   'set.fine': '你的旅行保存在这部手机上。城市和边界数据来自 Natural Earth，旗帜来自 country-flag-icons。',
   'set.fineCloud': '你的旅行保存在这部手机上；登录后也会保存在你的私人账户中。城市和边界数据来自 Natural Earth，旗帜来自 country-flag-icons。',
 
@@ -176,7 +170,6 @@ const zh: Dict = {
 
   'acct.row': '登录',
   'acct.rowNote': '备份并在多台设备间同步',
-  'acct.rowIn': '@{handle}',
   'acct.title': '你的账户',
   'acct.lede': '备份你的地图，并在每台设备上查看。除非你另行选择，你的旅行始终保持私密。',
   'acct.google': '通过 Google 继续',
@@ -263,7 +256,6 @@ const zh: Dict = {
   'fr.reported': "谢谢，我们会查看。",
   'fr.copyLink': "复制我的公开链接",
   'fr.linkCopied': "链接已复制。",
-  'fr.newRequest': "@{handle} 向你发送了好友请求。",
   'fr.overlayOn': "正在你的地图上显示 @{handle} 去过的地方。",
   'pub.title': "{name}的地图",
   'pub.notFound': "这张地图是私密的，或不存在。",
@@ -321,7 +313,6 @@ const zh: Dict = {
   'set.erased': "所有旅行已清除。",
   'set.version': "版本 {v}",
   'set.contact': "联系我们",
-  'set.open': "打开",
   'tile.miUnit': "英里",
   'story.farthestMi': "离家最远：{name}，{mi} 英里。",
   'map.settings': "设置",

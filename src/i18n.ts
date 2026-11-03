@@ -36,7 +36,6 @@ let regionNames: Intl.DisplayNames | null = null
 const listeners = new Set<() => void>()
 
 export const getLocale = () => code
-export const isRtl = () => LOCALES.find(l => l.code === code)?.dir === 'rtl'
 export const onLocale = (fn: () => void) => { listeners.add(fn) }
 /** Numbers always use Western digits so they line up with the map and stamps in every language. */
 const tag = () => `${code}-u-nu-latn`
@@ -61,7 +60,7 @@ export function cname(c: Country): string {
   try { return regionNames.of(a.toUpperCase()) || c.properties.n } catch { return c.properties.n }
 }
 
-export function pickInitial(): string {
+function pickInitial(): string {
   try {
     const saved = localStorage.getItem(KEY)
     if (saved && LOCALES.some(l => l.code === saved)) return saved
@@ -88,7 +87,7 @@ function apply() {
 }
 
 /** Fills the fixed markup in index.html: data-i18n (text), data-i18n-label (aria-label), data-i18n-ph (placeholder), data-i18n-title. */
-export function translateStatic(root: ParentNode = document) {
+function translateStatic(root: ParentNode = document) {
   root.querySelectorAll<HTMLElement>('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n!) })
   root.querySelectorAll<HTMLElement>('[data-i18n-label]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nLabel!)))
   root.querySelectorAll<HTMLElement>('[data-i18n-ph]').forEach(el => el.setAttribute('placeholder', t(el.dataset.i18nPh!)))

@@ -47,9 +47,9 @@ export default defineConfig(({ mode }) => ({
   plugins: [csp(loadEnv(mode, process.cwd(), 'VITE_'))],
   build: {
     rollupOptions: {
+      output: { manualChunks: { supabase: ['@supabase/supabase-js'] } }, // its own file, so app updates do not re-download it
       input: {
         main: resolve(__dirname, 'index.html'),
-        brand: resolve(__dirname, 'brand.html'),
         privacy: resolve(__dirname, 'privacy.html'),
         terms: resolve(__dirname, 'terms.html'),
       },

@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const ru: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'Отмечайте каждое путешествие. Зажгите свой мир. Личный 3D-глобус всех городов и стран, где вы бывали, со штампами паспорта и дневником путешествий.',
-  'app.noscript': 'Для отрисовки глобуса Tripglobe нужен JavaScript.',
 
   'n.country': { one: '{n} страна', few: '{n} страны', many: '{n} стран', other: '{n} страны' },
   'n.city': { one: '{n} город', few: '{n} города', many: '{n} городов', other: '{n} города' },
@@ -79,7 +78,6 @@ const ru: Dict = {
   'section.upcoming': 'Скоро',
   'section.dreams': 'Список мечтаний',
   'section.recent': 'Недавние поездки',
-  'section.settings': 'Настройки',
   'when.today': 'Сегодня',
   'when.tomorrow': 'Завтра',
   'when.inDays': { one: 'Через {n} день', few: 'Через {n} дня', many: 'Через {n} дней', other: 'Через {n} дня' },
@@ -87,9 +85,6 @@ const ru: Dict = {
   'dream.plan': 'Спланировать',
   'dream.remove': 'Убрать из списка мечтаний',
   'dream.empty': 'Нажмите на любой город или страну на карте и выберите «Добавить в список мечтаний». Места, которые вы мечтаете увидеть, светятся пунктирными флагами.',
-  'set.light': 'Светлая тема',
-  'set.dark': 'Тёмная тема',
-  'set.look': 'Сменить оформление',
   'set.home': 'Дом: {name}',
   'set.chooseHome': 'Выберите родной город',
   'set.homeNote': 'Нужен для расчёта расстояний',
@@ -98,7 +93,6 @@ const ru: Dict = {
   'set.import': 'Импорт копии',
   'set.importNote': 'Восстановить из файла',
   'set.language': 'Язык',
-  'set.languageNote': 'Выберите язык Tripglobe',
   'set.fine': 'Ваши поездки хранятся на этом телефоне. Города и границы: Natural Earth, флаги: country-flag-icons.',
   'set.fineCloud': 'Ваши поездки хранятся на этом телефоне и, если вы войдёте, в вашем личном аккаунте. Города и границы: Natural Earth, флаги: country-flag-icons.',
 
@@ -176,7 +170,6 @@ const ru: Dict = {
 
   'acct.row': 'Войти',
   'acct.rowNote': 'Резервная копия и синхронизация между устройствами',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'Ваш аккаунт',
   'acct.lede': 'Сохраните карту и открывайте её на любом устройстве. Ваши поездки остаются личными, пока вы не решите иначе.',
   'acct.google': 'Продолжить через Google',
@@ -263,7 +256,6 @@ const ru: Dict = {
   'fr.reported': "Спасибо. Мы проверим.",
   'fr.copyLink': "Скопировать мою публичную ссылку",
   'fr.linkCopied': "Ссылка скопирована.",
-  'fr.newRequest': "@{handle} отправил(а) вам запрос в друзья.",
   'fr.overlayOn': "Места @{handle} показаны на вашей карте.",
   'pub.title': "Карта: {name}",
   'pub.notFound': "Эта карта закрыта или не существует.",
@@ -321,7 +313,6 @@ const ru: Dict = {
   'set.erased': "Все поездки стёрты.",
   'set.version': "Версия {v}",
   'set.contact': "Связаться",
-  'set.open': "Открыть",
   'tile.miUnit': "мили",
   'story.farthestMi': "Дальше всего от дома: {name}, {mi} миль.",
   'map.settings': "Настройки",

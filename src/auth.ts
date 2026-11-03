@@ -9,7 +9,6 @@ export const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'privacy@tripg
 
 let session: Session | null = null
 let profile: Profile | null = null
-let ready = false
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach(fn => fn())
 
@@ -17,7 +16,6 @@ export const onAuth = (fn: () => void) => { listeners.add(fn); return () => { li
 export const getSession = () => session
 export const getProfile = () => profile
 export const signedIn = () => !!session
-export const authReady = () => ready
 
 async function loadProfile() {
   if (!supabase || !session) { profile = null; return }
@@ -26,11 +24,10 @@ async function loadProfile() {
 }
 
 export async function initAuth() {
-  if (!supabase) { ready = true; return }
+  if (!supabase) { return }
   const { data } = await supabase.auth.getSession()
   session = data.session
   await loadProfile()
-  ready = true
   emit()
   supabase.auth.onAuthStateChange(async (event, s) => {
     const changed = s?.user.id !== session?.user.id

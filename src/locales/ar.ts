@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const ar: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'سجّل كل رحلة. أضئ عالمك. كرة أرضية ثلاثية الأبعاد خاصة بكل مدينة ودولة زرتها، مع أختام جواز السفر ويوميات السفر.',
-  'app.noscript': 'يحتاج Tripglobe إلى JavaScript لرسم كرتك الأرضية.',
 
   'n.country': { zero: '{n} دولة', one: 'دولة واحدة', two: 'دولتان', few: '{n} دول', many: '{n} دولة', other: '{n} دولة' },
   'n.city': { zero: '{n} مدينة', one: 'مدينة واحدة', two: 'مدينتان', few: '{n} مدن', many: '{n} مدينة', other: '{n} مدينة' },
@@ -79,7 +78,6 @@ const ar: Dict = {
   'section.upcoming': 'قريبًا',
   'section.dreams': 'قائمة الأحلام',
   'section.recent': 'أحدث الرحلات',
-  'section.settings': 'الإعدادات',
   'when.today': 'اليوم',
   'when.tomorrow': 'غدًا',
   'when.inDays': { one: 'بعد يوم واحد', two: 'بعد يومين', few: 'بعد {n} أيام', many: 'بعد {n} يومًا', other: 'بعد {n} يوم' },
@@ -87,9 +85,6 @@ const ar: Dict = {
   'dream.plan': 'خطّط لها',
   'dream.remove': 'إزالة من قائمة الأحلام',
   'dream.empty': 'اضغط على أي مدينة أو دولة في الخريطة واختر «أضف إلى قائمة الأحلام». الأماكن التي تحلم بزيارتها تتوهج كأعلام متقطعة.',
-  'set.light': 'الوضع الفاتح',
-  'set.dark': 'الوضع الداكن',
-  'set.look': 'غيّر المظهر',
   'set.home': 'المنزل: {name}',
   'set.chooseHome': 'اختر مدينة منزلك',
   'set.homeNote': 'تُستخدم لقياس المسافات',
@@ -98,7 +93,6 @@ const ar: Dict = {
   'set.import': 'استيراد نسخة احتياطية',
   'set.importNote': 'استعادة من ملف',
   'set.language': 'اللغة',
-  'set.languageNote': 'اختر لغة Tripglobe',
   'set.fine': 'رحلاتك محفوظة على هذا الهاتف. المدن والحدود من Natural Earth، والأعلام من country-flag-icons.',
   'set.fineCloud': 'رحلاتك محفوظة على هذا الهاتف، وإذا سجلت الدخول ففي حسابك الخاص. المدن والحدود من Natural Earth، والأعلام من country-flag-icons.',
 
@@ -176,7 +170,6 @@ const ar: Dict = {
 
   'acct.row': 'تسجيل الدخول',
   'acct.rowNote': 'نسخ احتياطي ومزامنة بين الأجهزة',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'حسابك',
   'acct.lede': 'احتفظ بنسخة من خريطتك وشاهدها على كل أجهزتك. تبقى رحلاتك خاصة ما لم تقرر غير ذلك.',
   'acct.google': 'المتابعة عبر Google',
@@ -263,7 +256,6 @@ const ar: Dict = {
   'fr.reported': "شكرًا. سنراجع الأمر.",
   'fr.copyLink': "نسخ رابطي العام",
   'fr.linkCopied': "تم نسخ الرابط.",
-  'fr.newRequest': "أرسل لك @{handle} طلب صداقة.",
   'fr.overlayOn': "تُعرض أماكن @{handle} على خريطتك.",
   'pub.title': "خريطة {name}",
   'pub.notFound': "هذه الخريطة خاصة أو غير موجودة.",
@@ -321,7 +313,6 @@ const ar: Dict = {
   'set.erased': "تم مسح كل الرحلات.",
   'set.version': "الإصدار {v}",
   'set.contact': "تواصل",
-  'set.open': "فتح",
   'tile.miUnit': "ميل",
   'story.farthestMi': "الأبعد عن المنزل: {name}، {mi} ميلًا.",
   'map.settings': "الإعدادات",

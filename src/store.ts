@@ -134,7 +134,6 @@ export async function setHome(iso: string) {
 
 export const getMeta = async (k: string) => (await dbp).get('meta', k)
 export const setMeta = async (k: string, v: string) => { await (await dbp).put('meta', v, k) }
-export const delMeta = async (k: string) => { await (await dbp).delete('meta', k) }
 
 /** Every row (tombstones included) that still needs to reach the cloud. */
 export async function pendingRows(): Promise<{ table: Table; row: Row }[]> {

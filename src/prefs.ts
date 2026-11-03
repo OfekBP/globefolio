@@ -25,6 +25,6 @@ export function setPref<K extends keyof Prefs>(k: K, v: Prefs[K]) {
   listeners.forEach(fn => fn())
 }
 
-export const KM_PER_MILE = 1.609344
+const KM_PER_MILE = 1.609344
 /** A distance in kilometres, as the number to show in the chosen unit. */
 export const inUnits = (km: number) => (cur.units === 'mi' ? km / KM_PER_MILE : km)

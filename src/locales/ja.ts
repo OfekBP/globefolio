@@ -3,7 +3,6 @@ import type { Dict } from '../i18n'
 const ja: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'すべての旅を記録して、あなたの世界を輝かせよう。訪れた都市と国を3Dの地球儀に残せるプライベートなアプリ。パスポートのスタンプと旅の日記つき。',
-  'app.noscript': 'Tripglobeで地球儀を表示するにはJavaScriptが必要です。',
 
   'n.country': { other: '{n}か国' },
   'n.city': { other: '{n}都市' },
@@ -79,7 +78,6 @@ const ja: Dict = {
   'section.upcoming': 'もうすぐ',
   'section.dreams': '行きたいリスト',
   'section.recent': '最近の旅',
-  'section.settings': '設定',
   'when.today': '今日',
   'when.tomorrow': '明日',
   'when.inDays': { other: '{n}日後' },
@@ -87,9 +85,6 @@ const ja: Dict = {
   'dream.plan': '計画する',
   'dream.remove': '行きたいリストから削除',
   'dream.empty': '地図上の都市や国をタップして「行きたいリストに追加」を選びましょう。行ってみたい場所は点線の旗で光ります。',
-  'set.light': 'ライトモード',
-  'set.dark': 'ダークモード',
-  'set.look': '見た目を切り替える',
   'set.home': '自宅：{name}',
   'set.chooseHome': '自宅の都市を選ぶ',
   'set.homeNote': '距離の計測に使います',
@@ -98,7 +93,6 @@ const ja: Dict = {
   'set.import': 'バックアップを読み込む',
   'set.importNote': 'ファイルから復元',
   'set.language': '言語',
-  'set.languageNote': 'Tripglobeの表示言語を選びます',
   'set.fine': '旅の記録はこの端末に保存されます。都市と国境のデータはNatural Earth、旗はcountry-flag-iconsによるものです。',
   'set.fineCloud': '旅の記録はこの端末に保存され、ログインするとあなた専用のアカウントにも保存されます。都市と国境のデータはNatural Earth、旗はcountry-flag-iconsによるものです。',
 
@@ -176,7 +170,6 @@ const ja: Dict = {
 
   'acct.row': 'ログイン',
   'acct.rowNote': 'バックアップして端末間で同期',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'アカウント',
   'acct.lede': '地図をバックアップして、どの端末でも見られます。あなたが変更しない限り、旅の記録は非公開のままです。',
   'acct.google': 'Googleで続ける',
@@ -263,7 +256,6 @@ const ja: Dict = {
   'fr.reported': "ありがとうございます。確認します。",
   'fr.copyLink': "公開リンクをコピー",
   'fr.linkCopied': "リンクをコピーしました。",
-  'fr.newRequest': "@{handle} さんから友だちリクエストが届きました。",
   'fr.overlayOn': "@{handle} さんの場所をあなたの地図に表示しています。",
   'pub.title': "{name}さんの地図",
   'pub.notFound': "この地図は非公開か、存在しません。",
@@ -321,7 +313,6 @@ const ja: Dict = {
   'set.erased': "すべての旅を消去しました。",
   'set.version': "バージョン {v}",
   'set.contact': "お問い合わせ",
-  'set.open': "開く",
   'tile.miUnit': "マイル",
   'story.farthestMi': "自宅から最も遠い場所：{name}、{mi}マイル。",
   'map.settings': "設定",

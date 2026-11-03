@@ -5,7 +5,7 @@ import { esc, stampDate } from './format'
 // Ink colours of real passport stamps: blue, red, violet, green, brown. All friendly, none harsh.
 const INKS = ['#0e7490', '#d6466a', '#4b4fbf', '#1e8e5a', '#8a3fa0', '#c2761a']
 const hash = (s: string) => { let h = 7; for (const ch of s) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return h }
-export const inkOf = (key: string) => INKS[hash(key) % INKS.length]
+const inkOf = (key: string) => INKS[hash(key) % INKS.length]
 
 /** Letter-spacing breaks the joined letters of Arabic and the flow of Hebrew, Chinese and Japanese, so those scripts stamp tight. */
 const tight = () => ['ar', 'he', 'zh', 'ja'].includes(getLocale())

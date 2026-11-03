@@ -76,4 +76,3 @@ node scripts/build-geo.mjs <folder>                # geo data from Natural Earth
 node scripts/build-borders.mjs <folder>            # region borders and city outlines
 ```
 
-The brand guide lives in `brand.html` (served at `/brand.html`) and `BRAND.md`.

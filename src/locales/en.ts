@@ -4,7 +4,6 @@ import type { Dict } from '../i18n'
 const en: Dict = {
   'app.title': 'Tripglobe',
   'app.description': 'Track every trip. Light up your world. A private 3D globe of every city and country you have been to, with passport stamps and a travel journal.',
-  'app.noscript': 'Tripglobe needs JavaScript to draw your globe.',
 
   // nouns with counts
   'n.country': { one: '{n} country', other: '{n} countries' },
@@ -84,7 +83,6 @@ const en: Dict = {
   'section.upcoming': 'Coming up',
   'section.dreams': 'Dream list',
   'section.recent': 'Recent trips',
-  'section.settings': 'Settings',
   'when.today': 'Today',
   'when.tomorrow': 'Tomorrow',
   'when.inDays': 'In {n} days',
@@ -92,9 +90,6 @@ const en: Dict = {
   'dream.plan': 'Plan it',
   'dream.remove': 'Remove from dream list',
   'dream.empty': 'Tap any city or country on the map and choose "Add to dream list". Places you wish to see glow as dashed flags.',
-  'set.light': 'Light mode',
-  'set.dark': 'Dark mode',
-  'set.look': 'Switch the look',
   'set.home': 'Home: {name}',
   'set.chooseHome': 'Choose your home city',
   'set.homeNote': 'Used to measure distance',
@@ -103,7 +98,6 @@ const en: Dict = {
   'set.import': 'Import backup',
   'set.importNote': 'Restore from a file',
   'set.language': 'Language',
-  'set.languageNote': 'Choose how Tripglobe speaks to you',
   'set.fine': 'Your trips live on this phone. Cities and borders from Natural Earth, flags by country-flag-icons.',
   'set.fineCloud': 'Your trips live on this phone and, if you sign in, in your private account. Cities and borders from Natural Earth, flags by country-flag-icons.',
 
@@ -185,7 +179,6 @@ const en: Dict = {
   // account
   'acct.row': 'Sign in',
   'acct.rowNote': 'Back up and sync across devices',
-  'acct.rowIn': '@{handle}',
   'acct.title': 'Your account',
   'acct.lede': 'Back up your map and see it on every device. Your trips stay private until you choose otherwise.',
   'acct.google': 'Continue with Google',
@@ -273,7 +266,6 @@ const en: Dict = {
   'fr.reported': "Thanks. We will look into it.",
   'fr.copyLink': "Copy my public link",
   'fr.linkCopied': "Link copied.",
-  'fr.newRequest': "@{handle} sent you a friend request.",
   'fr.overlayOn': "Showing @{handle}'s places on your map.",
   'pub.title': "{name}'s map",
   'pub.notFound': "This map is private or does not exist.",
@@ -331,7 +323,6 @@ const en: Dict = {
   'set.erased': "All trips erased.",
   'set.version': "Version {v}",
   'set.contact': "Contact",
-  'set.open': "Open",
   'tile.miUnit': "mi",
   'story.farthestMi': "Farthest from home: {name}, {mi} mi.",
   'map.settings': "Settings",

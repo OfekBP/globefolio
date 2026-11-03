@@ -1,6 +1,6 @@
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { getProfile, updateProfile } from './auth'
-import { applyRemote, clearLocal, delMeta, getHome, getMeta, markSynced, onChange, pendingRows, purgeTombstones, queueAll, resetSyncState, setHome, setMeta, type Table } from './store'
+import { applyRemote, clearLocal, getHome, getMeta, markSynced, onChange, pendingRows, purgeTombstones, queueAll, resetSyncState, setHome, setMeta, type Table } from './store'
 import { supabase } from './supabase'
 import { fromRemote, toRemote } from './syncMap'
 
@@ -135,4 +135,3 @@ async function syncHome() {
   await setMeta('homeSynced', (await getHome()) ?? '')
 }
 
-export const forgetCursor = async () => { for (const t of TABLES) await delMeta(`cursor:${t}`) }
