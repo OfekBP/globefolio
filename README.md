@@ -2,11 +2,11 @@
 
 *Light up your world.* A private, friendly 3D globe of everywhere you have been. Log a city and only that city lights up, while its country counts as visited. Every country and city you add is stamped into a passport.
 
-Everything stays on your phone (IndexedDB). No accounts, no server, works offline once installed.
+By default everything stays on your phone (IndexedDB) and it works offline once installed. Optionally you can sign in to sync across devices, add friends and plan trips together; with no backend configured the app is exactly the local one.
 
 ## Use
 
-It is built phone-first; on a wide screen it shows as a phone-sized column. Tabs: **Map**, **Passport**, **Discover**, **Journal**, plus the **+** button to log a trip.
+It is built phone-first; on a wide screen it shows as a phone-sized column. Tabs: **Map**, **Passport**, **Friends** (**Discover** when no backend is configured; "Surprise me" also lives in the Journal's dream list), **Journal**, plus the **+** button to log a trip.
 
 - **Log a trip:** tap **+**, search any city (or a whole country), add dates and a note.
 - **Flags on the globe:** cities wear a round flag, whole countries a banner. Visited places glow; overlapping flags fold into the most important one with a +N badge.
@@ -15,6 +15,28 @@ It is built phone-first; on a wide screen it shows as a phone-sized column. Tabs
 - **Timeline and replay:** drag the years slider, or press play to watch your travels fill in.
 - **Backup:** Journal → Export / Import a JSON file (your trips, dream list and home city).
 - **Light / dark:** the sun/moon button; the first visit follows your system.
+
+## Accounts, sync, friends, shared trips
+
+Optional, built on [Supabase](https://supabase.com) (choose an EU region). Without the two env vars below the whole feature set stays off and the app is local-only.
+
+- **Local first:** IndexedDB stays the source of truth. Changes are queued in an outbox and pushed when signed in; a cursor pull and Realtime keep other devices current. Last write wins by `updatedAt`; deletes are tombstones. Signing out flushes, then wipes the device.
+- **Privacy:** private by default. Friends see places and dates only through the `friend_map()` function, never notes, hidden trips or future trips. Every table has Row Level Security (`supabase/migrations/`, proved by `tests/rls.test.ts`).
+- **Languages:** 10, including RTL (Arabic, Hebrew). Strings live in `src/locales/`; `tests/i18n.test.ts` enforces key parity. The translations need a native-speaker review before launch.
+- **Legal:** `privacy.html` and `terms.html` are **drafts**, English only. Have a lawyer review them before a public launch.
+
+### Setup (once)
+
+1. Create a Supabase project (EU region) and run `supabase/migrations/20261103000000_init.sql` in the SQL editor (or `supabase db push`).
+2. Authentication → Providers: enable **Google** (OAuth client from Google Cloud Console) and **Email** (magic link). Set Site URL and Redirect URLs to your deployed address.
+3. Authentication → SMTP: set a real sender (Resend or Brevo); the built-in mailer is heavily rate-limited.
+4. Optional **Apple** sign-in (Apple Developer Program, $99/yr): configure the provider, then build with `VITE_APPLE_SIGNIN=1`.
+5. Put `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local` for local runs. For Pages, add them as repository **variables** (Settings → Secrets and variables → Actions → Variables); the anon key is public by design, security comes from RLS.
+6. Set `VITE_CONTACT_EMAIL` and `VITE_OPERATOR` in `.env` for the legal pages.
+
+```bash
+npm test           # RLS (in-process Postgres), sync merge rules, i18n parity
+```
 
 ## Run it
 

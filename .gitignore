@@ -6,3 +6,6 @@ dist
 .impeccable/mocks
 .claude
 .DS_Store
+.env.local
+.env*.local
+supabase/.temp

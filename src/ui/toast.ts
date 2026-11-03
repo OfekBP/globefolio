@@ -1,3 +1,5 @@
+import { t as tr } from '../i18n'
+
 /** A small, polite confirmation that fades itself out. With `undo`, it stays a little longer and offers to take the action back. */
 export function toast(msg: string, undo?: () => void) {
   document.querySelector('.toast')?.remove()
@@ -11,7 +13,7 @@ export function toast(msg: string, undo?: () => void) {
     const b = document.createElement('button')
     b.type = 'button'
     b.className = 'toast-undo'
-    b.textContent = 'Undo'
+    b.textContent = tr('toast.undo')
     b.onclick = () => { t.remove(); undo() }
     t.append(b)
   }

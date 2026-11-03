@@ -1,3 +1,4 @@
+import { cname } from '../i18n'
 import type { Place } from '../store'
 
 export interface Country {
@@ -100,9 +101,10 @@ export function search(geo: Geo, q: string, opts: { iso?: string; citiesOnly?: b
   const countryStarts: Hit[] = [], cityStarts: Hit[] = [], within: Hit[] = []
   if (!opts.citiesOnly && !opts.iso) {
     for (const country of geo.countries) {
-      const n = fold(country.properties.n)
-      if (n.startsWith(needle)) countryStarts.push({ kind: 'country', country })
-      else if (n.includes(needle)) within.push({ kind: 'country', country })
+      // match the English name and the name in the chosen language
+      const names = [fold(country.properties.n), fold(cname(country))]
+      if (names.some(n => n.startsWith(needle))) countryStarts.push({ kind: 'country', country })
+      else if (names.some(n => n.includes(needle))) within.push({ kind: 'country', country })
     }
   }
   const pool = opts.iso ? geo.citiesByIso.get(opts.iso) ?? [] : geo.cities
@@ -111,7 +113,7 @@ export function search(geo: Geo, q: string, opts: { iso?: string; citiesOnly?: b
     else if (within.length < 200 && city.fold.includes(needle)) within.push({ kind: 'city', city })
   }
   // Big cities lead, but a matching country is never buried under a pile of small towns.
-  const exact = (h: Hit) => (h.kind === 'city' ? h.city.fold : fold(h.country.properties.n)) === needle
+  const exact = (h: Hit) => (h.kind === 'city' ? h.city.fold === needle : [fold(h.country.properties.n), fold(cname(h.country))].includes(needle))
   const lead = [...countryStarts, ...cityStarts].filter(exact)
   const rest = [...cityStarts.slice(0, 3), ...countryStarts, ...cityStarts.slice(3)].filter(h => !lead.includes(h))
   const starts = [...lead, ...rest]

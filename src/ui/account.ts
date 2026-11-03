@@ -1,0 +1,151 @@
+import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, handleAvailable, handleOk, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { t } from '../i18n'
+import { flush, onSyncState, stopSync, syncState } from '../sync'
+import { esc } from './format'
+import { icons } from './icons'
+import { toast } from './toast'
+
+interface Ctx { back(): void; close(): void }
+
+const link = (href: string, text: string) => `<a href="${href}" target="_blank" rel="noopener">${esc(text)}</a>`
+
+/** The account sheet: sign in, pick a handle, and the privacy and data controls. It shows whichever step the person is on. */
+export function renderAccount(root: HTMLElement, ctx: Ctx) {
+  const session = getSession()
+  const profile = getProfile()
+  const head = `<button class="x" data-act="close" aria-label="${t('close')}">${icons.close}</button>`
+  const legal = `<p class="fine">${link('./privacy.html', t('acct.privacy'))} · ${link('./terms.html', t('acct.terms'))}</p>`
+
+  if (!session) {
+    root.innerHTML = `
+      <div class="sheet">
+        ${head}
+        <h2 class="title">${t('acct.title')}</h2>
+        <p class="lede">${t('acct.lede')}</p>
+        <div class="auth-stack">
+          <button class="solid wide" data-ax="google">${t('acct.google')}</button>
+          ${appleEnabled ? `<button class="solid wide dark" data-ax="apple">${t('acct.apple')}</button>` : ''}
+        </div>
+        <p class="or"><span>${t('acct.or')}</span></p>
+        <form id="email-form" novalidate>
+          <div class="field"><label for="a-email">${t('acct.email')}</label><input id="a-email" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="${t('acct.emailPh')}" /></div>
+          <button class="solid wide" type="submit">${t('acct.emailBtn')}</button>
+        </form>
+        <p class="status" id="a-status" role="status"></p>
+        <p class="fine">${t('acct.consent', { terms: link('./terms.html', t('acct.terms')), privacy: link('./privacy.html', t('acct.privacy')) })}</p>
+        <div class="foot-actions"><button class="text" data-ax="back">${t('acct.guest')}</button></div>
+      </div>`
+    const status = root.querySelector<HTMLElement>('#a-status')!
+    const say = (m: string, bad = false) => { status.textContent = m; status.classList.toggle('error', bad) }
+    const oauth = (p: 'google' | 'apple') => signInWithProvider(p).catch(() => say(t('acct.error'), true))
+    root.onclick = e => {
+      const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
+      if (k === 'google') void oauth('google')
+      else if (k === 'apple') void oauth('apple')
+      else if (k === 'back') ctx.back()
+    }
+    root.querySelector<HTMLFormElement>('#email-form')!.onsubmit = async e => {
+      e.preventDefault()
+      const email = root.querySelector<HTMLInputElement>('#a-email')!.value.trim()
+      if (!/^\S+@\S+\.\S+$/.test(email)) { say(t('acct.error'), true); return }
+      try { await signInWithEmail(email); say(t('acct.sent', { email })) } catch { say(t('acct.error'), true) }
+    }
+    return
+  }
+
+  if (!profile) {
+    root.innerHTML = `
+      <div class="sheet">
+        ${head}
+        <h2 class="title">${t('acct.handleTitle')}</h2>
+        <p class="lede">${t('acct.handleLede')}</p>
+        <form id="handle-form" novalidate>
+          <div class="field"><label for="a-handle">${t('acct.handle')}</label><input id="a-handle" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20" /></div>
+          <div class="field"><label for="a-name">${t('acct.name')}</label><input id="a-name" maxlength="40" autocomplete="name" /></div>
+          <p class="status" id="a-status" role="status"></p>
+          <button class="solid wide" type="submit">${t('acct.create')}</button>
+        </form>
+        ${legal}
+      </div>`
+    const status = root.querySelector<HTMLElement>('#a-status')!
+    root.querySelector<HTMLFormElement>('#handle-form')!.onsubmit = async e => {
+      e.preventDefault()
+      const h = root.querySelector<HTMLInputElement>('#a-handle')!.value.trim().toLowerCase()
+      const name = root.querySelector<HTMLInputElement>('#a-name')!.value
+      status.classList.add('error')
+      if (!handleOk(h)) { status.textContent = t('acct.handleBad'); return }
+      if (!(await handleAvailable(h))) { status.textContent = t('acct.handleTaken'); return }
+      try { await createProfile(h, name); toast(`@${h}`) } catch { status.textContent = t('acct.handleTaken') }
+    }
+    root.onclick = e => { if ((e.target as HTMLElement).closest('[data-ax=back]')) ctx.back() }
+    return
+  }
+
+  const vis = (v: Visibility) => `
+    <label class="vis-row"><input type="radio" name="vis" value="${v}" ${profile.visibility === v ? 'checked' : ''} />
+      <span><b>${t(`acct.vis.${v}`)}</b><small>${t(`acct.vis.${v}Note`)}</small></span></label>`
+  root.innerHTML = `
+    <div class="sheet">
+      ${head}
+      <h2 class="title">@${esc(profile.handle)}</h2>
+      <p class="lede">${t('acct.signedIn', { email: esc(session.user.email ?? '') })}</p>
+      <p class="sync-line" id="sync-line" role="status"></p>
+      <h3 class="sub-title">${t('acct.vis')}</h3>
+      <fieldset class="vis">${vis('private')}${vis('friends')}${vis('public')}</fieldset>
+      <p class="fine">${t('acct.hideNote')}</p>
+      <ul class="setting acct-actions">
+        <li><button data-ax="export"><span>${icons.download}</span><b>${t('acct.export')}</b><small>${t('acct.exportNote')}</small></button></li>
+        <li><button data-ax="signout"><span>${icons.user}</span><b>${t('acct.signOut')}</b><small>${t('acct.signOutNote')}</small></button></li>
+      </ul>
+      <p class="status error" id="a-status" role="alert"></p>
+      <details class="danger-zone">
+        <summary>${t('acct.delete')}</summary>
+        <p class="fine">${t('acct.deleteWarn')}</p>
+        <div class="field"><label for="a-confirm">${t('acct.deleteConfirm')}</label><input id="a-confirm" dir="ltr" autocomplete="off" autocapitalize="none" spellcheck="false" /></div>
+        <button class="solid wide danger" data-ax="delete" disabled>${t('acct.deleteBtn')}</button>
+      </details>
+      <p class="fine">${link(`mailto:${contactEmail}`, t('acct.contact'))}</p>
+      ${legal}
+    </div>`
+
+  const line = root.querySelector<HTMLElement>('#sync-line')!
+  const paint = () => { line.textContent = t(`acct.sync.${syncState() === 'off' ? 'syncing' : syncState()}`); line.dataset.state = syncState() }
+  paint()
+  const off = onSyncState(() => { if (line.isConnected) paint(); else off() })
+
+  const status = root.querySelector<HTMLElement>('#a-status')!
+  const confirm = root.querySelector<HTMLInputElement>('#a-confirm')!
+  const del = root.querySelector<HTMLButtonElement>('[data-ax=delete]')!
+  confirm.oninput = () => { del.disabled = confirm.value.trim().toLowerCase() !== profile.handle }
+  root.onchange = e => {
+    const r = e.target as HTMLInputElement
+    if (r.name === 'vis') void updateProfile({ visibility: r.value as Visibility }).catch(() => { status.textContent = t('acct.error') })
+  }
+  root.onclick = async e => {
+    const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
+    status.textContent = ''
+    if (k === 'export') {
+      try {
+        const data = await exportCloudData()
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
+        a.download = `tripglobe-account-${new Date().toISOString().slice(0, 10)}.json`
+        a.click()
+        URL.revokeObjectURL(a.href)
+      } catch { status.textContent = t('acct.error') }
+    } else if (k === 'signout') {
+      if (!(await flush())) { status.textContent = t('acct.signOutFail'); return }
+      await stopSync({ wipe: true })
+      await signOutRemote()
+      ctx.close()
+    } else if (k === 'delete' && !del.disabled) {
+      try {
+        await deleteAccount()
+        await stopSync({ wipe: false }) // the trips on this phone stay, as a guest map
+        await signOutRemote()
+        ctx.close()
+        toast(t('acct.deleted'))
+      } catch { status.textContent = t('acct.error') }
+    }
+  }
+}

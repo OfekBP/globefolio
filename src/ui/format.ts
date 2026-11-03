@@ -1,4 +1,4 @@
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+import { getLocale, t } from '../i18n'
 
 /** Today as YYYY-MM-DD in the phone's own timezone (toISOString would be UTC and flip a day early or late). */
 export const localToday = () => {
@@ -9,24 +9,26 @@ export const localToday = () => {
 export const esc = (s: string) =>
   s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
-function parts(d: string) {
-  const [y, m, day] = d.split('-').map(Number)
-  return { y, m: m - 1, d: day }
+const fmt = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(`${getLocale()}-u-nu-latn`, { timeZone: 'UTC', ...o })
+const at = (d: string) => new Date(`${d}T00:00:00Z`)
+
+/** "3-9 Apr 2024" style ranges from ISO dates, worded and ordered the way the chosen language writes them. */
+export function fmtRange(start?: string, end?: string): string {
+  if (!start && !end) return t('date.undated')
+  const f = fmt({ day: 'numeric', month: 'short', year: 'numeric' })
+  try {
+    if (!start || !end || start === end) return f.format(at((start ?? end)!))
+    return f.formatRange(at(start), at(end))
+  } catch { return start ?? end ?? '' }
 }
 
-/** "3–9 Apr 2024", "28 Mar – 4 Apr 2024", "Apr 2024" style ranges from ISO dates. */
-export function fmtRange(start?: string, end?: string): string {
-  if (!start && !end) return 'Undated'
-  if (!start || !end || start === end) {
-    const p = parts((start ?? end)!)
-    return `${p.d} ${MONTHS[p.m]} ${p.y}`
-  }
-  const a = parts(start), b = parts(end)
-  if (a.y !== b.y) return `${a.d} ${MONTHS[a.m]} ${a.y} – ${b.d} ${MONTHS[b.m]} ${b.y}`
-  if (a.m !== b.m) return `${a.d} ${MONTHS[a.m]} – ${b.d} ${MONTHS[b.m]} ${b.y}`
-  return `${a.d}–${b.d} ${MONTHS[a.m]} ${a.y}`
+/** A stamp date such as 03 APR 2024, in the chosen language. */
+export function stampDate(d?: string): string {
+  if (!d) return t('stamp.visited')
+  return fmt({ day: '2-digit', month: 'short', year: 'numeric' }).format(at(d)).replace(/,/g, '').toLocaleUpperCase(getLocale())
 }
 
 export const yearOf = (d?: string) => (d ? Number(d.slice(0, 4)) : undefined)
 
-export const plural = (n: number, one: string, many = one + 's') => `${n} ${n === 1 ? one : many}`
+/** "3 countries", "1 city", ... with the right plural form for the language. */
+export const count = (kind: 'country' | 'city' | 'trip' | 'cityLit', n: number) => t(`n.${kind}`, { n })

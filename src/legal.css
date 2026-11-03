@@ -1,0 +1,21 @@
+:root { --bg: #fff8ec; --ink: #1f2a44; --dim: #5b6680; --line: #e8dcc6; --accent: #0e7490; --sun: #ffc93c; --card: #fff; color-scheme: light }
+:root[data-theme='dark'] { --bg: #101b33; --ink: #f6f1e6; --dim: #aab4cc; --line: #26365a; --accent: #7fd3e6; --card: #17264a; color-scheme: dark }
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.65 'Nunito Variable', 'Nunito', system-ui, sans-serif; -webkit-font-smoothing: antialiased }
+.wrap { max-width: 760px; margin: 0 auto; padding: 20px 20px 96px }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 28px }
+.top a { color: var(--accent); font-weight: 800; text-decoration: none }
+.top img { height: 36px; display: block }
+h1 { margin: 0 0 6px; font-weight: 800; font-size: clamp(34px, 7vw, 52px); line-height: 1.05; letter-spacing: -0.02em }
+h2 { margin: 40px 0 8px; font-size: 24px; line-height: 1.2; letter-spacing: -0.01em }
+p, li { max-width: 68ch }
+.meta { color: var(--dim); font-weight: 600; margin: 0 0 22px }
+.draft { margin: 0 0 28px; padding: 14px 18px; border-radius: 16px; background: color-mix(in srgb, var(--sun) 28%, var(--bg)); border: 1.5px solid var(--sun); font-weight: 600 }
+.summary { margin: 0 0 8px; padding: 18px 20px; border-radius: 20px; background: var(--card); border: 1.5px solid var(--line) }
+.summary ul { margin: 8px 0 0; padding-inline-start: 22px }
+a { color: var(--accent) }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px }
+th, td { text-align: start; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line) }
+th { color: var(--dim); font-weight: 800 }
+.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 15px }
+.foot a { margin-inline-end: 16px }

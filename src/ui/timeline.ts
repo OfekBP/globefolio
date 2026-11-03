@@ -1,3 +1,5 @@
+import { t } from '../i18n'
+
 /** A single hairline you drag through the years; the right end means "all time". */
 export function createTimeline(root: HTMLElement, onYear: (year: number | null) => void) {
   const input = root.querySelector<HTMLInputElement>('input')!
@@ -9,7 +11,7 @@ export function createTimeline(root: HTMLElement, onYear: (year: number | null) 
 
   const sync = () => {
     const atEnd = +input.value >= max
-    out.textContent = atEnd ? 'All time' : `Through ${input.value}`
+    out.textContent = atEnd ? t('map.allTime') : t('map.through', { y: input.value })
     root.style.setProperty('--fill', `${((+input.value - min) / Math.max(1, max - min)) * 100}%`)
     input.setAttribute('aria-valuetext', out.textContent)
     return atEnd ? null : +input.value

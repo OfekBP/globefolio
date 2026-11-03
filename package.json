@@ -6,19 +6,26 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "globe.gl": "2.46.2",
     "idb": "8.0.0",
     "three": "0.187.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "@fontsource-variable/noto-sans-arabic": "^5.3.0",
+    "@fontsource-variable/noto-sans-hebrew": "^5.3.0",
     "@fontsource-variable/nunito": "^5.3.0",
     "@types/three": "0.187.0",
     "country-flag-icons": "^1.6.20",
+    "fake-indexeddb": "^6.2.7",
     "sharp": "^0.35.5",
     "typescript": "5.6.3",
-    "vite": "5.4.10"
+    "vite": "5.4.10",
+    "vitest": "^2.1.9"
   }
 }

@@ -1,6 +1,7 @@
 import { flagUrl, placeKey, search, type City, type Country, type Geo, type Hit } from '../data/geo'
 import type { Trip, Wish } from '../store'
-import { esc, fmtRange, plural } from './format'
+import { cname, t } from '../i18n'
+import { count, esc, fmtRange } from './format'
 import { icons } from './icons'
 
 export type Mode =
@@ -8,6 +9,7 @@ export type Mode =
   | { k: 'country'; iso: string }
   | { k: 'city'; city: City }
   | { k: 'form'; iso: string; city?: City; trip?: Trip }
+  | { k: 'extra'; render(root: HTMLElement, back: () => void): void }
 
 export type Focus = { country?: Country; city?: City } | null
 
@@ -22,9 +24,11 @@ interface Deps {
   setHome(key: string): Promise<void>
   wishes(): Wish[]
   toggleWish(iso: string, city?: City): Promise<void>
+  /** true when the person is signed in, so the trip form offers "hide from friends" */
+  canShare?(): boolean
 }
 
-const popText = (k: number) => (k >= 1000 ? `${(k / 1000).toFixed(1).replace(/\.0$/, '')}M people` : k > 0 ? `${k}K people` : '')
+const popText = (k: number) => (k >= 1000 ? t('city.peopleM', { n: (k / 1000).toFixed(1).replace(/\.0$/, '') }) : k > 0 ? t('city.peopleK', { n: k }) : '')
 
 export function createDrawer(d: Deps) {
   const { root, geo } = d
@@ -44,7 +48,7 @@ export function createDrawer(d: Deps) {
   function open(next: Mode) {
     if (!mode) opener = document.activeElement as HTMLElement | null
     mode = next
-    const key = next.k === 'search' ? '' : next.k === 'city' ? next.city.key : next.k === 'form' ? (next.city?.key ?? next.iso) : next.iso
+    const key = next.k === 'search' || next.k === 'extra' ? '' : next.k === 'city' ? next.city.key : next.k === 'form' ? (next.city?.key ?? next.iso) : next.iso
     if (key && key !== focused) {
       focused = key
       if (next.k === 'city') d.focus({ city: next.city })
@@ -76,10 +80,11 @@ export function createDrawer(d: Deps) {
     if (mode.k === 'search') renderSearch(mode.purpose, mode.iso)
     else if (mode.k === 'country') renderCountry(mode.iso)
     else if (mode.k === 'city') renderCity(mode.city)
+    else if (mode.k === 'extra') { root.classList.remove('half'); mode.render(root, close) }
     else renderForm(mode.iso, mode.city, mode.trip)
   }
 
-  const closeBtn = `<button class="x" data-act="close" aria-label="Close">${icons.close}</button>`
+  const closeBtn = `<button class="x" data-act="close" aria-label="${t('close')}">${icons.close}</button>`
 
   // ── search ─────────────────────────────────────────────
   function renderSearch(purpose: 'log' | 'home', iso?: string) {
@@ -88,12 +93,12 @@ export function createDrawer(d: Deps) {
     root.innerHTML = `
       <div class="sheet">
         ${closeBtn}
-        <h2 class="title">${home ? 'Where do you call home?' : scoped ? `Cities in ${esc(scoped.properties.n)}` : 'Where did you go?'}</h2>
-        <p class="lede">${home ? 'Tripglobe measures every journey from here.' : 'Pick a city and only that city lights up. The country still counts as visited.'}</p>
-        <label class="sr" for="q">Search</label>
+        <h2 class="title">${home ? t('search.homeTitle') : scoped ? t('search.citiesIn', { country: esc(cname(scoped)) }) : t('search.title')}</h2>
+        <p class="lede">${home ? t('search.homeLede') : t('search.lede')}</p>
+        <label class="sr" for="q">${t('search.label')}</label>
         <div class="search-field">
           ${icons.search}
-          <input id="q" autocomplete="off" spellcheck="false" placeholder="${home ? 'Search your home city' : scoped ? 'Search a city' : 'Search a city or country'}"
+          <input id="q" autocomplete="off" spellcheck="false" placeholder="${home ? t('search.phHome') : scoped ? t('search.phCity') : t('search.phAny')}"
             role="combobox" aria-expanded="false" aria-controls="results" />
         </div>
         <ul id="results" class="results" role="listbox"></ul>
@@ -104,13 +109,13 @@ export function createDrawer(d: Deps) {
     let active = 0
     const rowOf = (h: Hit, i: number) => {
       const c = h.kind === 'city' ? countryOf(h.city.iso) : h.country
-      const name = h.kind === 'city' ? h.city.name : h.country.properties.n
-      const sub = h.kind === 'city' ? c?.properties.n ?? '' : 'Whole country'
+      const name = h.kind === 'city' ? h.city.name : cname(h.country)
+      const sub = h.kind === 'city' ? (c ? cname(c) : '') : t('place.whole')
       return `<li role="option" id="opt-${i}" aria-selected="${i === active}" data-i="${i}">
         ${flag(c)}<span class="r-name">${esc(name)}</span><span class="r-sub">${esc(sub)}</span></li>`
     }
     const draw = () => {
-      list.innerHTML = hits.map(rowOf).join('') || (q.value.trim() ? '<li class="none">No match. Try the English spelling.</li>' : '')
+      list.innerHTML = hits.map(rowOf).join('') || (q.value.trim() ? `<li class="none">${t('search.none')}</li>` : '')
       q.setAttribute('aria-expanded', String(hits.length > 0))
       q.setAttribute('aria-activedescendant', hits.length ? `opt-${active}` : '')
     }
@@ -141,14 +146,14 @@ export function createDrawer(d: Deps) {
 
   // ── shared pieces ──────────────────────────────────────
   function entries(list: Trip[], showPlace: boolean) {
-    return `<ol class="entries">${list.map(t => `
+    return `<ol class="entries">${list.map(tr => `
       <li class="entry">
-        <time>${fmtRange(t.startDate, t.endDate)}</time>
-        ${showPlace ? `<p class="place">${t.place ? `<button class="link" data-act="open-city" data-id="${t.id}">${esc(t.place.name)}</button>` : 'Whole country'}</p>` : ''}
-        ${t.notes ? `<p class="note">${esc(t.notes)}</p>` : ''}
+        <time>${fmtRange(tr.startDate, tr.endDate)}</time>
+        ${showPlace ? `<p class="place">${tr.place ? `<button class="link" data-act="open-city" data-id="${tr.id}">${esc(tr.place.name)}</button>` : t('place.whole')}</p>` : ''}
+        ${tr.notes ? `<p class="note">${esc(tr.notes)}</p>` : ''}
         <div class="row-actions">
-          <button class="text" data-act="edit" data-id="${t.id}">Edit</button>
-          <button class="text danger" data-act="delete" data-id="${t.id}">Delete</button>
+          <button class="text" data-act="edit" data-id="${tr.id}">${t('entry.edit')}</button>
+          <button class="text danger" data-act="delete" data-id="${tr.id}">${t('entry.delete')}</button>
         </div>
       </li>`).join('')}</ol>`
   }
@@ -162,20 +167,20 @@ export function createDrawer(d: Deps) {
     const mine = d.trips().filter(t => t.iso === iso)
     const litKeys = new Set(mine.filter(t => t.place).map(t => placeKey(iso, t.place!)))
     const suggestions = (geo.citiesByIso.get(iso) ?? []).filter(x => !litKeys.has(x.key)).slice(0, 10)
-    const sub = mine.length ? `${plural(litKeys.size, 'city', 'cities')} lit · ${plural(mine.length, 'trip')}` : 'Not on your map yet'
+    const sub = mine.length ? t('country.sub', { cities: count('cityLit', litKeys.size), trips: count('trip', mine.length) }) : t('country.notYet')
     root.innerHTML = `
       <div class="sheet">
         ${closeBtn}
-        <div class="head">${flag(c)}<h2 class="title">${esc(c.properties.n)}</h2></div>
+        <div class="head">${flag(c)}<h2 class="title">${esc(cname(c))}</h2></div>
         <p class="lede">${sub}</p>
         ${mine.length ? entries(mine, true) : ''}
         ${suggestions.length ? `
-          <h3 class="sub-title">${mine.length ? 'Light up another city' : 'Pick the cities you visited'}</h3>
+          <h3 class="sub-title">${mine.length ? t('country.another') : t('country.pick')}</h3>
           <div class="chips">${suggestions.map(x => `<button class="chip" data-act="pick-city" data-key="${esc(x.key)}">${icons.plus}${esc(x.name)}</button>`).join('')}</div>` : ''}
         <div class="foot-actions">
-          <button class="solid" data-act="search-in">Search a city in ${esc(c.properties.n)}</button>
-          <button class="text" data-act="whole">Mark the whole country</button>
-          <button class="text" data-act="wish">${wished(iso) ? 'On your dream list. Remove' : 'Add to dream list'}</button>
+          <button class="solid" data-act="search-in">${t('country.searchIn', { country: esc(cname(c)) })}</button>
+          <button class="text" data-act="whole">${t('country.whole')}</button>
+          <button class="text" data-act="wish">${wished(iso) ? t('wish.on') : t('wish.add')}</button>
         </div>
       </div>`
   }
@@ -188,14 +193,14 @@ export function createDrawer(d: Deps) {
     root.innerHTML = `
       <div class="sheet">
         ${closeBtn}
-        <button class="back" data-act="goto-country">${icons.back}${flag(c)}${esc(c.properties.n)}</button>
+        <button class="back" data-act="goto-country">${icons.back}${flag(c)}${esc(cname(c))}</button>
         <h2 class="title">${esc(city.name)}</h2>
-        <p class="lede">${[isHome ? 'Home' : '', mine.length ? plural(mine.length, 'trip') : 'Not on your map yet', popText(city.pop)].filter(Boolean).join(' · ')}</p>
+        <p class="lede">${[isHome ? t('city.home') : '', mine.length ? count('trip', mine.length) : t('country.notYet'), popText(city.pop)].filter(Boolean).join(' · ')}</p>
         ${mine.length ? entries(mine, false) : ''}
         <div class="foot-actions">
-          <button class="solid" data-act="log-city">${mine.length ? 'Log another visit' : "I've been here"}</button>
-          <button class="text" data-act="wish">${wished(city.iso, city) ? 'On your dream list. Remove' : 'Add to dream list'}</button>
-          ${isHome ? '' : `<button class="text" data-act="home">Make this my home</button>`}
+          <button class="solid" data-act="log-city">${mine.length ? t('city.again') : t('city.been')}</button>
+          <button class="text" data-act="wish">${wished(city.iso, city) ? t('wish.on') : t('wish.add')}</button>
+          ${isHome ? '' : `<button class="text" data-act="home">${t('city.makeHome')}</button>`}
         </div>
       </div>`
   }
@@ -207,21 +212,22 @@ export function createDrawer(d: Deps) {
     root.innerHTML = `
       <form class="sheet" id="trip-form" novalidate>
         ${closeBtn}
-        <h2 class="title">${trip ? 'Edit trip' : 'Log a trip'}</h2>
-        <p class="where">${flag(c)}<span>${city ? `<b>${esc(city.name)}</b>, ${esc(c.properties.n)}` : `<b>${esc(c.properties.n)}</b>, the whole country`}</span></p>
-        ${city ? '' : `<p class="note-box">No city picked, so the entire country will light up. <button type="button" class="link" data-act="search-in">Pick a city instead</button> to light up just that place.</p>`}
+        <h2 class="title">${trip ? t('form.edit') : t('form.log')}</h2>
+        <p class="where">${flag(c)}<span>${city ? `<b>${esc(city.name)}</b>, ${esc(cname(c))}` : t('form.wholeCountry', { country: `<b>${esc(cname(c))}</b>` })}</span></p>
+        ${city ? '' : `<p class="note-box">${t('form.noCity', { link: `<button type="button" class="link" data-act="search-in">${t('form.pickCity')}</button>` })}</p>`}
         <div class="two">
-          <div class="field"><label for="f-start">From</label><input id="f-start" type="date" value="${trip?.startDate ?? ''}" /></div>
-          <div class="field"><label for="f-end">To</label><input id="f-end" type="date" value="${trip?.endDate ?? ''}" /></div>
+          <div class="field"><label for="f-start">${t('form.from')}</label><input id="f-start" type="date" value="${trip?.startDate ?? ''}" /></div>
+          <div class="field"><label for="f-end">${t('form.to')}</label><input id="f-end" type="date" value="${trip?.endDate ?? ''}" /></div>
         </div>
         <p class="status error" id="date-error" role="alert"></p>
         <div class="field">
-          <label for="f-notes">What do you want to remember?</label>
-          <textarea id="f-notes" rows="4" placeholder="The food, the people, the view…">${esc(trip?.notes ?? '')}</textarea>
+          <label for="f-notes">${t('form.notes')}</label>
+          <textarea id="f-notes" rows="4" placeholder="${t('form.notesPh')}">${esc(trip?.notes ?? '')}</textarea>
         </div>
+        ${d.canShare?.() ? `<label class="vis-row hide-row"><input id="f-hide" type="checkbox" ${trip?.hiddenFromFriends ? 'checked' : ''} /><span><b>${t('form.hide')}</b><small>${t('form.hideNote')}</small></span></label>` : ''}
         <div class="foot-actions">
-          <button class="solid" type="submit">Save trip</button>
-          <button class="text" type="button" data-act="cancel-form">Cancel</button>
+          <button class="solid" type="submit">${t('form.save')}</button>
+          <button class="text" type="button" data-act="cancel-form">${t('cancel')}</button>
         </div>
       </form>`
     root.querySelector<HTMLFormElement>('#trip-form')!.addEventListener('submit', async e => {
@@ -229,12 +235,13 @@ export function createDrawer(d: Deps) {
       const start = root.querySelector<HTMLInputElement>('#f-start')!.value || undefined
       const end = root.querySelector<HTMLInputElement>('#f-end')!.value || undefined
       const err = root.querySelector<HTMLElement>('#date-error')!
-      if (start && end && end < start) { err.textContent = 'The end date comes before the start date.'; return }
+      if (start && end && end < start) { err.textContent = t('form.dateError'); return }
       err.textContent = ''
       await d.save({
         id: trip?.id, iso,
         place: city ? { name: city.name, lat: city.lat, lng: city.lng } : undefined,
         startDate: start, endDate: end,
+        hiddenFromFriends: root.querySelector<HTMLInputElement>('#f-hide')?.checked || undefined,
         notes: root.querySelector<HTMLTextAreaElement>('#f-notes')!.value.trim() || undefined,
       })
       open(city ? { k: 'city', city } : { k: 'country', iso })
@@ -243,7 +250,7 @@ export function createDrawer(d: Deps) {
 
   // ── delegated actions ──────────────────────────────────
   let armed: { id: string; timer: number } | null = null
-  const modeIso = () => (!mode || mode.k === 'search' ? undefined : mode.k === 'city' ? mode.city.iso : mode.iso)
+  const modeIso = () => (!mode || mode.k === 'search' || mode.k === 'extra' ? undefined : mode.k === 'city' ? mode.city.iso : mode.iso)
 
   root.addEventListener('click', async e => {
     const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-act]')
@@ -270,8 +277,8 @@ export function createDrawer(d: Deps) {
         render()
       } else {
         if (armed) clearTimeout(armed.timer)
-        btn.textContent = 'Delete for good?'
-        armed = { id, timer: window.setTimeout(() => { armed = null; btn.textContent = 'Delete' }, 3200) }
+        btn.textContent = t('entry.deleteSure')
+        armed = { id, timer: window.setTimeout(() => { armed = null; btn.textContent = t('entry.delete') }, 3200) }
       }
     }
   })

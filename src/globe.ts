@@ -1,12 +1,13 @@
 import Globe from 'globe.gl'
 import { CanvasTexture, Color, DoubleSide, MeshBasicMaterial, SRGBColorSpace } from 'three'
 import { altitudeFor, anchorOf, flagUrl, type City, type Country, type Geo } from './data/geo'
+import { cname, t } from './i18n'
 import type { Theme } from './theme'
 import { esc } from './ui/format'
 
 type Pt = [number, number]
 interface Line { pts: Pt[]; kind: 'region' | 'city' }
-export interface LitCity { city: City; trips: number; kind?: 'city' | 'country'; dream?: boolean }
+export interface LitCity { city: City; trips: number; kind?: 'city' | 'country'; dream?: boolean; friend?: boolean }
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -188,15 +189,16 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const f = country ? flagUrl(country) : ''
     const b = document.createElement('button')
     b.type = 'button'
-    b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}${d.dream ? ' pin-dream' : ''}`
-    b.setAttribute('aria-label', `${d.dream ? 'Dream: ' : ''}${d.kind === 'country' ? d.city.name : `${d.city.name}, ${country?.properties.n ?? ''}`}`)
+    b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}${d.dream ? ' pin-dream' : ''}${d.friend ? ' pin-friend' : ''}`
+    const label = d.kind === 'country' ? d.city.name : `${d.city.name}, ${country ? cname(country) : ''}`
+    b.setAttribute('aria-label', d.dream && !d.friend ? t('map.dream', { name: label }) : label)
     b.innerHTML = `<span class="pin-glow"></span><span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(d.city.name)}</span>`
     b.addEventListener('click', e => {
       e.stopPropagation()
       if (d.kind === 'country' && country) h.onCountry(country)
       else h.onCity(d.city)
     })
-    pins.set(`${d.dream ? 'w' : 'v'}|${d.city.key}`, { el: b, d })
+    pins.set(`${d.friend ? 'f' : d.dream ? 'w' : 'v'}|${d.city.key}`, { el: b, d })
     return b
   }
 

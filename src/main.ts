@@ -1,4 +1,6 @@
 import '@fontsource-variable/nunito'
+import '@fontsource-variable/noto-sans-arabic'
+import '@fontsource-variable/noto-sans-hebrew'
 import './styles.css'
 import { anchorOf, distanceKm, flagUrl, loadGeo, placeKey, type City, type Country } from './data/geo'
 import type { LitCity } from './globe'
@@ -7,7 +9,16 @@ import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
 import { confetti } from './ui/confetti'
 import { toast } from './ui/toast'
 import { createDrawer, type Focus } from './ui/drawer'
-import { esc, fmtRange, localToday, plural, yearOf } from './ui/format'
+import { renderAccount } from './ui/account'
+import { renderLanguage } from './ui/language'
+import { cloudEnabled } from './supabase'
+import { getProfile, getSession, initAuth, onAuth } from './auth'
+import { startSync, stopSync } from './sync'
+import { watchFriendships, listLinks, type MapRow } from './friends'
+import { renderFriends, renderPublic } from './ui/friends'
+import { joinFromLink, renderShared } from './ui/shared'
+import { esc, fmtRange, localToday, yearOf } from './ui/format'
+import { cname, initLocale, num as fmtNum, onLocale, t as L } from './i18n'
 import { icons } from './ui/icons'
 import { renderStory } from './ui/story'
 import { renderPassport } from './ui/passport'
@@ -22,6 +33,7 @@ const CONTINENT_VIEW: Record<string, [number, number, number]> = {
 
 async function boot() {
   const theme0 = initTheme()
+  await initLocale()
   // the 3D engine is the heavy part, so it downloads alongside the data while the splash shows
   const [geo, { createGlobe }] = await Promise.all([loadGeo(), import('./globe')])
   let trips: Trip[] = []
@@ -30,6 +42,8 @@ async function boot() {
   let year: number | null = null
   let replayN: number | null = null // while replaying, only the first N trips (oldest first) are lit
   const info = new Map<string, { cities: number; whole: boolean }>()
+  let friendRows: MapRow[] | null = null // a friend's places painted over my map
+  let friendHandle: string | undefined
 
   // ── globe ──────────────────────────────────────────────
   const globe = createGlobe($('globe'), geo, theme0, {
@@ -66,19 +80,20 @@ async function boot() {
       confetti()
       const c = geo.byIso.get(t.iso)
       if (wasNew && c) slam(c, t.startDate)
-      else toast(`${t.place?.name ?? c?.properties.n ?? 'Trip'} added. Your world just got bigger.`)
+      else toast(L('toast.added', { place: t.place?.name ?? (c ? cname(c) : L('toast.tripFallback')) }))
     },
     remove: async id => {
       const gone = trips.find(t => t.id === id)
       await deleteTrip(id)
-      if (gone) toast('Trip deleted.', () => { void saveTrip(gone) })
+      if (gone) toast(L('toast.deleted'), () => { void saveTrip(gone) })
     },
     setHome: key => setHome(key),
     wishes: () => wishes,
+    canShare: () => !!getProfile(),
     toggleWish: async (iso, city) => {
       const hit = wishes.find(w => w.iso === iso && (city ? !!w.place && placeKey(iso, w.place) === city.key : !w.place))
-      if (hit) { await deleteWish(hit.id); toast('Removed from your dream list.') }
-      else { await saveWish({ iso, place: city ? { name: city.name, lat: city.lat, lng: city.lng } : undefined }); toast(`${city?.name ?? geo.byIso.get(iso)?.properties.n ?? 'Place'} is on your dream list.`) }
+      if (hit) { await deleteWish(hit.id); toast(L('toast.wishRemoved')) }
+      else { await saveWish({ iso, place: city ? { name: city.name, lat: city.lat, lng: city.lng } : undefined }); toast(L('toast.wishAdded', { place: city?.name ?? (geo.byIso.get(iso) ? cname(geo.byIso.get(iso)!) : '') })) }
       buzz(12)
     },
   })
@@ -126,7 +141,7 @@ async function boot() {
       } else {
         row.whole = true
         const a = anchorOf(country)
-        target = { lat: a.lat, lng: a.lng, name: country.properties.n }
+        target = { lat: a.lat, lng: a.lng, name: cname(country) }
       }
       byCountry.set(t.iso, row)
       if (home) {
@@ -142,7 +157,7 @@ async function boot() {
     for (const iso of wholeIso) {
       const c = geo.byIso.get(iso)!
       const a = anchorOf(c)
-      markers.push({ kind: 'country', trips: byCountry.get(iso)!.trips, city: { key: `country|${iso}`, name: c.properties.n, iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' } })
+      markers.push({ kind: 'country', trips: byCountry.get(iso)!.trips, city: { key: `country|${iso}`, name: cname(c), iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' } })
     }
     // dream places: dashed flags, never counted in stats, hidden once you have actually been
     const wishRows: { wish: Wish; country: Country }[] = []
@@ -157,7 +172,24 @@ async function boot() {
         markers.push({ city, trips: 0, kind: 'city', dream: true })
       } else if (!byCountry.get(w.iso)?.whole) {
         const a = anchorOf(c)
-        markers.push({ city: { key: `country|${w.iso}`, name: c.properties.n, iso: w.iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' }, trips: 0, kind: 'country', dream: true })
+        markers.push({ city: { key: `country|${w.iso}`, name: cname(c), iso: w.iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' }, trips: 0, kind: 'country', dream: true })
+      }
+    }
+    // a friend's places, in their own colour, when I have chosen to compare
+    const seenF = new Set<string>()
+    for (const r of friendRows ?? []) {
+      const c = geo.byIso.get(r.iso)
+      if (!c) continue
+      if (r.place) {
+        const key = placeKey(r.iso, r.place)
+        if (seenF.has(key)) continue
+        seenF.add(key)
+        const city = geo.cityByKey.get(key) ?? { key, name: r.place.name, iso: r.iso, lat: r.place.lat, lng: r.place.lng, pop: 0, cap: false, fold: '' }
+        markers.push({ city, trips: 0, kind: 'city', dream: true, friend: true })
+      } else if (!seenF.has(`c|${r.iso}`)) {
+        seenF.add(`c|${r.iso}`)
+        const a = anchorOf(c)
+        markers.push({ city: { key: `country|${r.iso}`, name: cname(c), iso: r.iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' }, trips: 0, kind: 'country', dream: true, friend: true })
       }
     }
     globe.setCities(markers)
@@ -173,7 +205,7 @@ async function boot() {
       if (!far || d > far.km) far = { name: p.name, km: d }
     }
     const countries = [...byCountry].map(([iso, r]) => ({ country: geo.byIso.get(iso)!, cities: r.cities.size, trips: r.trips, whole: r.whole, since: r.since }))
-      .sort((a, b) => b.trips - a.trips || a.country.properties.n.localeCompare(b.country.properties.n))
+      .sort((a, b) => b.trips - a.trips || cname(a.country).localeCompare(cname(b.country)))
     $('story').innerHTML = renderStory({
       countries,
       cityCount: lit.size,
@@ -184,6 +216,7 @@ async function boot() {
       upcoming, wishes: wishRows,
       farthest: far, hasHome: !!home, asOf: year ?? undefined,
       homeName: home?.name, theme: currentTheme(),
+      account: cloudEnabled ? { handle: getProfile()?.handle, signedIn: !!getSession() } : undefined,
     })
 
     const stampCountries = [...byCountry].map(([iso, r]) => ({ country: geo.byIso.get(iso)!, since: r.since }))
@@ -198,9 +231,9 @@ async function boot() {
     // the glance card on the map
     const glance = $('glance')
     if (!shown.length) {
-      glance.innerHTML = `<b>Your map is waiting</b><span>Tap + and light up your first city</span>`
+      glance.innerHTML = `<b>${L('glance.empty')}</b><span>${L('glance.emptySub')}</span>`
     } else {
-      glance.innerHTML = `<span class="g-nums"><b>${countries.length}</b> ${countries.length === 1 ? 'country' : 'countries'}<i></i><b>${lit.size}</b> ${lit.size === 1 ? 'city' : 'cities'}<i></i><b>${Math.round((countries.length / WORLD_TOTAL) * 100)}%</b> of the world</span><span class="g-go">Open passport</span>`
+      glance.innerHTML = `<span class="g-nums"><b>${fmtNum(countries.length)}</b> ${L('glance.countries', { n: countries.length })}<i></i><b>${fmtNum(lit.size)}</b> ${L('glance.cities', { n: lit.size })}<i></i><b>${fmtNum(Math.round((countries.length / WORLD_TOTAL) * 100))}%</b> ${L('glance.world')}</span><span class="g-go">${L('glance.go')}</span>`
     }
 
     const years = trips.map(t => yearOf(t.startDate)).filter((y): y is number => y !== undefined)
@@ -255,8 +288,8 @@ async function boot() {
       const c = geo.byIso.get(t.iso)
       if (!c) continue
       const a = t.place ?? anchorOf(c)
-      $('hud-name').textContent = t.place?.name ?? c.properties.n
-      $('hud-when').textContent = `${t.place ? c.properties.n + ' · ' : ''}${fmtRange(t.startDate, undefined)}`
+      $('hud-name').textContent = t.place?.name ?? cname(c)
+      $('hud-when').textContent = `${t.place ? cname(c) + ' · ' : ''}${fmtRange(t.startDate, undefined)}`
       globe.flyToPoint(a.lat, a.lng, t.place ? 0.35 : 0.9, 1700)
       await wait(1500)
       if (!replaying) break
@@ -272,7 +305,7 @@ async function boot() {
   function setReplayLabel(text: string | null) {
     document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => {
       b.innerHTML = text ? icons.close : icons.play
-      b.setAttribute('aria-label', text ? 'Stop replay' : 'Replay my journey')
+      b.setAttribute('aria-label', text ? L('map.replayStop') : L('map.replay'))
     })
   }
 
@@ -290,6 +323,7 @@ async function boot() {
     if (!b) return
     if (b.dataset.do === 'replay') replay()
     else if (b.dataset.do === 'surprise') surprise()
+    else if (b.dataset.do === 'friends') openFriends()
     else if (b.dataset.do === 'log') openLog()
   })
 
@@ -300,14 +334,14 @@ async function boot() {
     document.querySelectorAll<HTMLElement>('.t-big').forEach((el, idx) => {
       const node = el.firstChild
       if (!node || node.nodeType !== 3) return
-      const target = parseInt((node.textContent ?? '').replace(/,/g, ''), 10)
+      const target = parseInt((node.textContent ?? '').replace(/[^0-9]/g, ''), 10)
       const text = node.textContent ?? ''
       if (!Number.isFinite(target) || shownNums.get(String(idx)) === text) return
       shownNums.set(String(idx), text)
       const t0 = performance.now()
       const step = (now: number) => {
         const p = Math.min(1, (now - t0) / 900)
-        node.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString('en')
+        node.textContent = fmtNum(Math.round(target * (1 - Math.pow(1 - p, 3))))
         if (p < 1) requestAnimationFrame(step); else node.textContent = text
       }
       requestAnimationFrame(step)
@@ -318,7 +352,7 @@ async function boot() {
   const paintThemeBtn = (t: Theme) => {
     document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#101b33' : '#fff8ec')
     themeBtn.innerHTML = t === 'dark' ? icons.sun : icons.moon
-    themeBtn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
+    themeBtn.setAttribute('aria-label', t === 'dark' ? L('map.toLight') : L('map.toDark'))
   }
   paintThemeBtn(theme0)
   themeBtn.onclick = () => setTheme(currentTheme() === 'dark' ? 'light' : 'dark')
@@ -336,10 +370,53 @@ async function boot() {
     URL.revokeObjectURL(a.href)
   }
 
+  const openAccount = () => drawer.open({ k: 'extra', render: (root, back) => renderAccount(root, { back, close: () => drawer.close() }) })
+
+  const overlay = (rows: MapRow[] | null, handle?: string) => {
+    friendRows = rows; friendHandle = rows ? handle : undefined
+    view()
+    if (rows && handle) toast(L('fr.overlayOn', { handle }))
+  }
+  const openFriends = () => { showTab('map'); drawer.open({ k: 'extra', render: (root, back) => renderFriends(root, {
+    geo, back, close: () => drawer.close(), openAccount,
+    myIsos: () => new Set(info.keys()), overlay, overlayOf: () => friendHandle,
+  }) }) }
+  const openShared = (id?: string) => drawer.open({ k: 'extra', render: (root, back) => renderShared(root, {
+    geo, back, close: () => drawer.close(), openAccount,
+    importStops: async stops => {
+      let n = 0
+      for (const s of stops) {
+        const dup = trips.some(t => t.iso === s.iso && (s.place ? !!t.place && placeKey(t.iso, t.place) === placeKey(s.iso, s.place) : !t.place) && t.startDate === (s.start_date ?? undefined))
+        if (dup) continue
+        await saveTrip({ iso: s.iso, place: s.place ?? undefined, startDate: s.start_date ?? undefined, endDate: s.end_date ?? undefined, notes: s.notes ?? undefined } as Trip)
+        n++
+      }
+      return n
+    },
+  }, id) })
+
+  // routes: #/u/<handle> shows a public map, #/join/<token> joins a shared trip
+  async function route() {
+    const m = location.hash.match(/^#\/(u|join)\/([^/?#]+)/)
+    if (!m) return
+    const arg = decodeURIComponent(m[2])
+    history.replaceState(null, '', location.pathname + location.search)
+    if (m[1] === 'u') {
+      showTab('map')
+      drawer.open({ k: 'extra', render: (root, back) => { void renderPublic(root, arg, { geo, close: () => drawer.close(), overlay }) } })
+    } else if (!getSession()) {
+      toast(L('fr.signinNote'))
+      openAccount()
+    } else {
+      const id = await joinFromLink(arg)
+      if (id) { toast(L('sh.joined')); openShared(id) } else toast(L('sh.joinFail'))
+    }
+  }
+
   const goTo = (t: HTMLElement) => {
     if (t.dataset.act === 'log') openLog()
     else if (t.dataset.act === 'theme') setTheme(currentTheme() === 'dark' ? 'light' : 'dark')
-    else if (t.dataset.act === 'unwish' && t.dataset.id) { void deleteWish(t.dataset.id); toast('Removed from your dream list.') }
+    else if (t.dataset.act === 'unwish' && t.dataset.id) { void deleteWish(t.dataset.id); toast(L('toast.wishRemoved')) }
     else if (t.dataset.act === 'plan' || t.dataset.wishgo) {
       const w = wishes.find(x => x.id === (t.dataset.id ?? t.dataset.wishgo))
       if (!w) return
@@ -349,6 +426,9 @@ async function boot() {
       else drawer.open(city ? { k: 'city', city } : { k: 'country', iso: w.iso })
     }
     else if (t.dataset.act === 'export') exportData()
+    else if (t.dataset.act === 'language') drawer.open({ k: 'extra', render: (root, back) => renderLanguage(root, back) })
+    else if (t.dataset.act === 'account') openAccount()
+    else if (t.dataset.act === 'shared') openShared()
     else if (t.dataset.act === 'home-search') drawer.open({ k: 'search', purpose: 'home' })
     else if (t.dataset.quick) {
       const q = t.dataset.quick
@@ -394,9 +474,9 @@ async function boot() {
       if (!Array.isArray(list) || list.some(t => !t.id || !t.iso)) throw new Error('shape')
       await replaceAll(list, Array.isArray(data) || !Array.isArray(data.wishes) ? [] : data.wishes)
       if (!Array.isArray(data) && data.home) await setHome(data.home)
-      toast('Backup restored.')
+      toast(L('toast.restored'))
     } catch {
-      toast('That file is not a Tripglobe export.')
+      toast(L('toast.badFile'))
     }
     input.value = ''
   })
@@ -406,7 +486,7 @@ async function boot() {
 
   function slam(c: Country, since?: string) {
     const el = $('slam')
-    el.innerHTML = `<div class="slam-card"><p>New stamp!</p>${countryStamp(c, since, 'slam')}<h3>${esc(c.properties.n)}</h3><small>Added to your passport</small><button class="solid" type="button">Lovely</button></div>`
+    el.innerHTML = `<div class="slam-card"><p>${L('slam.new')}</p>${countryStamp(c, since, 'slam')}<h3>${esc(cname(c))}</h3><small>${L('slam.added')}</small><button class="solid" type="button">${L('slam.ok')}</button></div>`
     el.hidden = false
     buzz([30, 40, 30] as unknown as number)
     const close = () => { el.hidden = true; el.innerHTML = '' }
@@ -457,7 +537,46 @@ async function boot() {
   showTab(TABS.includes(startTab as never) ? (startTab as (typeof TABS)[number]) : 'map')
 
   onChange(refresh)
+  onLocale(() => {
+    paintThemeBtn(currentTheme())
+    setReplayLabel(replaying ? 'x' : null)
+    document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { if (!replaying) b.setAttribute('aria-label', L('map.replay')) })
+    view()
+    if (drawer.isOpen()) drawer.rerender()
+  })
   await refresh()
+
+  // accounts: optional. With no backend configured, or no sign-in, the app is exactly the local one.
+  if (cloudEnabled) {
+    // Friends takes the Discover slot; "Surprise me" lives in the Journal's dream list
+    const slot = document.querySelector<HTMLElement>('.tab[data-do=surprise]')
+    if (slot) {
+      slot.dataset.do = 'friends'
+      slot.querySelector('[data-icon]')!.innerHTML = icons.user
+      const lbl = slot.querySelector('small')!
+      lbl.dataset.i18n = 'tab.friends'
+      lbl.textContent = L('tab.friends')
+    }
+    let unwatch = () => {}
+    const paintBadge = async () => {
+      let n = 0
+      try { n = getSession() ? (await listLinks()).filter(l => l.state === 'incoming').length : 0 } catch { /* offline */ }
+      document.querySelector('.tab[data-do=friends] .badge')?.remove()
+      if (n) { const s = document.createElement('span'); s.className = 'badge'; s.textContent = fmtNum(n); document.querySelector('.tab[data-do=friends]')?.append(s) }
+    }
+    onAuth(() => {
+      const s = getSession()
+      unwatch(); unwatch = () => {}
+      if (s) { void startSync(s.user.id); unwatch = watchFriendships(() => void paintBadge()); void paintBadge() }
+      else { void stopSync({ wipe: false }); overlay(null); void paintBadge() }
+      view()
+      const m = drawer.current()
+      if (m?.k === 'extra') drawer.rerender()
+    })
+    await initAuth()
+    addEventListener('hashchange', () => void route())
+    void route()
+  }
 
   const home = homeCity()
   globe.intro(home?.lat ?? 22, home?.lng ?? 10)
