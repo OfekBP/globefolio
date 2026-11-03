@@ -116,7 +116,10 @@ kbd { font: 600 11px/1 var(--body); color: var(--dim); background: var(--surface
 .tile .bar i { display: block; height: 100%; border-radius: 99px; background: var(--accent) }
 .cont { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none }
 .cont li { padding: 6px 13px; border-radius: 99px; background: var(--chip-on-glass); color: var(--dim); font-size: 13px; font-weight: 600 }
-.cont li.on { background: var(--ink); color: var(--bg) }
+.cont li { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1.5px dashed color-mix(in srgb, var(--dim) 45%, transparent); color: var(--dim) }
+.cont li.on { background: var(--cc); border: 1.5px solid color-mix(in srgb, var(--cc) 70%, #1f2a44); color: #1f2a44; font-weight: 800 }
+.cont li svg { width: 14px; height: 14px; stroke-width: 3 }
+.cont li b { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 99px; background: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 900 }
 .t-km .text { padding-left: 0; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 4px }
 
 .section { margin: 60px 0 18px; font: 700 28px/1.1 var(--display); letter-spacing: -0.015em }
@@ -314,13 +317,18 @@ input, textarea { user-select: text; -webkit-user-select: text }
 
 /* ── passport ── */
 #passport { padding-top: calc(26px + env(safe-area-inset-top)) }
-.cover { position: relative; width: min(100%, 300px); aspect-ratio: 4 / 5.2; margin: 0 auto 22px; display: grid; place-content: center; justify-items: center; gap: 10px; text-align: center; color: #ffd978; border-radius: 8px 20px 20px 8px; background: radial-gradient(circle at 30% 20%, #15849f 0%, #0e7490 45%, #0a566d 100%); box-shadow: inset 9px 0 0 rgba(0, 0, 0, 0.2), inset 11px 0 0 rgba(255, 255, 255, 0.08), 0 22px 36px -16px rgba(14, 116, 144, 0.7) }
-.cover::after { content: ''; position: absolute; inset: 14px 14px 14px 22px; border: 1.5px solid rgba(255, 217, 120, 0.45); border-radius: 4px 14px 14px 4px; pointer-events: none }
-.cover-ring { display: grid; place-items: center; width: 96px; height: 96px; border: 2px solid currentColor; border-radius: 50%; box-shadow: 0 0 0 6px rgba(255, 217, 120, 0.18) }
-.cover-ring svg { width: 54px; height: 54px; stroke-width: 1.5 }
-.cover-kicker { margin: 8px 0 0; font-size: 12px; font-weight: 900; letter-spacing: 0.4em }
-.cover h2 { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: 0.26em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35) }
-.cover-sub { margin: 4px 0 0; color: #dff1f6; font-size: 13px; font-weight: 700 }
+.cover { position: relative; width: min(100%, 290px); aspect-ratio: 4 / 5.3; margin: 0 auto 22px; display: grid; place-content: center; justify-items: center; gap: 8px; text-align: center; color: #fff8ec; border-radius: 26px 14px 14px 26px; overflow: hidden;
+  background: radial-gradient(circle at 20% 12%, #1796b4 0%, #0e7490 48%, #0b5f78 100%);
+  box-shadow: inset 10px 0 0 rgba(0, 0, 0, 0.16), inset 12px 0 0 rgba(255, 255, 255, 0.1), 0 24px 36px -18px rgba(14, 116, 144, 0.75) }
+/* confetti of the brand colours, like stickers on a well-travelled cover */
+.cover::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.95;
+  background: radial-gradient(circle at 84% 9%, #ff6f8e 0 7px, transparent 8px), radial-gradient(circle at 12% 88%, #7ed6b0 0 9px, transparent 10px), radial-gradient(circle at 90% 82%, #ffc93c 0 5px, transparent 6px), radial-gradient(circle at 22% 10%, #a9dcf0 0 4px, transparent 5px), radial-gradient(circle at 70% 94%, #ff6f8e 0 4px, transparent 5px) }
+.cover::after { content: ''; position: absolute; inset: 12px 12px 12px 24px; border: 2px dashed rgba(255, 248, 236, 0.45); border-radius: 18px 8px 8px 18px; pointer-events: none }
+.cv-emblem { width: 112px; height: 112px; margin-bottom: 8px; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.25)); transform: rotate(-6deg) }
+.cover h2 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase }
+.cover-kicker { margin: 0; color: #ffc93c; font-size: 13px; font-weight: 900; letter-spacing: 0.32em; text-transform: uppercase }
+.cover-sub { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 10px 0 0; padding: 0 28px }
+.cover-sub span { padding: 5px 12px; border-radius: 99px; background: rgba(255, 248, 236, 0.18); color: #fff8ec; font-size: 13px; font-weight: 800 }
 .goals { text-align: center; margin: 0 0 18px }
 .badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px }
 .badge { padding: 6px 14px; border-radius: 99px; background: var(--mark); color: #1f2a44; font-weight: 800; font-size: 13px }
@@ -394,7 +402,6 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
   background: radial-gradient(circle, rgba(255, 214, 90, 0.95) 0%, rgba(255, 201, 60, 0.55) 22%, rgba(255, 201, 60, 0.18) 48%, rgba(255, 201, 60, 0) 70%);
   transform: scale(var(--ps, 1)); animation: glow 2.8s ease-in-out infinite }
 .pin-country .pin-glow { width: 120px; height: 120px; margin: -60px 0 0 -60px }
-:root[data-theme='dark'] .pin-glow { mix-blend-mode: screen }
 @keyframes glow { 0%, 100% { opacity: 0.75; transform: scale(calc(var(--ps, 1) * 0.9)) } 50% { opacity: 1; transform: scale(calc(var(--ps, 1) * 1.12)) } }
 .pin.hid { display: none }
 .pin[data-more]::after { content: attr(data-more); position: absolute; left: 12px; top: -58px; min-width: 20px; padding: 1px 6px; border-radius: 99px; background: var(--ink); color: var(--bg); font: 900 11px/18px var(--body); text-align: center; pointer-events: none; z-index: 2 }
@@ -427,3 +434,6 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .two > .field { min-width: 0 }
 .field input, .field textarea { min-width: 0; max-width: 100% }
 .field input[type='date'] { -webkit-appearance: none; appearance: none; min-height: 52px }
+
+/* headline marker: one clean highlighter stroke that follows the text across line breaks */
+.headline mark { padding: 0 0.12em; margin: 0 -0.04em; border-radius: 0.18em; background: linear-gradient(180deg, transparent 52%, var(--mark) 52%, var(--mark) 92%, transparent 92%); -webkit-box-decoration-break: clone; box-decoration-break: clone }

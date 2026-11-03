@@ -66,6 +66,11 @@ const settings = (m: StoryModel) => `
   </ul>
   <p class="fine">Your trips live on this phone. Cities and borders from Natural Earth, flags by country-flag-icons.</p>`
 
+// the same pastels the map paints each continent with, so a chip and its land match
+const CONT_COLOR: Record<string, string> = {
+  Africa: '#f5be74', Asia: '#f2a2b6', Europe: '#a3c7ec', 'North America': '#9bd5ad', 'South America': '#c3b0ea', Oceania: '#f2d57e',
+}
+
 export function renderStory(m: StoryModel): string {
   if (!m.tripCount) {
     return `
@@ -108,7 +113,10 @@ export function renderStory(m: StoryModel): string {
         <span class="t-icon">${icons.compass}</span>
         <p class="t-label">Continents</p>
         <p class="t-big">${m.continents.size}<span> of ${CONTINENTS.length}</span></p>
-        <ul class="cont">${CONTINENTS.map(c => `<li class="${m.continents.has(c) ? 'on' : ''}" role="button" tabindex="0" data-continent="${c}">${c}</li>`).join('')}</ul>
+        <ul class="cont">${CONTINENTS.map(c => {
+          const k = m.countries.filter(x => x.country.properties.c === c).length
+          return `<li class="${k ? 'on' : ''}" style="--cc:${CONT_COLOR[c] ?? '#ddd'}" role="button" tabindex="0" data-continent="${c}">${k ? icons.check : ''}<span>${c}</span>${k ? `<b>${k}</b>` : ''}</li>`
+        }).join('')}</ul>
       </div>
       <div class="tile t-km">
         <span class="t-icon">${icons.route}</span>

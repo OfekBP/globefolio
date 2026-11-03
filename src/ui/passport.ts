@@ -33,10 +33,17 @@ export function renderPassport(m: PassportModel): string {
 
   const cover = `
     <section class="cover" aria-label="Passport cover">
-      <div class="cover-ring">${icons.globe}</div>
-      <p class="cover-kicker">TRIP TRACK</p>
-      <h2>PASSPORT</h2>
-      <p class="cover-sub">${n ? `${plural(n, 'country', 'countries')} · ${plural(m.cities.length, 'city', 'cities')}` : 'Open to stamp your first trip'}</p>
+      <svg class="cv-emblem" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="54" fill="#FFC93C"/>
+        <g fill="none" stroke="#0E7490" stroke-width="3" stroke-linecap="round" opacity=".55">
+          <ellipse cx="60" cy="60" rx="54" ry="20"/><ellipse cx="60" cy="60" rx="22" ry="54"/><path d="M6 60h108"/>
+        </g>
+        <path d="M60 24c-12.4 0-22 9.3-22 21 0 15.4 22 40 22 40s22-24.6 22-40c0-11.7-9.6-21-22-21z" fill="#FF6F8E" stroke="#FFF8EC" stroke-width="5" stroke-linejoin="round"/>
+        <circle cx="60" cy="45" r="8" fill="#FFF8EC"/>
+      </svg>
+      <h2>Passport</h2>
+      <p class="cover-kicker">Trip Track</p>
+      <p class="cover-sub">${n ? `<span>${plural(n, 'country', 'countries')}</span><span>${plural(m.cities.length, 'city', 'cities')}</span>` : '<span>Open to stamp your first trip</span>'}</p>
     </section>`
 
   let pages = ''

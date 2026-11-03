@@ -1,11 +1,11 @@
 import Globe from 'globe.gl'
-import { Color, DoubleSide, MeshBasicMaterial, type MeshPhongMaterial } from 'three'
+import { CanvasTexture, Color, DoubleSide, MeshBasicMaterial, SRGBColorSpace } from 'three'
 import { altitudeFor, anchorOf, flagUrl, type City, type Country, type Geo } from './data/geo'
 import type { Theme } from './theme'
 import { esc } from './ui/format'
 
 type Pt = [number, number]
-interface Line { pts: Pt[]; kind: 'region' | 'city' | 'grid' }
+interface Line { pts: Pt[]; kind: 'region' | 'city' }
 export interface LitCity { city: City; trips: number; kind?: 'city' | 'country'; dream?: boolean }
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -42,13 +42,6 @@ interface Handlers {
   describe(c: Country): string
 }
 
-const GRID: Line[] = (() => {
-  const out: Line[] = []
-  for (let lat = -60; lat <= 60; lat += 30) out.push({ kind: 'grid', pts: Array.from({ length: 73 }, (_, i) => [lat, -180 + i * 5] as Pt) })
-  for (let lng = -180; lng < 180; lng += 30) out.push({ kind: 'grid', pts: Array.from({ length: 37 }, (_, i) => [-90 + i * 5, lng] as Pt) })
-  return out
-})()
-
 export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handlers) {
   let theme = initial
   let skin = SKIN[theme]
@@ -61,17 +54,19 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   let regions: Line[] = []
   let footprints: Record<string, Pt[]> = {}
   let showRegions = false
+  let polysBuilt = false
+  let polysOn = false
   const pins = new Map<string, { el: HTMLElement; d: LitCity }>()
 
   // Picking by lat/lng: a bbox check plus point-in-polygon on a handful of countries is far cheaper than raycasting 177 meshes.
-  type Box = { c: Country; x0: number; y0: number; x1: number; y1: number; rings: number[][][] }
+  type Box = { c: Country; x0: number; y0: number; x1: number; y1: number; rings: number[][][]; polys: number[][][][] }
   const boxes: Box[] = geo.countries.map(c => {
     const g = c.geometry as unknown as { type: string; coordinates: number[][][] | number[][][][] }
     const polys = (g.type === 'Polygon' ? [g.coordinates] : g.coordinates) as number[][][][]
     const rings = polys.map(p => p[0])
     let x0 = 999, y0 = 999, x1 = -999, y1 = -999
     for (const r of rings) for (const [x, y] of r) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y }
-    return { c, x0, y0, x1, y1, rings }
+    return { c, x0, y0, x1, y1, rings, polys }
   })
   const inRing = (r: number[][], x: number, y: number) => {
     let ins = false
@@ -97,31 +92,76 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     return m
   }
 
-  function paint() {
-    const tmp = new Color()
-    for (const c of geo.countries) {
-      const iso = c.properties.i
-      const fam = FAMILY[c.properties.c]
-      tmp.set(fam ? fam[hash(iso) % fam.length] : 0xeef3f7)
-      const tone = whole.has(iso) ? skin.full : litIso.has(iso) ? skin.lit : skin.base
-      if (fam) tmp.offsetHSL(0, tone.s, tone.l)
-      if (c === selected || c === hover) tmp.offsetHSL(0, 0.15, theme === 'dark' ? 0.14 : -0.1)
-      matFor(c).color.copy(tmp)
-    }
+  // the far view is one painted texture on one sphere (a single draw call); real polygons only appear up close
+  const probe = document.createElement('canvas').getContext('webgl')
+  const texW = Math.min(4096, (probe?.getParameter(probe.MAX_TEXTURE_SIZE) as number | undefined) ?? 2048)
+  const paintCv = document.createElement('canvas')
+  paintCv.width = texW; paintCv.height = texW / 2
+  const pctx = paintCv.getContext('2d')!
+  const tex = new CanvasTexture(paintCv)
+  tex.colorSpace = SRGBColorSpace
+  tex.anisotropy = 8
+  const mapMat = new MeshBasicMaterial({ map: tex })
+  const gx = (lng: number) => ((lng + 180) / 360) * texW
+  const gy = (lat: number) => ((90 - lat) / 180) * (texW / 2)
+
+  const tmp = new Color()
+  function colorOf(c: Country) {
+    const iso = c.properties.i
+    const fam = FAMILY[c.properties.c]
+    tmp.set(fam ? fam[hash(iso) % fam.length] : 0xeef3f7)
+    const tone = whole.has(iso) ? skin.full : litIso.has(iso) ? skin.lit : skin.base
+    if (fam) tmp.offsetHSL(0, tone.s, tone.l)
+    if (c === selected) tmp.offsetHSL(0, 0.15, theme === 'dark' ? 0.14 : -0.1)
+    return tmp
   }
 
-  const lineColor = (l: Line) => (l.kind === 'city' ? skin.city : l.kind === 'grid' ? skin.grid : skin.region)
+  function bake() {
+    const W = texW, H = texW / 2
+    pctx.fillStyle = skin.ocean
+    pctx.fillRect(0, 0, W, H)
+    pctx.strokeStyle = skin.grid
+    pctx.lineWidth = W / 1500
+    pctx.beginPath()
+    for (let lat = -60; lat <= 60; lat += 30) { pctx.moveTo(0, gy(lat)); pctx.lineTo(W, gy(lat)) }
+    for (let lng = -180; lng <= 180; lng += 30) { pctx.moveTo(gx(lng), 0); pctx.lineTo(gx(lng), H) }
+    pctx.stroke()
+    pctx.strokeStyle = skin.border
+    pctx.lineWidth = W / 1000
+    pctx.lineJoin = 'round'
+    for (const b of boxes) {
+      pctx.fillStyle = `#${colorOf(b.c).getHexString()}`
+      pctx.beginPath()
+      for (const poly of b.polys) for (const ring of poly) {
+        for (let i = 0; i < ring.length; i++) { const x = gx(ring[i][0]), y = gy(ring[i][1]); if (i) pctx.lineTo(x, y); else pctx.moveTo(x, y) }
+        pctx.closePath()
+      }
+      pctx.fill('evenodd')
+      pctx.stroke()
+    }
+    tex.needsUpdate = true
+    wake(500)
+  }
+  let bakeT = 0
+  const queueBake = () => { clearTimeout(bakeT); bakeT = window.setTimeout(bake, 30) }
+
+  function paint() {
+    if (polysBuilt) for (const c of geo.countries) matFor(c).color.copy(colorOf(c))
+    queueBake()
+  }
+
+  const lineColor = (l: Line) => (l.kind === 'city' ? skin.city : skin.region)
 
   const globe = new Globe(el, { animateIn: false })
     .backgroundColor('rgba(0,0,0,0)')
     .showAtmosphere(true)
     .atmosphereColor(skin.atmosphere)
     .atmosphereAltitude(0.22)
-    .polygonsData(geo.countries)
+    .globeMaterial(mapMat)
     .polygonCapMaterial(d => matFor(d as Country))
-    .polygonSideColor(d => (whole.has((d as Country).properties.i) ? 'rgba(31,42,68,0.14)' : 'rgba(0,0,0,0)'))
+    .polygonSideColor(() => 'rgba(0,0,0,0)')
     .polygonStrokeColor(() => skin.border)
-    .polygonAltitude(d => (whole.has((d as Country).properties.i) ? 0.006 : litIso.has((d as Country).properties.i) ? 0.003 : 0.0015))
+    .polygonAltitude(0.0015)
     .polygonsTransitionDuration(0)
     .pathPointLat((p: object) => (p as Pt)[0])
     .pathPointLng((p: object) => (p as Pt)[1])
@@ -162,32 +202,37 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
 
   /** Region lines show once you are close enough to care; footprints outline every city you have lit. */
   function syncPaths() {
-    const out: Line[] = showRegions ? [...regions] : [...GRID]
-    for (const l of lit) {
+    const out: Line[] = showRegions ? [...regions] : []
+    if (showRegions) for (const l of lit) {
       const f = footprints[l.city.key]
       if (f) out.push({ pts: f, kind: 'city' })
     }
     globe.pathsData(out)
   }
 
-  // heavier border data loads after first paint
-  fetch('/geo/regions.json').then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => {})
-  fetch('/geo/urban.json').then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
+  // the heavy detail (region borders, city outlines) only matters up close, so it loads the first time you get there
+  let detailLoaded = false
+  function loadDetail() {
+    if (detailLoaded) return
+    detailLoaded = true
+    fetch('/geo/regions.json').then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => { detailLoaded = false })
+    fetch('/geo/urban.json').then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
+  }
+
+  /** Real polygons (crisp edges at city zoom) are built the first time you get close, then just shown or hidden. */
+  const showPolys = () => globe.scene().traverse(o => { if ((o as { __globeObjType?: string }).__globeObjType === 'polygon') o.visible = polysOn })
+  function setPolys(on: boolean) {
+    polysOn = on
+    if (on && !polysBuilt) { polysBuilt = true; paint(); globe.polygonsData(geo.countries); setTimeout(showPolys, 300) }
+    showPolys()
+    wake(600)
+  }
 
   // aim a little south of the target so it sits in the visible strip above the bottom sheet
   const lift = (alt: number) => Math.min(20, alt * 15)
 
   // portrait phones are narrow, so the globe sits further back to show whole
   const homeAlt = () => (el.clientWidth < 600 ? 2.7 : 1.7)
-
-  /** Lifted countries change height, which needs a geometry refresh; only do it when the sets change. */
-  let liftKey = ''
-  function liftRefresh() {
-    const k = [...whole].sort().join() + '|' + [...litIso].sort().join()
-    if (k === liftKey) return
-    liftKey = k
-    globe.polygonAltitude(globe.polygonAltitude()).polygonSideColor(globe.polygonSideColor())
-  }
 
   /** Pins shrink as you pull away so a whole continent of them stays readable. */
   function setScale() {
@@ -231,17 +276,10 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
 
   function applySkin() {
     skin = SKIN[theme]
-    const sphere = globe.globeMaterial() as unknown as MeshPhongMaterial
-    sphere.color = new Color(skin.ocean)
     globe
       .atmosphereColor(skin.atmosphere)
       .polygonStrokeColor(() => skin.border)
       .pathColor((d: object) => lineColor(d as Line))
-    // flat, bright ocean with just a touch of shading, so the colours stay clean
-    const oc = new Color(skin.ocean)
-    sphere.color = oc.clone().multiplyScalar(0.3)
-    sphere.emissive = oc.clone().multiplyScalar(0.72)
-    sphere.specular = new Color(0x000000)
     paint()
     wake(900)
   }
@@ -261,7 +299,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   controls.minDistance = 104 // close enough to read a city outline
   controls.maxDistance = 560
   controls.enableDamping = true
-  controls.dampingFactor = 0.08
+  controls.dampingFactor = 0.12
   controls.zoomSpeed = 1.1
 
   // the globe drifts for a few seconds after load, then rests so it costs nothing
@@ -276,11 +314,14 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     // finer drag the closer you are, otherwise a street-level swipe flings you across a continent
     controls.rotateSpeed = Math.min(1, Math.max(0.03, altitude * 0.7))
     clearTimeout(labelTimer)
+    const closeUp = altitude < 0.9
+    if (closeUp !== polysOn) setPolys(closeUp)
     labelTimer = window.setTimeout(() => {
-      paint(); h.onView(altitude)
+      h.onView(altitude)
       setScale()
       declutter()
       const near = altitude < 1.1
+      if (near) loadDetail()
       if (near !== showRegions) { showRegions = near; syncPaths() }
     }, 140)
   })
@@ -308,13 +349,12 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const r = el.getBoundingClientRect()
     if (c !== hover) {
       hover = c
-      paint()
       el.style.cursor = c ? 'pointer' : 'grab'
       wake(600)
     }
     h.onHover(c, e.clientX - r.left, e.clientY - r.top)
   })
-  el.addEventListener('pointerleave', () => { if (hover) { hover = null; paint(); wake(600) } h.onHover(null, 0, 0) })
+  el.addEventListener('pointerleave', () => { hover = null; h.onHover(null, 0, 0) })
   let down: { x: number; y: number; t: number } | null = null
   el.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, t: performance.now() } })
   el.addEventListener('pointerup', e => {
@@ -337,7 +377,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
 
   return {
     setTheme(t: Theme) { theme = t; applySkin(); wake(1200) },
-    setWholeCountries(v: Set<string>) { whole = v; paint(); liftRefresh(); wake() },
+    setWholeCountries(v: Set<string>) { whole = v; paint(); wake() },
     setCities(c: LitCity[]) {
       litIso = new Set(c.filter(x => !x.dream).map(x => x.city.iso))
       paint()
@@ -346,7 +386,6 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       pins.clear()
       globe.htmlElementsData(c)
       setTimeout(declutter, 120)
-      liftRefresh()
       wake()
     },
     setSelected(c: Country | null, ring?: { lat: number; lng: number }) {

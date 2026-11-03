@@ -396,7 +396,7 @@ async function boot() {
   })
 
   // ── delight: haptics, the stamp slam, swipe-down sheet ──
-  function buzz(ms: number) { try { navigator.vibrate?.(ms) } catch { /* unsupported */ } }
+  function buzz(ms: number) { try { if (navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(ms) } catch { /* unsupported */ } }
 
   function slam(c: Country, since?: string) {
     const el = $('slam')
