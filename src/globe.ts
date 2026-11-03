@@ -1,13 +1,13 @@
 import Globe from 'globe.gl'
 import { Color, DoubleSide, MeshBasicMaterial, type MeshPhongMaterial } from 'three'
-import { altitudeFor, anchorOf, type City, type Country, type Geo } from './data/geo'
+import { altitudeFor, anchorOf, flagUrl, type City, type Country, type Geo } from './data/geo'
 import type { Theme } from './theme'
 import { esc } from './ui/format'
 
 export interface Trail { startLat: number; startLng: number; endLat: number; endLng: number }
 type Pt = [number, number]
 interface Line { pts: Pt[]; kind: 'region' | 'city' | 'grid' }
-export interface LitCity { city: City; trips: number }
+export interface LitCity { city: City; trips: number; kind?: 'city' | 'country' }
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -152,13 +152,20 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       node.style.pointerEvents = visible ? 'auto' : 'none'
     })
 
+  /** A lit place wears its flag: a round badge on a stem for cities, a small flag banner for whole countries. */
   function pinEl(d: LitCity) {
+    const country = geo.byIso.get(d.city.iso)
+    const f = country ? flagUrl(country) : ''
     const b = document.createElement('button')
     b.type = 'button'
-    b.className = 'pin'
-    b.setAttribute('aria-label', `${d.city.name}, ${geo.byIso.get(d.city.iso)?.properties.n ?? ''}`)
-    b.innerHTML = `<span class="pin-dot"></span><span class="pin-name">${esc(d.city.name)}</span>`
-    b.addEventListener('click', e => { e.stopPropagation(); h.onCity(d.city) })
+    b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}`
+    b.setAttribute('aria-label', d.kind === 'country' ? d.city.name : `${d.city.name}, ${country?.properties.n ?? ''}`)
+    b.innerHTML = `<span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(d.city.name)}</span>`
+    b.addEventListener('click', e => {
+      e.stopPropagation()
+      if (d.kind === 'country' && country) h.onCountry(country)
+      else h.onCity(d.city)
+    })
     return b
   }
 
@@ -175,6 +182,9 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   // heavier border data loads after first paint
   fetch('/geo/regions.json').then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => {})
   fetch('/geo/urban.json').then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
+
+  // portrait phones are narrow, so the globe sits further back to show whole
+  const homeAlt = () => (el.clientWidth < 600 ? 2.7 : 1.7)
 
   /** Lifted countries change height, which needs a geometry refresh; only do it when the sets change. */
   let liftKey = ''
@@ -326,10 +336,10 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       wake(1400)
       globe.pointOfView({ lat: p.lat, lng: p.lng, altitude: Math.min(6, Math.max(0.04, p.altitude * f)) }, 600)
     },
-    reset() { wake(2200); globe.pointOfView({ lat: 20, lng: 10, altitude: 1.7 }, 1400) },
+    reset() { wake(2200); globe.pointOfView({ lat: 20, lng: 10, altitude: homeAlt() }, 1400) },
     intro(lat: number, lng: number) {
       wake(3800)
-      globe.pointOfView({ lat, lng, altitude: 1.7 }, reduceMotion ? 0 : 3000)
+      globe.pointOfView({ lat, lng, altitude: homeAlt() }, reduceMotion ? 0 : 3000)
     },
   }
 }

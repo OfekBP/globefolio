@@ -40,3 +40,8 @@ node scripts/build-geo.mjs <that folder>
 ## Roadmap
 
 Photos per trip, wishlist cities, shareable poster export, installable offline PWA.
+
+
+## Mobile app
+Trip Track is built phone-first (on a wide screen it shows as a phone-sized column). Tabs: Map, Passport, Discover, Journal, plus a Log button.
+Cities and whole countries wear their flags on the globe; every country and city you add is stamped into a passport. A service worker (`public/sw.js`) caches the app for offline use in production builds.

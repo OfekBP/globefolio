@@ -23,61 +23,51 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter>
+  </svg>
   <div id="splash" class="splash" aria-hidden="true"><img src="/brand/logo-mark.svg" alt="" width="84" height="84" /><p>Trip Track</p><span class="dots"><i></i><i></i><i></i></span></div>
-  <header class="bar">
-    <a class="brand" href="/" aria-label="Trip Track home"><img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Trip Track" width="150" height="40" /></a>
-    <nav class="actions" aria-label="Actions">
-      <button id="theme" class="icon-btn" type="button" aria-label="Switch theme"></button>
-      <button id="log" class="solid" type="button"><span data-icon="plus"></span>Log a trip</button>
-    </nav>
-  </header>
 
-  <main>
-    <section id="stage" class="stage" aria-label="Your world">
-      <div id="tip" class="tip-wrap" hidden></div>
+  <div id="app">
+    <main id="view-map" class="view map" aria-label="Your world">
       <div id="globe" role="application" aria-label="Interactive globe of the places you have been"></div>
 
-      <button id="stage-search" class="search-pill" type="button"><span data-icon="search"></span>Search any city<kbd>/</kbd></button>
+      <header class="map-top">
+        <button id="stage-search" class="search-pill" type="button"><img src="/brand/logo-mark.svg" alt="" width="28" height="28" /><span>Search any city</span><span data-icon="search"></span></button>
+        <button id="theme" class="icon-btn" type="button" aria-label="Switch theme"></button>
+      </header>
 
-      <div class="zoom" role="group" aria-label="Zoom">
-        <button id="zoom-in" class="icon-btn" type="button" aria-label="Zoom in"><span data-icon="plus"></span></button>
-        <button id="zoom-out" class="icon-btn" type="button" aria-label="Zoom out"><span data-icon="minus"></span></button>
+      <div class="map-fabs">
         <button id="reset" class="icon-btn" type="button" aria-label="Reset view"><span data-icon="reset"></span></button>
+        <button class="icon-btn" data-do="replay" type="button" aria-label="Replay my journey" hidden><span data-icon="play"></span></button>
       </div>
 
-      <div class="tools">
-        <button class="tool" data-do="replay" type="button" hidden><span data-icon="play"></span><span class="replay-label">Replay my journey</span></button>
-        <button class="tool alt" data-do="surprise" type="button"><span data-icon="spark"></span>Surprise me</button>
-      </div>
       <div id="hud" class="hud" hidden aria-live="polite"><b id="hud-name"></b><small id="hud-when"></small></div>
-
-      <p class="hint">Drag to spin · click the globe, then scroll to zoom</p>
 
       <div id="timeline" class="timeline" hidden>
         <label for="year">Years</label>
         <input id="year" type="range" step="1" />
         <output for="year"></output>
       </div>
-    </section>
 
-    <section id="story" class="story" aria-live="polite"></section>
-  </main>
+      <button id="glance" class="glance" type="button" aria-label="Open your passport"></button>
+    </main>
 
-  <nav class="dock" aria-label="Quick actions">
-    <button class="dock-btn" data-do="surprise" type="button"><span data-icon="spark"></span><small>Surprise</small></button>
-    <button class="dock-log" data-do="log" type="button"><span data-icon="plus"></span>Log a trip</button>
-    <button class="dock-btn" data-do="replay" type="button" hidden><span data-icon="play"></span><small class="replay-label">Replay</small></button>
-  </nav>
+    <section id="view-passport" class="view page" aria-label="Passport" hidden><div id="passport" class="scroll"></div></section>
+    <section id="view-journal" class="view page" aria-label="Journal" hidden><div id="story" class="scroll story" aria-live="polite"></div></section>
 
-  <footer class="end">
-    <div class="data">
-      <button id="export" class="text" type="button"><span data-icon="download"></span>Export backup</button>
-      <label class="text" tabindex="0"><span data-icon="upload"></span>Import<input id="import" type="file" accept="application/json" hidden /></label>
-    </div>
-    <p>Your trips stay in this browser. Map tiles: Esri, HERE, Garmin, © OpenStreetMap contributors. Cities and borders from Natural Earth. Flags by country-flag-icons.</p>
-  </footer>
+    <nav class="tabs" aria-label="Main">
+      <button class="tab on" data-tab="map" type="button"><span data-icon="globe"></span><small>Map</small></button>
+      <button class="tab" data-tab="passport" type="button"><span data-icon="stamp"></span><small>Passport</small></button>
+      <button class="tab-add" data-do="log" type="button" aria-label="Log a trip"><span data-icon="plus"></span></button>
+      <button class="tab" data-do="surprise" type="button"><span data-icon="spark"></span><small>Discover</small></button>
+      <button class="tab" data-tab="journal" type="button"><span data-icon="journal"></span><small>Journal</small></button>
+    </nav>
 
-  <aside id="drawer" class="drawer" aria-label="Journal" aria-hidden="true"></aside>
+    <aside id="drawer" class="drawer" aria-label="Trip details" aria-hidden="true"></aside>
+    <div id="slam" class="slam" hidden></div>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

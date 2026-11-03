@@ -15,16 +15,13 @@ export interface StoryModel {
   farthest?: { name: string; km: number }
   hasHome: boolean
   asOf?: number
+  homeName?: string
+  theme: 'light' | 'dark'
 }
 
 const EARTH_KM = 40075
 const num = (n: number) => Math.round(n).toLocaleString('en')
-const MILESTONES = [
-  { at: 1, label: 'First stamp' }, { at: 5, label: 'Five countries' }, { at: 10, label: 'Double digits' },
-  { at: 25, label: 'Quarter century' }, { at: 50, label: 'Fifty and counting' },
-]
-
-function renderUpcoming(m: StoryModel) {
+function upcoming(m: StoryModel) {
   if (!m.upcoming.length) return ''
   const when = (d: number) => (d <= 0 ? 'Today' : d === 1 ? 'Tomorrow' : `In ${d} days`)
   return `
@@ -37,22 +34,21 @@ function renderUpcoming(m: StoryModel) {
       </button></li>`).join('')}</ul>`
 }
 
-function renderStamps(m: StoryModel) {
-  const n = m.countries.length
-  const done = MILESTONES.filter(x => n >= x.at)
-  const next = MILESTONES.find(x => n < x.at)
-  const stamps = [...m.countries].sort((a, b) => (a.since ?? '9').localeCompare(b.since ?? '9'))
-  const badges = [...done.map(x => x.label), ...(m.continents.size >= CONTINENTS.length ? ['Every continent'] : [])]
-  return `
-    <h3 class="section">Your passport</h3>
-    <ul class="stamps">${stamps.slice(0, 12).map((c, i) => `
-      <li class="stamp" style="--tilt:${[-6, 4, -3, 7, -8, 2][i % 6]}deg">
-        <span>${esc(c.country.properties.n)}</span>${flag(c.country)}<small>${c.since ? esc(fmtRange(c.since, undefined)) : 'Visited'}</small>
-      </li>`).join('')}</ul>
-    <p class="t-note passport-note">${badges.length ? badges.map(b => `<span class="badge">${esc(b)}</span>`).join('') : ''}${next ? ` Next stamp goal: ${next.label.toLowerCase()} (${next.at - n} to go).` : ''}</p>`
-}
-
 const flag = (c: Country) => (flagUrl(c) ? `<img class="flag" src="${flagUrl(c)}" alt="" />` : '')
+
+const hello = () => { const h = new Date().getHours(); return h < 5 ? 'Still up?' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening' }
+
+const QUICK = ['Paris', 'Rome', 'Tokyo', 'New York', 'London', 'Barcelona', 'Istanbul', 'Bangkok']
+
+const settings = (m: StoryModel) => `
+  <h3 class="section">Settings</h3>
+  <ul class="setting">
+    <li><button data-act="theme"><span>${m.theme === 'dark' ? icons.sun : icons.moon}</span><b>${m.theme === 'dark' ? 'Light mode' : 'Dark mode'}</b><small>Switch the look</small></button></li>
+    <li><button data-act="home-search"><span>${icons.pin}</span><b>${m.homeName ? `Home: ${esc(m.homeName)}` : 'Choose your home city'}</b><small>Used to measure distance</small></button></li>
+    <li><button data-act="export"><span>${icons.download}</span><b>Export backup</b><small>Save your trips as a file</small></button></li>
+    <li><label><span>${icons.upload}</span><b>Import backup</b><small>Restore from a file</small><input id="import" type="file" accept="application/json" hidden /></label></li>
+  </ul>
+  <p class="fine">Your trips live on this phone. Cities and borders from Natural Earth, flags by country-flag-icons.</p>`
 
 export function renderStory(m: StoryModel): string {
   if (!m.tripCount) {
@@ -61,7 +57,11 @@ export function renderStory(m: StoryModel): string {
         <h2 class="headline">Your map is waiting.</h2>
         <p class="sub">Search a city and watch it light up. Every city you add brings its country along.</p>
         <button class="solid" data-act="log">Log your first trip</button>
-      </div>`
+        <p class="quick-label">Or start with a favourite</p>
+        <div class="quick">${QUICK.map(q => `<button class="chip" data-quick="${q}">${q}</button>`).join('')}</div>
+        ${m.upcoming.length ? upcoming(m) : ''}
+      </div>
+      ${settings(m)}`
   }
 
   const n = m.countries.length
@@ -74,6 +74,7 @@ export function renderStory(m: StoryModel): string {
 
   return `
     <div class="hero-copy">
+      <p class="hello">${hello()}</p>
       <h2 class="headline">${lead} <mark>${plural(n, 'country', 'countries')}</mark>${m.cityCount ? ` and <mark>${plural(m.cityCount, 'city', 'cities')}</mark>` : ''}.</h2>
       <p class="sub">${[around, m.farthest ? `Farthest from home: ${esc(m.farthest.name)}, ${num(m.farthest.km)} km.` : ''].filter(Boolean).join(' ')}</p>
     </div>
@@ -114,8 +115,7 @@ export function renderStory(m: StoryModel): string {
         <small>${c.whole && !c.cities ? 'Whole country' : plural(c.cities, 'city', 'cities')}</small>
       </button></li>`).join('')}</ul>
 
-    ${renderUpcoming(m)}
-    ${renderStamps(m)}
+    ${upcoming(m)}
     <h3 class="section">Recent trips</h3>
     <ul class="log">${m.recent.map(({ trip, country }) => `
       <li><button class="log-row" data-trip="${esc(trip.id)}" data-country="${esc(country.properties.i)}">
@@ -123,5 +123,6 @@ export function renderStory(m: StoryModel): string {
         <span class="lr-main"><b>${esc(trip.place?.name ?? country.properties.n)}</b><small>${trip.place ? esc(country.properties.n) : 'Whole country'}</small></span>
         <time>${fmtRange(trip.startDate, trip.endDate)}</time>
         ${trip.notes ? `<span class="lr-note">${esc(trip.notes)}</span>` : ''}
-      </button></li>`).join('')}</ul>`
+      </button></li>`).join('')}</ul>
+    ${settings(m)}`
 }

@@ -9,6 +9,8 @@ import { createDrawer, type Focus } from './ui/drawer'
 import { esc, fmtRange, plural, yearOf } from './ui/format'
 import { icons } from './ui/icons'
 import { renderStory } from './ui/story'
+import { renderPassport } from './ui/passport'
+import { countryStamp } from './ui/stamps'
 import { createTimeline } from './ui/timeline'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
@@ -26,26 +28,17 @@ async function boot() {
   let replayN: number | null = null // while replaying, only the first N trips (oldest first) are lit
   const info = new Map<string, { cities: number; whole: boolean }>()
 
-  const geoTip = (c: Country) => {
-    const i = info.get(c.properties.i)
-    const status = i ? (i.cities ? plural(i.cities, 'city', 'cities') + ' lit' : 'Whole country') : 'Tap to explore'
-    const f = flagUrl(c)
-    return `<div class="tip">${f ? `<img class="flag" src="${f}" alt="" />` : ''}<b>${esc(c.properties.n)}</b><span>${status}</span></div>`
-  }
-
   // ── globe ──────────────────────────────────────────────
   const globe = createGlobe($('globe'), geo, theme0, {
     onCountry: c => drawer.open({ k: 'country', iso: c.properties.i }),
     onCity: city => drawer.open({ k: 'city', city }),
-    onHover: (c, x, y) => {
-      const tip = $('tip')
-      if (!c) { tip.hidden = true; return }
-      tip.innerHTML = geoTip(c)
-      tip.hidden = false
-      tip.style.transform = `translate(${Math.round(x + 14)}px, ${Math.round(y + 16)}px)`
+    onHover: () => {},
+    onView: alt => {
+      const g = $('globe')
+      g.classList.toggle('near', alt < 1)
+      g.style.setProperty('--ps', alt > 2.4 ? '0.72' : alt > 1.3 ? '0.86' : '1')
     },
-    onView: alt => $('stage').classList.toggle('near', alt < 1.6),
-    describe: c => geoTip(c),
+    describe: () => '',
   })
 
   const onFocus = (f: Focus) => {
@@ -65,8 +58,14 @@ async function boot() {
     homeKey: () => homeKey,
     focus: onFocus,
     save: async t => {
+      const wasNew = !t.id && !info.has(t.iso) && (!t.startDate || t.startDate <= new Date().toISOString().slice(0, 10))
       await saveTrip(t)
-      if (!t.id) { confetti(); toast(`${t.place?.name ?? geo.byIso.get(t.iso)?.properties.n ?? 'Trip'} added. Your world just got bigger.`) }
+      buzz(18)
+      if (t.id) return
+      confetti()
+      const c = geo.byIso.get(t.iso)
+      if (wasNew && c) slam(c, t.startDate)
+      else toast(`${t.place?.name ?? c?.properties.n ?? 'Trip'} added. Your world just got bigger.`)
     },
     remove: id => deleteTrip(id),
     setHome: key => setHome(key),
@@ -90,6 +89,7 @@ async function boot() {
     const home = homeCity()
 
     const lit = new Map<string, LitCity>()
+    const citySince = new Map<string, string | undefined>()
     const byCountry = new Map<string, { cities: Set<string>; trips: number; whole: boolean; since?: string }>()
     const dest = new Map<string, { lat: number; lng: number; name: string }>()
     let km = 0
@@ -107,6 +107,8 @@ async function boot() {
         const hit = lit.get(key)
         if (hit) hit.trips++
         else lit.set(key, { city, trips: 1 })
+        if (t.startDate && (!citySince.get(key) || t.startDate < citySince.get(key)!)) citySince.set(key, t.startDate)
+        else if (!citySince.has(key)) citySince.set(key, undefined)
         row.cities.add(key)
         target = { lat: city.lat, lng: city.lng, name: city.name }
       } else {
@@ -123,7 +125,14 @@ async function boot() {
     }
 
     // map
-    globe.setCities([...lit.values()])
+    const wholeIso = [...byCountry].filter(([, r]) => r.whole).map(([iso]) => iso)
+    const markers: LitCity[] = [...lit.values()]
+    for (const iso of wholeIso) {
+      const c = geo.byIso.get(iso)!
+      const a = anchorOf(c)
+      markers.push({ kind: 'country', trips: byCountry.get(iso)!.trips, city: { key: `country|${iso}`, name: c.properties.n, iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' } })
+    }
+    globe.setCities(markers)
     globe.setWholeCountries(new Set([...byCountry].filter(([, r]) => r.whole).map(([iso]) => iso)))
     const trails: Trail[] = home ? [...dest.values()].map(p => ({ startLat: home.lat, startLng: home.lng, endLat: p.lat, endLng: p.lng })) : []
     globe.setTrails(trails)
@@ -148,11 +157,28 @@ async function boot() {
       recent: shown.slice(0, 8).map(trip => ({ trip, country: geo.byIso.get(trip.iso)! })).filter(r => r.country),
       upcoming,
       farthest: far, hasHome: !!home, asOf: year ?? undefined,
+      homeName: home?.name, theme: currentTheme(),
     })
+
+    const stampCountries = [...byCountry].map(([iso, r]) => ({ country: geo.byIso.get(iso)!, since: r.since }))
+      .sort((a, b) => (a.since ?? '9').localeCompare(b.since ?? '9'))
+    $('passport').innerHTML = renderPassport({
+      countries: stampCountries,
+      cities: [...lit.values()].map(l => ({ city: l.city, country: geo.byIso.get(l.city.iso), since: citySince.get(l.city.key) }))
+        .sort((a, b) => (a.since ?? '9').localeCompare(b.since ?? '9')),
+      continents: new Set(countries.map(c => c.country.properties.c)),
+    })
+
+    // the glance card on the map
+    const glance = $('glance')
+    if (!shown.length) {
+      glance.innerHTML = `<b>Your map is waiting</b><span>Tap + and light up your first city</span>`
+    } else {
+      glance.innerHTML = `<span class="g-nums"><b>${countries.length}</b> ${countries.length === 1 ? 'country' : 'countries'}<i></i><b>${lit.size}</b> ${lit.size === 1 ? 'city' : 'cities'}<i></i><b>${Math.round((countries.length / WORLD_TOTAL) * 100)}%</b> of the world</span><span class="g-go">Open passport</span>`
+    }
 
     const years = trips.map(t => yearOf(t.startDate)).filter((y): y is number => y !== undefined)
     timeline.setYears(years)
-    $('stage').classList.toggle('empty', !trips.length)
     const canReplay = past.filter(t => t.startDate).length >= 2
     document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { b.hidden = !canReplay })
     countUp()
@@ -167,11 +193,21 @@ async function boot() {
 
   // ── controls ───────────────────────────────────────────
   const openLog = () => drawer.open({ k: 'search', purpose: 'log' })
-  $('log').onclick = openLog
   $('stage-search').onclick = openLog
-  $('zoom-in').onclick = () => globe.zoomBy(0.45)
-  $('zoom-out').onclick = () => globe.zoomBy(2.2)
-  $('reset').onclick = () => { drawer.close(); globe.reset() }
+  $('reset').onclick = () => { drawer.close(); globe.reset(); buzz(8) }
+
+  // ── tabs: map, passport, journal ─────────────────────────
+  const TABS = ['map', 'passport', 'journal'] as const
+  function showTab(name: (typeof TABS)[number]) {
+    for (const t of TABS) { const v = $(`view-${t}`); if (t !== 'map') v.hidden = t !== name }
+    document.querySelectorAll<HTMLElement>('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === name))
+    document.body.dataset.tab = name
+    if (name === 'passport') $('view-passport').classList.remove('turned'), requestAnimationFrame(() => $('view-passport').classList.add('turned'))
+    try { localStorage.setItem('triptrack:tab', name) } catch { /* private mode */ }
+  }
+  document.querySelectorAll<HTMLElement>('[data-tab]').forEach(b => b.addEventListener('click', () => { drawer.close(); buzz(8); showTab(b.dataset.tab as (typeof TABS)[number]) }))
+  $('glance').onclick = () => (shownAny() ? showTab('passport') : openLog())
+  const shownAny = () => trips.length > 0
 
   // ── journey replay: fly through every trip in order, lighting the map as you go ──
   let replaying = false
@@ -183,7 +219,7 @@ async function boot() {
     if (order.length < 2) return
     replaying = true
     drawer.close()
-    $('stage').scrollIntoView({ behavior: 'smooth', block: 'start' })
+    showTab('map')
     setReplayLabel('Stop')
     $('hud').hidden = false
     replayN = 0; view()
@@ -208,8 +244,9 @@ async function boot() {
     globe.reset()
   }
   function setReplayLabel(text: string | null) {
-    document.querySelectorAll<HTMLElement>('.replay-label').forEach(l => {
-      l.textContent = text ?? (l.closest('.dock-btn') ? 'Replay' : 'Replay my journey')
+    document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => {
+      b.innerHTML = text ? icons.close : icons.play
+      b.setAttribute('aria-label', text ? 'Stop replay' : 'Replay my journey')
     })
   }
 
@@ -218,7 +255,7 @@ async function boot() {
     const todo = geo.countries.filter(c => !info.has(c.properties.i) && anchorOf(c).span > 3)
     const pool = todo.length ? todo : geo.countries
     const c = pool[Math.floor(Math.random() * pool.length)]
-    document.getElementById('stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    showTab('map')
     drawer.open({ k: 'country', iso: c.properties.i })
   }
 
@@ -254,7 +291,6 @@ async function boot() {
   const themeBtn = $('theme')
   const paintThemeBtn = (t: Theme) => {
     document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#101b33' : '#fff8ec')
-    document.querySelectorAll<HTMLImageElement>('.brand-logo').forEach(i => { i.src = t === 'dark' ? '/brand/logo-horizontal-dark.svg' : '/brand/logo-horizontal.svg' })
     themeBtn.innerHTML = t === 'dark' ? icons.sun : icons.moon
     themeBtn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
   }
@@ -263,30 +299,9 @@ async function boot() {
   onTheme(t => { paintThemeBtn(t); globe.setTheme(t) })
 
   document.querySelectorAll<HTMLElement>('[data-icon]').forEach(el => { el.innerHTML = icons[el.dataset.icon as keyof typeof icons] })
+  document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { b.innerHTML = icons.play })
 
-  $('story').addEventListener('click', e => {
-    const t = (e.target as HTMLElement).closest<HTMLElement>('[data-act],[data-country],[data-continent]')
-    if (!t) return
-    if (t.dataset.continent) {
-      const v = CONTINENT_VIEW[t.dataset.continent]
-      if (v) { document.getElementById('stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); globe.flyToPoint(v[0], v[1], v[2], 1800) }
-      return
-    }
-    if (t.dataset.act === 'log') openLog()
-    else if (t.dataset.act === 'home-search') drawer.open({ k: 'search', purpose: 'home' })
-    else if (t.dataset.trip) {
-      const trip = trips.find(x => x.id === t.dataset.trip)
-      const city = trip?.place ? geo.cityByKey.get(placeKey(trip.iso, trip.place)) : undefined
-      if (city) drawer.open({ k: 'city', city })
-      else if (trip) drawer.open({ k: 'country', iso: trip.iso })
-      document.getElementById('stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    } else if (t.dataset.country) {
-      drawer.open({ k: 'country', iso: t.dataset.country })
-      document.getElementById('stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  })
-
-  $('export').onclick = () => {
+  const exportData = () => {
     const blob = new Blob([JSON.stringify({ app: 'triptrack', version: 2, home: homeKey, trips }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
@@ -294,8 +309,46 @@ async function boot() {
     a.click()
     URL.revokeObjectURL(a.href)
   }
-  $<HTMLInputElement>('import').onchange = async e => {
+
+  const goTo = (t: HTMLElement) => {
+    if (t.dataset.act === 'log') openLog()
+    else if (t.dataset.act === 'theme') { setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); view() }
+    else if (t.dataset.act === 'export') exportData()
+    else if (t.dataset.act === 'home-search') drawer.open({ k: 'search', purpose: 'home' })
+    else if (t.dataset.quick) {
+      const q = t.dataset.quick
+      const city = geo.cities.filter(c => c.name === q).sort((a, b) => b.pop - a.pop)[0]
+      if (city) { showTab('map'); drawer.open({ k: 'city', city }) }
+    } else if (t.dataset.city) {
+      const city = geo.cityByKey.get(t.dataset.city)
+      if (city) { showTab('map'); drawer.open({ k: 'city', city }) }
+    } else if (t.dataset.trip) {
+      const trip = trips.find(x => x.id === t.dataset.trip)
+      const city = trip?.place ? geo.cityByKey.get(placeKey(trip.iso, trip.place)) : undefined
+      showTab('map')
+      if (city) drawer.open({ k: 'city', city })
+      else if (trip) drawer.open({ k: 'country', iso: trip.iso })
+    } else if (t.dataset.country) {
+      showTab('map')
+      drawer.open({ k: 'country', iso: t.dataset.country })
+    }
+  }
+  for (const id of ['story', 'passport']) {
+    $(id).addEventListener('click', e => {
+      const t = (e.target as HTMLElement).closest<HTMLElement>('[data-act],[data-country],[data-city],[data-quick],[data-trip],[data-continent]')
+      if (!t) return
+      buzz(8)
+      if (t.dataset.continent) {
+        const v = CONTINENT_VIEW[t.dataset.continent]
+        if (v) { showTab('map'); globe.flyToPoint(v[0], v[1], v[2], 1800) }
+        return
+      }
+      goTo(t)
+    })
+  }
+  $('story').addEventListener('change', async e => {
     const input = e.target as HTMLInputElement
+    if (input.id !== 'import') return
     const f = input.files?.[0]
     if (!f) return
     try {
@@ -304,11 +357,46 @@ async function boot() {
       if (!Array.isArray(list) || list.some(t => !t.id || !t.iso)) throw new Error('shape')
       await replaceAll(list)
       if (!Array.isArray(data) && data.home) await setHome(data.home)
+      toast('Backup restored.')
     } catch {
-      alert('That file is not a Trip Track export.')
+      toast('That file is not a Trip Track export.')
     }
     input.value = ''
+  })
+
+  // ── delight: haptics, the stamp slam, swipe-down sheet ──
+  function buzz(ms: number) { try { navigator.vibrate?.(ms) } catch { /* unsupported */ } }
+
+  function slam(c: Country, since?: string) {
+    const el = $('slam')
+    el.innerHTML = `<div class="slam-card"><p>New stamp!</p>${countryStamp(c, since, 'slam')}<h3>${esc(c.properties.n)}</h3><small>Added to your passport</small><button class="solid" type="button">Lovely</button></div>`
+    el.hidden = false
+    buzz([30, 40, 30] as unknown as number)
+    const close = () => { el.hidden = true; el.innerHTML = '' }
+    el.querySelector('button')!.addEventListener('click', close, { once: true })
+    setTimeout(() => { if (!el.hidden) close() }, 6000)
   }
+
+  const dr = $('drawer')
+  let sy = 0, dy = 0, dragging = false
+  dr.addEventListener('touchstart', e => {
+    const top = dr.getBoundingClientRect().top
+    dragging = dr.scrollTop <= 0 && e.touches[0].clientY - top < 70
+    sy = e.touches[0].clientY; dy = 0
+  }, { passive: true })
+  dr.addEventListener('touchmove', e => {
+    if (!dragging) return
+    dy = Math.max(0, e.touches[0].clientY - sy)
+    dr.style.transition = 'none'
+    dr.style.transform = `translateY(${dy}px)`
+  }, { passive: true })
+  dr.addEventListener('touchend', () => {
+    if (!dragging) return
+    dragging = false
+    dr.style.transition = ''
+    dr.style.transform = ''
+    if (dy > 110) drawer.close()
+  })
 
   addEventListener('keydown', e => {
     const t = e.target as HTMLElement
@@ -318,6 +406,11 @@ async function boot() {
     else if (e.key === 'Escape' && drawer.isOpen()) drawer.close()
   })
 
+  navigator.storage?.persist?.().catch(() => {})
+  let startTab = 'map'
+  try { startTab = localStorage.getItem('triptrack:tab') ?? 'map' } catch { /* private mode */ }
+  showTab(TABS.includes(startTab as never) ? (startTab as (typeof TABS)[number]) : 'map')
+
   onChange(refresh)
   await refresh()
 
@@ -325,6 +418,7 @@ async function boot() {
   globe.intro(home?.lat ?? 22, home?.lng ?? 10)
   const splash = document.getElementById('splash')
   splash?.classList.add('gone')
+  if ('serviceWorker' in navigator && import.meta.env.PROD) navigator.serviceWorker.register('/sw.js').catch(() => {})
   setTimeout(() => splash?.remove(), 500)
 }
 

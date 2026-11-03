@@ -16,6 +16,8 @@ export const icons = {
   upload: svg('<path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 20h14"/>'),
   play: svg('<path d="M8 5v14l11-7z" fill="currentColor"/>'),
   spark: svg('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8L21.5 18.5l-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/>'),
+  stamp: svg('<rect x="5" y="3" width="14" height="11" rx="3"/><path d="M3 21h18M8 14v4h8v-4"/>'),
+  journal: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/>'),
   close: svg('<path d="M6 6l12 12M18 6 6 18"/>'),
   back: svg('<path d="M15 5l-7 7 7 7"/>'),
   check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
