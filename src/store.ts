@@ -16,7 +16,8 @@ interface Schema extends DBSchema {
   meta: { key: string; value: string }
 }
 
-const dbp = openDB<Schema>('wayfarer', 2, {
+const dbp = // the database keeps its first name so existing trips survive the rename
+openDB<Schema>('wayfarer', 2, {
   upgrade(db, oldVersion) {
     if (oldVersion < 1) db.createObjectStore('trips', { keyPath: 'id' }).createIndex('iso', 'iso')
     if (oldVersion < 2) db.createObjectStore('meta')

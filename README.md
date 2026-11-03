@@ -1,4 +1,4 @@
-# Wayfarer
+# Trip Track
 
 *Your world, lit up.* A private, friendly 3D globe of everywhere you have been. Log a city and only that city lights up, while its country counts as visited. Zoom from the whole Earth down to street level.
 

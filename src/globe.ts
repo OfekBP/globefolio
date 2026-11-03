@@ -5,6 +5,8 @@ import type { Theme } from './theme'
 import { esc } from './ui/format'
 
 export interface Trail { startLat: number; startLng: number; endLat: number; endLng: number }
+type Pt = [number, number]
+interface Line { pts: Pt[]; kind: 'region' | 'city' }
 export interface LitCity { city: City; trips: number }
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -13,11 +15,13 @@ const SKIN = {
   light: {
     tiles: 'World_Topo_Map', labels: false, ocean: '#bfe0f2', atmosphere: '#9fd2ee', fill: 0xff5a2c,
     arc: ['rgba(255,90,44,0.25)', 'rgba(255,90,44,0.95)'], label: '#1c3552',
+    border: 'rgba(18,38,63,0.55)', region: 'rgba(18,38,63,0.28)', city: 'rgba(214,63,18,0.95)',
     sky: null as string | null,
   },
   dark: {
     tiles: 'World_Imagery', labels: true, ocean: '#071a36', atmosphere: '#4f86c6', fill: 0xff8a5c,
     arc: ['rgba(255,138,92,0.25)', 'rgba(255,214,150,0.95)'], label: '#e8eef8',
+    border: 'rgba(255,255,255,0.6)', region: 'rgba(255,255,255,0.3)', city: 'rgba(255,190,140,0.95)',
     sky: '/geo/night-sky.png' as string | null,
   },
 }
@@ -37,6 +41,11 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   let hover: Country | null = null
   let selected: Country | null = null
   let altitude = 2.1
+  let lit: LitCity[] = []
+  let regions: Line[] = []
+  let footprints: Record<string, Pt[]> = {}
+  let showRegions = false
+  let arcW = 0.5
 
   // One material per country, mutated in place so state changes never rebuild geometry.
   const mats = new Map<string, MeshBasicMaterial>()
@@ -74,7 +83,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .polygonsData(geo.countries)
     .polygonCapMaterial(d => matFor(d as Country))
     .polygonSideColor(() => 'rgba(0,0,0,0)')
-    .polygonStrokeColor(() => 'rgba(0,0,0,0)')
+    .polygonStrokeColor(() => skin.border)
     .polygonAltitude(0.0015)
     .polygonsTransitionDuration(0)
     .polygonLabel(d => h.describe(d as Country))
@@ -89,6 +98,12 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       if (city) h.onCity(city)
       else h.onCountry(d as Country)
     })
+    .pathPointLat((p: object) => (p as Pt)[0])
+    .pathPointLng((p: object) => (p as Pt)[1])
+    .pathPoints((d: object) => (d as Line).pts)
+    .pathColor((d: object) => ((d as Line).kind === 'city' ? skin.city : skin.region))
+    .pathStroke((d: object) => ((d as Line).kind === 'city' ? 1.4 : 0.35))
+    .pathTransitionDuration(0)
     .arcColor(() => skin.arc)
     .arcStroke(0.5)
     .arcAltitudeAutoScale(0.32)
@@ -142,6 +157,20 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     return b
   }
 
+  /** Region lines show once you are close enough to care; footprints outline every city you have lit. */
+  function syncPaths() {
+    const out: Line[] = showRegions ? [...regions] : []
+    for (const l of lit) {
+      const f = footprints[l.city.key]
+      if (f) out.push({ pts: f, kind: 'city' })
+    }
+    globe.pathsData(out)
+  }
+
+  // heavier border data loads after first paint
+  fetch('/geo/regions.json').then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => {})
+  fetch('/geo/urban.json').then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
+
   function applySkin() {
     skin = SKIN[theme]
     const sphere = globe.globeMaterial() as MeshBasicMaterial
@@ -151,6 +180,8 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       .backgroundImageUrl(skin.sky ?? '')
       .arcColor(() => skin.arc)
       .labelColor(() => skin.label)
+      .polygonStrokeColor(() => skin.border)
+      .pathColor((d: object) => ((d as Line).kind === 'city' ? skin.city : skin.region))
     // the tile engine keeps loaded tiles, so swap the source, clear the cache, then nudge the camera so it refetches
     globe.globeTileEngineUrl((x: number, y: number, l: number) => tileUrl(x, y, l))
     ;(globe as unknown as { globeTileEngineClearCache(): void }).globeTileEngineClearCache()
@@ -184,7 +215,14 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     // finer drag the closer you are, otherwise a street-level swipe flings you across a continent
     controls.rotateSpeed = Math.min(1, Math.max(0.03, altitude * 0.7))
     clearTimeout(labelTimer)
-    labelTimer = window.setTimeout(() => { paint(); refreshLabels(); h.onView(altitude) }, 140)
+    labelTimer = window.setTimeout(() => {
+      paint(); refreshLabels(); h.onView(altitude)
+      // trails are drawn in world units, so thin them as you close in or they swallow the city
+      const w = altitude > 0.8 ? 0.5 : altitude > 0.3 ? 0.18 : altitude > 0.1 ? 0.05 : 0.012
+      if (w !== arcW) { arcW = w; globe.arcStroke(w) }
+      const near = altitude < 1.1
+      if (near !== showRegions) { showRegions = near; syncPaths() }
+    }, 140)
   })
 
   /** Show the biggest unvisited cities around the view centre; how many depends on how close you are. */
@@ -227,6 +265,8 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     setWholeCountries(v: Set<string>) { whole = v; paint() },
     setCities(c: LitCity[]) {
       litKeys = new Set(c.map(x => x.city.key))
+      lit = c
+      syncPaths()
       globe.htmlElementsData(c)
       refreshLabels(true)
     },

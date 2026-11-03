@@ -16,7 +16,7 @@ One person: the owner. They use it at a desk or on a couch to look back over eve
 
 ## Product Purpose
 
-Wayfarer is a private, interactive 3D globe of everywhere the owner has traveled. Visited countries are lit, trips become a journal (dates, places, notes, later photos), and the whole life of travel can be zoomed from the whole Earth down to a single country or city. Success: opening it feels like looking back at your own life from orbit, and logging a new trip takes seconds.
+Trip Track is a private, interactive 3D globe of everywhere the owner has traveled. Visited countries are lit, trips become a journal (dates, places, notes, later photos), and the whole life of travel can be zoomed from the whole Earth down to a single country or city. Success: opening it feels like looking back at your own life from orbit, and logging a new trip takes seconds.
 
 ## Positioning
 
@@ -40,7 +40,7 @@ Entry is manual: the owner types countries, dates, optional places and notes. No
 
 ## Brand Commitments
 
-Name: Wayfarer. Tagline: "Your world, lit up." Feel pinned by the user (second round): friendly like Traviary, Globetrotter, Orvenara; big interactive globe with stats and sentences below; light and dark modes. (Round one was cinematic night Earth, superseded.)
+Name: Trip Track. Tagline: "Your world, lit up." Feel pinned by the user (second round): friendly like Traviary, Globetrotter, Orvenara; big interactive globe with stats and sentences below; light and dark modes. (Round one was cinematic night Earth, superseded.)
 
 ## Evidence on Hand
 

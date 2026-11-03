@@ -60,11 +60,17 @@ async function boot() {
   const homeCity = (): City | undefined => (homeKey ? geo.cityByKey.get(homeKey) : undefined)
 
   function view() {
-    const shown = year === null ? trips : trips.filter(t => { const y = yearOf(t.startDate); return y === undefined || y <= year! })
+    const today = new Date().toISOString().slice(0, 10)
+    // trips dated in the future are plans: they never light the map or count in stats
+    const past = trips.filter(t => !t.startDate || t.startDate <= today)
+    const shown = year === null ? past : past.filter(t => { const y = yearOf(t.startDate); return y === undefined || y <= year! })
+    const upcoming = trips.filter(t => t.startDate && t.startDate > today).sort((a, b) => a.startDate!.localeCompare(b.startDate!))
+      .map(trip => ({ trip, country: geo.byIso.get(trip.iso)!, days: Math.ceil((Date.parse(trip.startDate!) - Date.parse(today)) / 864e5) }))
+      .filter(u => u.country)
     const home = homeCity()
 
     const lit = new Map<string, LitCity>()
-    const byCountry = new Map<string, { cities: Set<string>; trips: number; whole: boolean }>()
+    const byCountry = new Map<string, { cities: Set<string>; trips: number; whole: boolean; since?: string }>()
     const dest = new Map<string, { lat: number; lng: number; name: string }>()
     let km = 0
 
@@ -73,6 +79,7 @@ async function boot() {
       if (!country) continue
       const row = byCountry.get(t.iso) ?? { cities: new Set<string>(), trips: 0, whole: false }
       row.trips++
+      if (t.startDate && (!row.since || t.startDate < row.since)) row.since = t.startDate
       let target: { lat: number; lng: number; name: string }
       if (t.place) {
         const key = placeKey(t.iso, t.place)
@@ -110,7 +117,7 @@ async function boot() {
       const d = distanceKm(home.lat, home.lng, p.lat, p.lng)
       if (!far || d > far.km) far = { name: p.name, km: d }
     }
-    const countries = [...byCountry].map(([iso, r]) => ({ country: geo.byIso.get(iso)!, cities: r.cities.size, trips: r.trips, whole: r.whole }))
+    const countries = [...byCountry].map(([iso, r]) => ({ country: geo.byIso.get(iso)!, cities: r.cities.size, trips: r.trips, whole: r.whole, since: r.since }))
       .sort((a, b) => b.trips - a.trips || a.country.properties.n.localeCompare(b.country.properties.n))
     $('story').innerHTML = renderStory({
       countries,
@@ -119,6 +126,7 @@ async function boot() {
       continents: new Set(countries.map(c => c.country.properties.c)),
       km, worldTotal: WORLD_TOTAL,
       recent: shown.slice(0, 8).map(trip => ({ trip, country: geo.byIso.get(trip.iso)! })).filter(r => r.country),
+      upcoming,
       farthest: far, hasHome: !!home, asOf: year ?? undefined,
     })
 
@@ -144,6 +152,7 @@ async function boot() {
 
   const themeBtn = $('theme')
   const paintThemeBtn = (t: Theme) => {
+    document.querySelectorAll<HTMLImageElement>('.brand-logo').forEach(i => { i.src = t === 'dark' ? '/brand/logo-horizontal-dark.svg' : '/brand/logo-horizontal.svg' })
     themeBtn.innerHTML = t === 'dark' ? icons.sun : icons.moon
     themeBtn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
   }
@@ -171,10 +180,10 @@ async function boot() {
   })
 
   $('export').onclick = () => {
-    const blob = new Blob([JSON.stringify({ app: 'wayfarer', version: 2, home: homeKey, trips }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ app: 'triptrack', version: 2, home: homeKey, trips }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `wayfarer-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `trip-track-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -189,7 +198,7 @@ async function boot() {
       await replaceAll(list)
       if (!Array.isArray(data) && data.home) await setHome(data.home)
     } catch {
-      alert('That file is not a Wayfarer export.')
+      alert('That file is not a Trip Track export.')
     }
     input.value = ''
   }

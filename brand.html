@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trip Track brand guide</title>
+  <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+  <script>
+    try {
+      var t = localStorage.getItem('triptrack:theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="brand-page">
+  <header class="bar">
+    <a class="brand" href="/" aria-label="Back to Trip Track"><img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Trip Track" /></a>
+    <nav class="actions"><a class="text" href="/">Open the app</a><button id="theme" class="icon-btn" type="button" aria-label="Switch theme"></button></nav>
+  </header>
+
+  <main class="guide">
+    <section class="g-hero">
+      <h1>Light up your world.</h1>
+      <p class="g-lede">Trip Track is a friendly home for everywhere you have been. This is how it looks, sounds and behaves, so every screen feels like the same warm, curious friend.</p>
+    </section>
+
+    <section class="g-block">
+      <h2>The idea</h2>
+      <div class="g-cols">
+        <p><b>Purpose.</b> Make every trip feel worth remembering, and every map a little more yours.</p>
+        <p><b>Promise.</b> Track every trip, and watch your world light up one city at a time.</p>
+        <p><b>Personality.</b> Curious, warm, proud without bragging, clear. Think well-traveled friend, not airline or accountant.</p>
+      </div>
+    </section>
+
+    <section class="g-block">
+      <h2>Logo</h2>
+      <p class="g-note">A pin riding an orbit. The pin is where you have been, the orbit is the track that got you there, and the sun-colored traveler is the next trip. The dot of the "i" is the same lit city.</p>
+      <div class="stage-grid">
+        <figure class="plate on-paper"><img src="/brand/logo-horizontal.svg" alt="Horizontal logo on light" height="64" /><figcaption>Horizontal, on light</figcaption></figure>
+        <figure class="plate on-ink"><img src="/brand/logo-horizontal-dark.svg" alt="Horizontal logo on dark" height="64" /><figcaption>Horizontal, on dark</figcaption></figure>
+        <figure class="plate on-sky tall"><img src="/brand/logo-stacked.svg" alt="Stacked logo" height="150" /><figcaption>Stacked</figcaption></figure>
+        <figure class="plate on-paper tall"><img src="/brand/logo-mark.svg" alt="App icon" width="120" height="120" /><figcaption>App icon and favicon</figcaption></figure>
+        <figure class="plate on-sun tall"><img class="glyph" src="/brand/logo-glyph.svg" alt="Mark without tile" width="120" height="120" /><figcaption>Mark without tile</figcaption></figure>
+      </div>
+      <div class="g-cols rules">
+        <p><b>Clear space.</b> Keep one pin-hole diameter free on every side (about a quarter of the icon's height).</p>
+        <p><b>Minimum size.</b> Icon 16 px. Horizontal logo 96 px wide. Below that, use the icon alone.</p>
+        <p><b>Don't.</b> Stretch it, recolor the tile, outline it, rotate it, or set it on a busy photo. On photos, use the icon on a plain tile.</p>
+      </div>
+    </section>
+
+    <section class="g-block">
+      <h2>Color</h2>
+      <p class="g-note">Mostly calm paper and ink, with coral as the one thing that says "you were here". Roughly 60% paper or night, 20% ink, 12% sky and tints, 8% coral.</p>
+      <ul class="swatches">
+        <li style="--c:#FF5A2C;--t:#fff"><b>Track Coral</b><span>#FF5A2C</span><small>Lit cities, trails, the logo tile. Buttons use #D63F12 for text contrast. Dark mode: #FF8A5C.</small></li>
+        <li style="--c:#12263F;--t:#fff"><b>Midnight Ink</b><span>#12263F</span><small>Text and the wordmark.</small></li>
+        <li style="--c:#CDE7F7;--t:#12263F"><b>Lagoon Sky</b><span>#CDE7F7</span><small>The globe stage, calm backgrounds.</small></li>
+        <li style="--c:#FFD35C;--t:#12263F"><b>Sunbeam</b><span>#FFD35C</span><small>The traveler dot, dream-list pins, highlights.</small></li>
+        <li style="--c:#1FB5A8;--t:#fff"><b>Lagoon Teal</b><span>#1FB5A8</span><small>Distance and success moments.</small></li>
+        <li style="--c:#F1F7FC;--t:#12263F"><b>Paper</b><span>#F1F7FC</span><small>Light page.</small></li>
+        <li style="--c:#0A1424;--t:#fff"><b>Night</b><span>#0A1424</span><small>Dark page.</small></li>
+      </ul>
+    </section>
+
+    <section class="g-block">
+      <h2>Type</h2>
+      <div class="type-grid">
+        <div><p class="spec-display">Bricolage Grotesque</p><p class="g-note">Headlines, numbers and the wordmark. Bold, slightly quirky, friendly at large sizes. Weights 700 and 800.</p></div>
+        <div><p class="spec-body">Figtree</p><p class="g-note">Everything you read: labels, notes, buttons. Open and round. Weights 400 to 700, tabular numerals for dates and distances.</p></div>
+      </div>
+      <p class="spec-line">You've explored <mark>12 countries</mark> and <mark>31 cities</mark>.</p>
+    </section>
+
+    <section class="g-block">
+      <h2>Voice</h2>
+      <div class="g-cols voice">
+        <div class="say yes"><b>We say</b><p>You've lit 12 cities.</p><p>Your map is waiting.</p><p>That's 1.7× around the Earth.</p></div>
+        <div class="say no"><b>We don't say</b><p>Achievement unlocked: 12 city nodes!</p><p>No data available.</p><p>Kilometric aggregate: 69,805.</p></div>
+        <div class="say how"><b>How</b><p>Second person, plain words, short sentences. Celebrate, never boast. Errors name the problem and the way out.</p></div>
+      </div>
+    </section>
+
+    <section class="g-block">
+      <h2>Signature motifs</h2>
+      <div class="motifs">
+        <figure class="motif"><div class="track" aria-hidden="true"><svg viewBox="0 0 260 90" fill="none"><path class="arc" d="M12 76C70 -6 190 -6 248 76" /><circle class="traveler" r="6" /></svg></div><figcaption><b>The Track.</b> A dashed arc with a traveler riding it. Used for trails, loading and progress.</figcaption></figure>
+        <figure class="motif"><div class="glow" aria-hidden="true"><span class="pin-dot"></span></div><figcaption><b>The Glow.</b> A coral pin with a slow pulse. It marks every city you have lit.</figcaption></figure>
+        <figure class="motif"><div class="stamp" aria-hidden="true"><span>TRIP TRACK</span><b>★</b><span>12 MAY 2024</span></div><figcaption><b>The Stamp.</b> Passport-style stamps celebrate each country you add.</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="g-block">
+      <h2>In the product</h2>
+      <div class="ui-demo">
+        <button class="solid" type="button">Log a trip</button>
+        <button class="chip" type="button">Rome</button>
+        <button class="chip" type="button">Lisbon</button>
+        <span class="demo-tile">World explored <b>12%</b></span>
+      </div>
+      <p class="g-note">Large radii, fully round buttons, pastel tiles, soft offset shadows. No blur, no neon, no cards inside cards.</p>
+    </section>
+  </main>
+
+  <script type="module" src="/src/brand.ts"></script>
+</body>
+</html>

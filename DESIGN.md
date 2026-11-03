@@ -1,4 +1,4 @@
-# Wayfarer design system
+# Trip Track design system
 
 **World:** a friendly travel keepsake. A big, real-looking globe you can fall into, with soft rounded surfaces, warm coral for "you were here", and plain-spoken sentences below it. Light and dark are both first-class; the owner chooses.
 

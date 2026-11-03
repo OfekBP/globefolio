@@ -4,11 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#eaf4fb" />
-  <title>Wayfarer</title>
+  <title>Trip Track</title>
+  <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="description" content="Track every trip. Light up your world." />
   <script>
     // Apply the saved theme before first paint so there is no flash.
     try {
-      var t = localStorage.getItem('wayfarer:theme');
+      var t = localStorage.getItem('triptrack:theme') || localStorage.getItem('wayfarer:theme');
       if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       document.documentElement.dataset.theme = t;
     } catch (e) { document.documentElement.dataset.theme = 'light'; }
@@ -19,10 +22,7 @@
 </head>
 <body>
   <header class="bar">
-    <a class="brand" href="/" aria-label="Wayfarer home">
-      <span class="logo" data-icon="globe"></span>
-      <span class="wordmark">Wayfarer</span>
-    </a>
+    <a class="brand" href="/" aria-label="Trip Track home"><img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Trip Track" width="150" height="40" /></a>
     <nav class="actions" aria-label="Actions">
       <button id="theme" class="icon-btn" type="button" aria-label="Switch theme"></button>
       <button id="log" class="solid" type="button"><span data-icon="plus"></span>Log a trip</button>
