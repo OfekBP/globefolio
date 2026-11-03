@@ -1,6 +1,7 @@
+import '@fontsource-variable/nunito'
 import './styles.css'
 import { anchorOf, distanceKm, flagUrl, loadGeo, placeKey, type City, type Country } from './data/geo'
-import { createGlobe, type LitCity } from './globe'
+import type { LitCity } from './globe'
 import { allTrips, allWishes, deleteTrip, deleteWish, getHome, onChange, replaceAll, saveTrip, saveWish, setHome, type Trip, type Wish } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
 import { confetti } from './ui/confetti'
@@ -21,7 +22,8 @@ const CONTINENT_VIEW: Record<string, [number, number, number]> = {
 
 async function boot() {
   const theme0 = initTheme()
-  const geo = await loadGeo()
+  // the 3D engine is the heavy part, so it downloads alongside the data while the splash shows
+  const [geo, { createGlobe }] = await Promise.all([loadGeo(), import('./globe')])
   let trips: Trip[] = []
   let wishes: Wish[] = []
   let homeKey: string | undefined
@@ -66,7 +68,11 @@ async function boot() {
       if (wasNew && c) slam(c, t.startDate)
       else toast(`${t.place?.name ?? c?.properties.n ?? 'Trip'} added. Your world just got bigger.`)
     },
-    remove: id => deleteTrip(id),
+    remove: async id => {
+      const gone = trips.find(t => t.id === id)
+      await deleteTrip(id)
+      if (gone) toast('Trip deleted.', () => { void saveTrip(gone) })
+    },
     setHome: key => setHome(key),
     wishes: () => wishes,
     toggleWish: async (iso, city) => {
@@ -457,7 +463,7 @@ async function boot() {
   globe.intro(home?.lat ?? 22, home?.lng ?? 10)
   const splash = document.getElementById('splash')
   splash?.classList.add('gone')
-  if ('serviceWorker' in navigator && import.meta.env.PROD) navigator.serviceWorker.register('/sw.js').catch(() => {})
+  if ('serviceWorker' in navigator && import.meta.env.PROD) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {})
   setTimeout(() => splash?.remove(), 500)
 }
 

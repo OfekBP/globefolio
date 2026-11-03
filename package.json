@@ -14,8 +14,10 @@
     "three": "0.187.0"
   },
   "devDependencies": {
+    "@fontsource-variable/nunito": "^5.3.0",
     "@types/three": "0.187.0",
     "country-flag-icons": "^1.6.20",
+    "sharp": "^0.35.5",
     "typescript": "5.6.3",
     "vite": "5.4.10"
   }

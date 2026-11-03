@@ -24,7 +24,7 @@ export function countryStamp(c: Country, since: string | undefined, uid: string)
   const date = when(since)
   const img = (x: number, y: number, w: number, h: number, clip = '') =>
     flag ? `<image href="${flag}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"${clip ? ` clip-path="url(#${clip})"` : ''}/>` : ''
-  const txt = 'font-family="Nunito, system-ui, sans-serif" font-weight="800" fill="currentColor"'
+  const txt = 'font-family="Nunito Variable, Nunito, system-ui, sans-serif" font-weight="800" fill="currentColor"'
 
   let body = ''
   if (shape === 0) {
@@ -68,7 +68,7 @@ export function countryStamp(c: Country, since: string | undefined, uid: string)
 export function cityStamp(city: City, country: Country | undefined, since: string | undefined, uid: string): string {
   const ink = inkOf(city.key)
   const flag = country ? flagUrl(country) : ''
-  const txt = 'font-family="Nunito, system-ui, sans-serif" font-weight="800" fill="currentColor"'
+  const txt = 'font-family="Nunito Variable, Nunito, system-ui, sans-serif" font-weight="800" fill="currentColor"'
   return `<svg class="stamp-svg wide" viewBox="0 0 160 84" style="color:${ink}" role="img" aria-label="${esc(city.name)} stamp">
     <defs><clipPath id="${uid}c"><circle cx="34" cy="42" r="19"/></clipPath></defs>
     <rect x="3" y="3" width="154" height="78" rx="14" fill="none" stroke="currentColor" stroke-width="3"/>

@@ -1,6 +1,6 @@
 :root {
-  --display: 'Nunito', system-ui, sans-serif;
-  --body: 'Nunito', system-ui, sans-serif;
+  --display: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+  --body: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --drawer: 430px;
   --tabh: calc(68px + env(safe-area-inset-bottom));
@@ -382,6 +382,8 @@ input, textarea { user-select: text; -webkit-user-select: text }
 
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; max-width: min(92vw, 420px); padding: 14px 20px; border-radius: 16px; background: var(--ink); color: var(--bg); font-weight: 700; box-shadow: var(--shadow-lg); animation: rise 0.4s var(--ease) both; text-align: center }
 .toast.out { opacity: 0; transition: opacity 0.4s }
+.toast { display: flex; align-items: center; gap: 14px }
+.toast-undo { flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--mark); color: #1f2a44; font: 800 14px/1 var(--body) }
 @keyframes rise { from { opacity: 0; transform: translate(-50%, 14px) } }
 
 .toast { bottom: calc(var(--tabh) + 18px) }

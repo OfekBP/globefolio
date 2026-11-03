@@ -215,8 +215,8 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   function loadDetail() {
     if (detailLoaded) return
     detailLoaded = true
-    fetch('/geo/regions.json').then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => { detailLoaded = false })
-    fetch('/geo/urban.json').then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
+    fetch(`${import.meta.env.BASE_URL}geo/regions.json`).then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => { detailLoaded = false })
+    fetch(`${import.meta.env.BASE_URL}geo/urban.json`).then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
   }
 
   /** Real polygons (crisp edges at city zoom) are built the first time you get close, then just shown or hidden. */
@@ -261,6 +261,14 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       const far = p.altitude >= 1.2
       const rank = (d.dream ? 0 : 1000) + (d.kind === 'country' ? (far ? 500 : 0) : far ? 0 : 500) + Math.min(d.trips, 99)
       items.push({ key, el: pe, d, x: sc.x, y: sc.y, rank })
+    }
+    // up close, a country's banner just repeats its city pins, so it steps aside
+    if (p.altitude < 0.6) {
+      const withCity = new Set(items.filter(i => i.d.kind !== 'country' && !i.d.dream).map(i => i.d.city.iso))
+      for (let n = items.length - 1; n >= 0; n--) {
+        const i = items[n]
+        if (i.d.kind === 'country' && !i.d.dream && withCity.has(i.d.city.iso)) { i.el.classList.add('hid'); items.splice(n, 1) }
+      }
     }
     items.sort((a, b) => b.rank - a.rank)
     const scale = p.altitude > 2.4 ? 0.72 : p.altitude > 1.3 ? 0.86 : 1

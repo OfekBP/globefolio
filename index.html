@@ -2,14 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Tripglobe" />
   <meta name="theme-color" content="#fff8ec" />
   <title>Tripglobe</title>
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="description" content="Track every trip. Light up your world." />
+  <meta name="description" content="Track every trip. Light up your world. A private 3D globe of every city and country you have been to, with passport stamps and a travel journal." />
+  <meta name="color-scheme" content="light dark" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Tripglobe" />
+  <meta property="og:title" content="Tripglobe: light up your world" />
+  <meta property="og:description" content="Track every trip on a 3D globe, collect passport stamps, keep a travel journal. Private, offline, free." />
+  <meta property="og:image" content="%VITE_SITE_URL%icons/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
   <script>
     // Apply the saved theme before first paint so there is no flash.
     try {
@@ -18,11 +28,9 @@
       document.documentElement.dataset.theme = t;
     } catch (e) { document.documentElement.dataset.theme = 'light'; }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
 <body>
+  <noscript><p style="padding:24px;font-family:system-ui">Tripglobe needs JavaScript to draw your globe.</p></noscript>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <filter id="ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter>
   </svg>

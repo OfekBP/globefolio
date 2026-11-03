@@ -65,23 +65,25 @@ def wordmark(size, x0, baseline, color, dot_color):
 
 
 def mark(x=0, y=0, size=64, tile=True, ink=None):
-    """The mark: a pin riding an orbit. `tile=False` draws it on transparent with coral pin."""
+    """The mark: a little globe with a pin dropped on it. `tile=False` draws it on transparent."""
     k = size / 64
-    pin_fill = CHALK if tile else CORAL
-    hole = CORAL if tile else "var(--hole,#fff)"
-    orbit = CHALK if tile else CORAL
-    gap = CORAL if tile else "var(--hole,#fff)"
+    ring = CHALK if tile else LAGOON
+    edge = CHALK if tile else "var(--hole,#fff)"
     t = f'<rect width="64" height="64" rx="18" fill="{CORAL}"/>' if tile else ""
+    cid = f"g{int(x)}{int(y)}{size}{int(tile)}"
     return (
         f'<g transform="translate({x} {y}) scale({k})">{t}'
-        f'<g transform="rotate(-12 32 44)">'
-        f'<path d="M11 44A21 7.5 0 0 1 53 44" fill="none" stroke="{orbit}" stroke-width="3.2" stroke-linecap="round" opacity=".9"/></g>'
-        f'<path d="M32 10C24.3 10 18.5 15.7 18.5 23c0 9.5 13.5 24 13.5 24s13.5-14.5 13.5-24C45.5 15.7 39.7 10 32 10z" fill="{pin_fill}"/>'
-        f'<circle cx="32" cy="23" r="5.2" fill="{hole}"/>'
-        f'<g transform="rotate(-12 32 44)" fill="none" stroke-linecap="round">'
-        f'<path d="M11 44A21 7.5 0 0 0 53 44" stroke="{gap}" stroke-width="7"/>'
-        f'<path d="M11 44A21 7.5 0 0 0 53 44" stroke="{orbit}" stroke-width="3.2"/>'
-        f'<circle cx="53" cy="44" r="4.2" fill="{SUN}" stroke="{gap}" stroke-width="1.8"/></g></g>'
+        f'<g transform="translate(32 32) scale(.86) translate(-30.5 -32.7)"><defs><clipPath id="{cid}"><circle cx="30" cy="36" r="22.5"/></clipPath></defs>'
+        f'<circle cx="30" cy="36" r="22.5" fill="#A9DCF0"/>'
+        f'<g clip-path="url(#{cid})"><g transform="translate(30 36) scale(1.13) translate(-30 -35)">'
+        f'<path d="M12 27c4-4 10-5 13-2s0 6-2 8-1 6-4 9-8 0-9-6-1-6 2-9z" fill="#7ED6B0"/>'
+        f'<path d="M34 24c4-3 9-2 12 1s0 7-3 9-1 8-5 10-7-3-6-8 0-8 2-12z" fill="#7ED6B0"/>'
+        f'<circle cx="37" cy="49" r="3.4" fill="{SUN}"/>'
+        f'<ellipse cx="30" cy="35" rx="9" ry="20" fill="none" stroke="#fff" stroke-width="1" opacity=".55"/>'
+        f'<path d="M10 35h40" stroke="#fff" stroke-width="1" opacity=".55"/></g></g>'
+        f'<circle cx="30" cy="36" r="22.5" fill="none" stroke="{ring}" stroke-width="2.8"/>'
+        f'<path d="M45 7c-4.6 0-8.4 3.5-8.4 7.9C36.6 21.5 45 30 45 30s8.4-8.5 8.4-15.1C53.4 10.5 49.6 7 45 7z" fill="{BLUSH}" stroke="{edge}" stroke-width="2.2" stroke-linejoin="round"/>'
+        f'<circle cx="45" cy="14.6" r="3" fill="{CHALK}"/></g></g>'
     )
 
 

@@ -36,8 +36,8 @@ export const placeKey = (iso: string, p: Pick<Place, 'name' | 'lat'>) => `${iso}
 
 export async function loadGeo(): Promise<Geo> {
   const [cj, rows] = await Promise.all([
-    fetch('/geo/countries.json').then(r => r.json()),
-    fetch('/geo/cities.json').then(r => r.json()) as Promise<[string, string, number, number, number, number][]>,
+    fetch(`${import.meta.env.BASE_URL}geo/countries.json`).then(r => r.json()),
+    fetch(`${import.meta.env.BASE_URL}geo/cities.json`).then(r => r.json()) as Promise<[string, string, number, number, number, number][]>,
   ])
   const countries: Country[] = cj.features
   const byIso = new Map(countries.map(c => [c.properties.i, c]))
@@ -88,7 +88,7 @@ function bbox(ring: number[][]): [number, number, number, number] {
 /** Camera altitude (globe radii) that frames a country of the given angular span. */
 export const altitudeFor = (span: number) => Math.min(2.2, Math.max(0.12, span / 70 + 0.1))
 
-export const flagUrl = (c: Country) => (c.properties.a ? `/flags/${c.properties.a}.svg` : '')
+export const flagUrl = (c: Country) => (c.properties.a ? `${import.meta.env.BASE_URL}flags/${c.properties.a}.svg` : '')
 
 export type Hit = { kind: 'city'; city: City } | { kind: 'country'; country: Country }
 

@@ -10,7 +10,7 @@ const paint = (t: Theme) => {
   btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
   // the logo files carry their own text color, so swap the lockup with the theme
   document.querySelectorAll<HTMLImageElement>('.brand-logo').forEach(i => {
-    i.src = t === 'dark' ? '/brand/logo-horizontal-dark.svg' : '/brand/logo-horizontal.svg'
+    i.src = t === 'dark' ? `${import.meta.env.BASE_URL}brand/logo-horizontal-dark.svg` : `${import.meta.env.BASE_URL}brand/logo-horizontal.svg`
   })
 }
 paint(currentTheme())
