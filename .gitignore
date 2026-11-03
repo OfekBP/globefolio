@@ -1,0 +1,8 @@
+node_modules
+dist
+.impeccable/live
+.impeccable/review
+.impeccable/build
+.impeccable/mocks
+.claude
+.DS_Store
