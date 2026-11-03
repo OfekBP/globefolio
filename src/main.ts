@@ -325,7 +325,7 @@ async function boot() {
     const blob = new Blob([JSON.stringify({ app: 'triptrack', version: 3, home: homeKey, trips, wishes }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `trip-track-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `tripglobe-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -390,7 +390,7 @@ async function boot() {
       if (!Array.isArray(data) && data.home) await setHome(data.home)
       toast('Backup restored.')
     } catch {
-      toast('That file is not a Trip Track export.')
+      toast('That file is not a Tripglobe export.')
     }
     input.value = ''
   })

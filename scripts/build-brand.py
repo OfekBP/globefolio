@@ -1,4 +1,4 @@
-"""Builds the Trip Track logo files with the wordmark converted to outlines (no font needed to display them).
+"""Builds the Tripglobe logo files with the wordmark converted to outlines (no font needed to display them).
 
     python scripts/build-brand.py <BricolageGrotesque variable .ttf>
 
@@ -43,11 +43,11 @@ def dot_of_i():
 
 
 def wordmark(size, x0, baseline, color, dot_color):
-    """Returns (svg path markup, width) for 'Trip Track' set at `size` px."""
+    """Returns (svg path markup, width) for 'Tripglobe' set at `size` px."""
     s = size / upm
     x = x0
     out = []
-    text = "Trip Track"
+    text = "Tripglobe"
     for i, ch in enumerate(text):
         name = cmap[ord("ı")] if ch == "i" and i == 2 else cmap[ord(ch)]
         pen = SVGPathPen(gs)
@@ -85,7 +85,7 @@ def mark(x=0, y=0, size=64, tile=True, ink=None):
     )
 
 
-def svg(w, h, body, title="Trip Track"):
+def svg(w, h, body, title="Tripglobe"):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w:.0f}" height="{h:.0f}" viewBox="0 0 {w:.2f} {h:.2f}" role="img" aria-label="{title}">'
             f'<title>{title}</title>{body}</svg>\n')
 
@@ -96,7 +96,7 @@ out.mkdir(parents=True, exist_ok=True)
 # symbols
 (out / "logo-mark.svg").write_text(svg(64, 64, mark()))
 (out / "favicon.svg").write_text(svg(64, 64, mark()))
-(out / "logo-glyph.svg").write_text(svg(64, 64, mark(tile=False), "Trip Track mark"))
+(out / "logo-glyph.svg").write_text(svg(64, 64, mark(tile=False), "Tripglobe mark"))
 
 # horizontal lockups
 SIZE = 42

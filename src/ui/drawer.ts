@@ -89,7 +89,7 @@ export function createDrawer(d: Deps) {
       <div class="sheet">
         ${closeBtn}
         <h2 class="title">${home ? 'Where do you call home?' : scoped ? `Cities in ${esc(scoped.properties.n)}` : 'Where did you go?'}</h2>
-        <p class="lede">${home ? 'Trip Track measures every journey from here.' : 'Pick a city and only that city lights up. The country still counts as visited.'}</p>
+        <p class="lede">${home ? 'Tripglobe measures every journey from here.' : 'Pick a city and only that city lights up. The country still counts as visited.'}</p>
         <label class="sr" for="q">Search</label>
         <div class="search-field">
           ${icons.search}

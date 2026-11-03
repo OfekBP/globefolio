@@ -5,7 +5,7 @@ primary_target: "index.html"
 related_targets: ["src/main.ts","src/styles.css"]
 ---
 
-# Surface: Trip Track main globe (Experience)
+# Surface: Tripglobe main globe (Experience)
 
 Visitor mode: Experience. The globe is the work; stats and sentences follow below it. Single owner, desk or couch, any light (theme is the owner's choice).
 User-pinned (round two): friendly like Traviary, Globetrotter, Orvenara; big interactive globe with stats and sentences below; light and dark; city-level lighting; deep zoom to see actual cities; flags.

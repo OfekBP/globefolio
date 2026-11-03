@@ -1,4 +1,4 @@
-# Trip Track
+# Tripglobe
 
 *Your world, lit up.* A private, friendly 3D globe of everywhere you have been. Log a city and only that city lights up, while its country counts as visited. Zoom from the whole Earth down to street level.
 
@@ -43,7 +43,7 @@ Photos per trip, wishlist cities, shareable poster export, installable offline P
 
 
 ## Mobile app
-Trip Track is built phone-first (on a wide screen it shows as a phone-sized column). Tabs: Map, Passport, Discover, Journal, plus a Log button.
+Tripglobe is built phone-first (on a wide screen it shows as a phone-sized column). Tabs: Map, Passport, Discover, Journal, plus a Log button.
 Cities and whole countries wear their flags on the globe; every country and city you add is stamped into a passport. A service worker (`public/sw.js`) caches the app for offline use in production builds.
 
 Dream list: add any city or country to it from its page; places you wish to see show as dashed flags on the map and in the Journal, and leave the list when you log a trip there. Visited cities glow; overlapping flags fold into the most important one with a +N badge.

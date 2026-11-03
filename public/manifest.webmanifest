@@ -1,6 +1,6 @@
 {
-  "name": "Trip Track",
-  "short_name": "Trip Track",
+  "name": "Tripglobe",
+  "short_name": "Tripglobe",
   "description": "Track every trip. Light up your world.",
   "start_url": "/",
   "display": "standalone",

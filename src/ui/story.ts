@@ -123,7 +123,7 @@ export function renderStory(m: StoryModel): string {
         <p class="t-label">Distance traveled</p>
         ${m.hasHome
           ? `<p class="t-big">${num(m.km)}<span> km</span></p><p class="t-note">Round trips from home</p>`
-          : `<p class="t-note">Set a home city and Trip Track will measure every trip.</p><button class="text" data-act="home-search">Choose home</button>`}
+          : `<p class="t-note">Set a home city and Tripglobe will measure every trip.</p><button class="text" data-act="home-search">Choose home</button>`}
       </div>
       <div class="tile t-trips">
         <span class="t-icon">${icons.pin}</span>

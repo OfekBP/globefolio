@@ -21,7 +21,7 @@ function page(title: string, no: number, inner: string) {
   return `<section class="pp">
     <header><span>${title}</span><span>${String(no).padStart(2, '0')}</span></header>
     <div class="pp-grid">${inner}</div>
-    <footer><i></i>TRIP TRACK<i></i></footer>
+    <footer><i></i>TRIPGLOBE<i></i></footer>
   </section>`
 }
 
@@ -42,7 +42,7 @@ export function renderPassport(m: PassportModel): string {
         <circle cx="60" cy="45" r="8" fill="#FFF8EC"/>
       </svg>
       <h2>Passport</h2>
-      <p class="cover-kicker">Trip Track</p>
+      <p class="cover-kicker">Tripglobe</p>
       <p class="cover-sub">${n ? `<span>${plural(n, 'country', 'countries')}</span><span>${plural(m.cities.length, 'city', 'cities')}</span>` : '<span>Open to stamp your first trip</span>'}</p>
     </section>`
 

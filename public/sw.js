@@ -1,5 +1,5 @@
 // Tiny offline cache: app shell, data and flags are served from cache first, then refreshed in the background.
-const CACHE = 'triptrack-v1'
+const CACHE = 'tripglobe-v1'
 self.addEventListener('install', e => { self.skipWaiting() })
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())))
 self.addEventListener('fetch', e => {
