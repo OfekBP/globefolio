@@ -4,10 +4,9 @@ import { altitudeFor, anchorOf, flagUrl, type City, type Country, type Geo } fro
 import type { Theme } from './theme'
 import { esc } from './ui/format'
 
-export interface Trail { startLat: number; startLng: number; endLat: number; endLng: number }
 type Pt = [number, number]
 interface Line { pts: Pt[]; kind: 'region' | 'city' | 'grid' }
-export interface LitCity { city: City; trips: number; kind?: 'city' | 'country' }
+export interface LitCity { city: City; trips: number; kind?: 'city' | 'country'; dream?: boolean }
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -25,13 +24,11 @@ const hash = (s: string) => { let h = 0; for (const ch of s) h = (h * 31 + ch.ch
 const SKIN = {
   light: {
     ocean: '#a9dcf0', atmosphere: '#ffffff', fill: 0xffc93c,
-    arc: ['rgba(255,111,142,0.25)', 'rgba(255,111,142,1)'],
     border: 'rgba(255,255,255,0.95)', region: 'rgba(255,255,255,0.7)', grid: 'rgba(255,255,255,0.35)', city: 'rgba(31,42,68,1)',
     base: { s: 0, l: 0 }, lit: { s: 0.1, l: -0.05 }, full: { s: 0.28, l: -0.1 },
   },
   dark: {
     ocean: '#12284a', atmosphere: '#5b8fd6', fill: 0xffc93c,
-    arc: ['rgba(255,201,60,0.2)', 'rgba(255,201,60,1)'],
     border: 'rgba(255,255,255,0.22)', region: 'rgba(255,255,255,0.12)', grid: 'rgba(255,255,255,0.08)', city: 'rgba(255,201,60,1)',
     base: { s: -0.25, l: -0.34 }, lit: { s: -0.1, l: -0.2 }, full: { s: 0.05, l: -0.06 },
   },
@@ -64,7 +61,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   let regions: Line[] = []
   let footprints: Record<string, Pt[]> = {}
   let showRegions = false
-  let arcW = 0.5
+  const pins = new Map<string, { el: HTMLElement; d: LitCity }>()
 
   // Picking by lat/lng: a bbox check plus point-in-polygon on a handful of countries is far cheaper than raycasting 177 meshes.
   type Box = { c: Country; x0: number; y0: number; x1: number; y1: number; rings: number[][][] }
@@ -122,9 +119,9 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .atmosphereAltitude(0.22)
     .polygonsData(geo.countries)
     .polygonCapMaterial(d => matFor(d as Country))
-    .polygonSideColor(d => (whole.has((d as Country).properties.i) ? 'rgba(31,42,68,0.28)' : 'rgba(0,0,0,0)'))
+    .polygonSideColor(d => (whole.has((d as Country).properties.i) ? 'rgba(31,42,68,0.14)' : 'rgba(0,0,0,0)'))
     .polygonStrokeColor(() => skin.border)
-    .polygonAltitude(d => (whole.has((d as Country).properties.i) ? 0.014 : litIso.has((d as Country).properties.i) ? 0.005 : 0.0015))
+    .polygonAltitude(d => (whole.has((d as Country).properties.i) ? 0.006 : litIso.has((d as Country).properties.i) ? 0.003 : 0.0015))
     .polygonsTransitionDuration(0)
     .pathPointLat((p: object) => (p as Pt)[0])
     .pathPointLng((p: object) => (p as Pt)[1])
@@ -132,13 +129,6 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .pathColor((d: object) => lineColor(d as Line))
     .pathStroke((d: object) => ((d as Line).kind === 'city' ? 1.4 : 0.35))
     .pathTransitionDuration(0)
-    .arcColor(() => skin.arc)
-    .arcStroke(0.5)
-    .arcAltitudeAutoScale(0.32)
-    .arcDashLength(0.5)
-    .arcDashGap(0.25)
-    .arcDashAnimateTime(0)
-    .arcsTransitionDuration(0)
     .ringColor(() => (t: number) => `rgba(255,111,142,${0.9 * (1 - t)})`)
     .ringMaxRadius(2.2)
     .ringPropagationSpeed(1.4)
@@ -158,14 +148,15 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const f = country ? flagUrl(country) : ''
     const b = document.createElement('button')
     b.type = 'button'
-    b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}`
-    b.setAttribute('aria-label', d.kind === 'country' ? d.city.name : `${d.city.name}, ${country?.properties.n ?? ''}`)
-    b.innerHTML = `<span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(d.city.name)}</span>`
+    b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}${d.dream ? ' pin-dream' : ''}`
+    b.setAttribute('aria-label', `${d.dream ? 'Dream: ' : ''}${d.kind === 'country' ? d.city.name : `${d.city.name}, ${country?.properties.n ?? ''}`}`)
+    b.innerHTML = `<span class="pin-glow"></span><span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(d.city.name)}</span>`
     b.addEventListener('click', e => {
       e.stopPropagation()
       if (d.kind === 'country' && country) h.onCountry(country)
       else h.onCity(d.city)
     })
+    pins.set(`${d.dream ? 'w' : 'v'}|${d.city.key}`, { el: b, d })
     return b
   }
 
@@ -183,6 +174,9 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   fetch('/geo/regions.json').then(r => r.json()).then((ls: Pt[][]) => { regions = ls.map(pts => ({ pts, kind: 'region' as const })); syncPaths() }).catch(() => {})
   fetch('/geo/urban.json').then(r => r.json()).then((f: Record<string, Pt[]>) => { footprints = f; syncPaths() }).catch(() => {})
 
+  // aim a little south of the target so it sits in the visible strip above the bottom sheet
+  const lift = (alt: number) => Math.min(20, alt * 15)
+
   // portrait phones are narrow, so the globe sits further back to show whole
   const homeAlt = () => (el.clientWidth < 600 ? 2.7 : 1.7)
 
@@ -195,13 +189,52 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     globe.polygonAltitude(globe.polygonAltitude()).polygonSideColor(globe.polygonSideColor())
   }
 
+  /** Pins shrink as you pull away so a whole continent of them stays readable. */
+  function setScale() {
+    el.style.setProperty('--ps', altitude > 2.4 ? '0.72' : altitude > 1.3 ? '0.86' : '1')
+    el.classList.toggle('near', altitude < 1)
+  }
+
+  /**
+   * Flags that would sit on top of each other are folded into the most important one,
+   * which then shows a small "+N". Zoom in and they separate on their own.
+   */
+  function declutter() {
+    const p = globe.pointOfView()
+    const horizon = ((Math.acos(1 / (1 + p.altitude)) * 180) / Math.PI) * 0.98
+    const cosLat = Math.cos((p.lat * Math.PI) / 180)
+    const items: { key: string; el: HTMLElement; d: LitCity; x: number; y: number; rank: number }[] = []
+    for (const [key, { el: pe, d }] of pins) {
+      pe.classList.remove('hid')
+      pe.removeAttribute('data-more')
+      let dLng = Math.abs(d.city.lng - p.lng)
+      if (dLng > 180) dLng = 360 - dLng
+      const dx = dLng * cosLat, dy = d.city.lat - p.lat
+      if (Math.hypot(dx, dy) > horizon) continue
+      const sc = globe.getScreenCoords(d.city.lat, d.city.lng, 0.002)
+      if (!sc) continue
+      const far = p.altitude >= 1.2
+      const rank = (d.dream ? 0 : 1000) + (d.kind === 'country' ? (far ? 500 : 0) : far ? 0 : 500) + Math.min(d.trips, 99)
+      items.push({ key, el: pe, d, x: sc.x, y: sc.y, rank })
+    }
+    items.sort((a, b) => b.rank - a.rank)
+    const scale = p.altitude > 2.4 ? 0.72 : p.altitude > 1.3 ? 0.86 : 1
+    const gap = 42 * scale
+    const kept: typeof items = []
+    const more = new Map<string, number>()
+    for (const it of items) {
+      const host = kept.find(k => Math.abs(k.x - it.x) < gap && Math.abs(k.y - it.y) < gap)
+      if (host) { it.el.classList.add('hid'); more.set(host.key, (more.get(host.key) ?? 0) + 1) } else kept.push(it)
+    }
+    for (const [k, n] of more) pins.get(k)?.el.setAttribute('data-more', `+${n}`)
+  }
+
   function applySkin() {
     skin = SKIN[theme]
     const sphere = globe.globeMaterial() as unknown as MeshPhongMaterial
     sphere.color = new Color(skin.ocean)
     globe
       .atmosphereColor(skin.atmosphere)
-      .arcColor(() => skin.arc)
       .polygonStrokeColor(() => skin.border)
       .pathColor((d: object) => lineColor(d as Line))
     // flat, bright ocean with just a touch of shading, so the colours stay clean
@@ -234,7 +267,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   // the globe drifts for a few seconds after load, then rests so it costs nothing
   const rest = window.setTimeout(() => { controls.autoRotate = false; wake(1500) }, 9000)
   controls.addEventListener('start', () => { controls.autoRotate = false; clearTimeout(rest); wake(60000) })
-  controls.addEventListener('end', () => wake(2500))
+  controls.addEventListener('end', () => { wake(2500); setTimeout(declutter, 200) })
 
   let labelTimer = 0
   controls.addEventListener('change', () => {
@@ -245,9 +278,8 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     clearTimeout(labelTimer)
     labelTimer = window.setTimeout(() => {
       paint(); h.onView(altitude)
-      // trails are drawn in world units, so thin them as you close in or they swallow the city
-      const w = altitude > 0.8 ? 0.5 : altitude > 0.3 ? 0.18 : altitude > 0.1 ? 0.05 : 0.012
-      if (w !== arcW) { arcW = w; globe.arcStroke(w) }
+      setScale()
+      declutter()
       const near = altitude < 1.1
       if (near !== showRegions) { showRegions = near; syncPaths() }
     }, 140)
@@ -301,20 +333,22 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   resize()
   globe.pointOfView({ lat: 22, lng: 10, altitude: 6 })
   applySkin()
+  setScale()
 
   return {
     setTheme(t: Theme) { theme = t; applySkin(); wake(1200) },
     setWholeCountries(v: Set<string>) { whole = v; paint(); liftRefresh(); wake() },
     setCities(c: LitCity[]) {
-      litIso = new Set(c.map(x => x.city.iso))
+      litIso = new Set(c.filter(x => !x.dream).map(x => x.city.iso))
       paint()
-      lit = c
+      lit = c.filter(x => !x.dream)
       syncPaths()
+      pins.clear()
       globe.htmlElementsData(c)
+      setTimeout(declutter, 120)
       liftRefresh()
       wake()
     },
-    setTrails(t: Trail[]) { globe.arcsData(t); wake() },
     setSelected(c: Country | null, ring?: { lat: number; lng: number }) {
       selected = c
       paint()
@@ -324,12 +358,13 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     },
     flyToCountry(c: Country, ms = 1500) {
       const a = anchorOf(c)
-      wake(ms + 700); globe.pointOfView({ lat: a.lat, lng: a.lng, altitude: altitudeFor(a.span) }, ms)
+      const alt = altitudeFor(a.span)
+      wake(ms + 700); globe.pointOfView({ lat: a.lat - lift(alt), lng: a.lng, altitude: alt }, ms)
     },
     flyToPoint(lat: number, lng: number, alt: number, ms = 1500) { wake(ms + 700); globe.pointOfView({ lat, lng, altitude: alt }, ms) },
     flyToCity(c: City, ms = 1900) {
       wake(ms + 700)
-      globe.pointOfView({ lat: c.lat, lng: c.lng, altitude: 0.12 }, ms)
+      globe.pointOfView({ lat: c.lat - lift(0.12), lng: c.lng, altitude: 0.12 }, ms)
     },
     zoomBy(f: number) {
       const p = globe.pointOfView()

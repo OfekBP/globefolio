@@ -1,12 +1,12 @@
 import './styles.css'
 import { anchorOf, distanceKm, flagUrl, loadGeo, placeKey, type City, type Country } from './data/geo'
-import { createGlobe, type LitCity, type Trail } from './globe'
-import { allTrips, deleteTrip, getHome, onChange, replaceAll, saveTrip, setHome, type Trip } from './store'
+import { createGlobe, type LitCity } from './globe'
+import { allTrips, allWishes, deleteTrip, deleteWish, getHome, onChange, replaceAll, saveTrip, saveWish, setHome, type Trip, type Wish } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
 import { confetti } from './ui/confetti'
 import { toast } from './ui/toast'
 import { createDrawer, type Focus } from './ui/drawer'
-import { esc, fmtRange, plural, yearOf } from './ui/format'
+import { esc, fmtRange, localToday, plural, yearOf } from './ui/format'
 import { icons } from './ui/icons'
 import { renderStory } from './ui/story'
 import { renderPassport } from './ui/passport'
@@ -23,6 +23,7 @@ async function boot() {
   const theme0 = initTheme()
   const geo = await loadGeo()
   let trips: Trip[] = []
+  let wishes: Wish[] = []
   let homeKey: string | undefined
   let year: number | null = null
   let replayN: number | null = null // while replaying, only the first N trips (oldest first) are lit
@@ -33,11 +34,7 @@ async function boot() {
     onCountry: c => drawer.open({ k: 'country', iso: c.properties.i }),
     onCity: city => drawer.open({ k: 'city', city }),
     onHover: () => {},
-    onView: alt => {
-      const g = $('globe')
-      g.classList.toggle('near', alt < 1)
-      g.style.setProperty('--ps', alt > 2.4 ? '0.72' : alt > 1.3 ? '0.86' : '1')
-    },
+    onView: () => {},
     describe: () => '',
   })
 
@@ -58,8 +55,10 @@ async function boot() {
     homeKey: () => homeKey,
     focus: onFocus,
     save: async t => {
-      const wasNew = !t.id && !info.has(t.iso) && (!t.startDate || t.startDate <= new Date().toISOString().slice(0, 10))
+      const wasNew = !t.id && !info.has(t.iso) && (!t.startDate || t.startDate <= localToday())
       await saveTrip(t)
+      // a place you have now been to leaves the dream list
+      for (const w of wishes.filter(w => w.iso === t.iso && (t.place ? !!w.place && placeKey(w.iso, w.place) === placeKey(t.iso, t.place) : !w.place))) await deleteWish(w.id)
       buzz(18)
       if (t.id) return
       confetti()
@@ -69,6 +68,13 @@ async function boot() {
     },
     remove: id => deleteTrip(id),
     setHome: key => setHome(key),
+    wishes: () => wishes,
+    toggleWish: async (iso, city) => {
+      const hit = wishes.find(w => w.iso === iso && (city ? !!w.place && placeKey(iso, w.place) === city.key : !w.place))
+      if (hit) { await deleteWish(hit.id); toast('Removed from your dream list.') }
+      else { await saveWish({ iso, place: city ? { name: city.name, lat: city.lat, lng: city.lng } : undefined }); toast(`${city?.name ?? geo.byIso.get(iso)?.properties.n ?? 'Place'} is on your dream list.`) }
+      buzz(12)
+    },
   })
 
   const timeline = createTimeline($('timeline'), y => { year = y; view() })
@@ -77,7 +83,7 @@ async function boot() {
   const homeCity = (): City | undefined => (homeKey ? geo.cityByKey.get(homeKey) : undefined)
 
   function view() {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = localToday()
     // trips dated in the future are plans: they never light the map or count in stats
     const past = trips.filter(t => !t.startDate || t.startDate <= today)
     const chrono = [...past].sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''))
@@ -132,10 +138,24 @@ async function boot() {
       const a = anchorOf(c)
       markers.push({ kind: 'country', trips: byCountry.get(iso)!.trips, city: { key: `country|${iso}`, name: c.properties.n, iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' } })
     }
+    // dream places: dashed flags, never counted in stats, hidden once you have actually been
+    const wishRows: { wish: Wish; country: Country }[] = []
+    for (const w of wishes) {
+      const c = geo.byIso.get(w.iso)
+      if (!c) continue
+      wishRows.push({ wish: w, country: c })
+      if (w.place) {
+        const key = placeKey(w.iso, w.place)
+        if (lit.has(key)) continue
+        const city = geo.cityByKey.get(key) ?? { key, name: w.place.name, iso: w.iso, lat: w.place.lat, lng: w.place.lng, pop: 0, cap: false, fold: '' }
+        markers.push({ city, trips: 0, kind: 'city', dream: true })
+      } else if (!byCountry.get(w.iso)?.whole) {
+        const a = anchorOf(c)
+        markers.push({ city: { key: `country|${w.iso}`, name: c.properties.n, iso: w.iso, lat: a.lat, lng: a.lng, pop: 0, cap: false, fold: '' }, trips: 0, kind: 'country', dream: true })
+      }
+    }
     globe.setCities(markers)
     globe.setWholeCountries(new Set([...byCountry].filter(([, r]) => r.whole).map(([iso]) => iso)))
-    const trails: Trail[] = home ? [...dest.values()].map(p => ({ startLat: home.lat, startLng: home.lng, endLat: p.lat, endLng: p.lng })) : []
-    globe.setTrails(trails)
 
     info.clear()
     for (const [iso, r] of byCountry) info.set(iso, { cities: r.cities.size, whole: r.whole })
@@ -155,7 +175,7 @@ async function boot() {
       continents: new Set(countries.map(c => c.country.properties.c)),
       km, worldTotal: WORLD_TOTAL,
       recent: shown.slice(0, 8).map(trip => ({ trip, country: geo.byIso.get(trip.iso)! })).filter(r => r.country),
-      upcoming,
+      upcoming, wishes: wishRows,
       farthest: far, hasHome: !!home, asOf: year ?? undefined,
       homeName: home?.name, theme: currentTheme(),
     })
@@ -185,7 +205,7 @@ async function boot() {
   }
 
   async function refresh() {
-    ;[trips, homeKey] = await Promise.all([allTrips(), getHome()])
+    ;[trips, homeKey, wishes] = await Promise.all([allTrips(), getHome(), allWishes()])
     view()
     const m = drawer.current()
     if (m && (m.k === 'country' || m.k === 'city')) drawer.rerender()
@@ -214,7 +234,7 @@ async function boot() {
   const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
   async function replay() {
     if (replaying) { replaying = false; return }
-    const today = new Date().toISOString().slice(0, 10)
+    const today = localToday()
     const order = trips.filter(t => t.startDate && t.startDate <= today).sort((a, b) => a.startDate!.localeCompare(b.startDate!))
     if (order.length < 2) return
     replaying = true
@@ -296,13 +316,13 @@ async function boot() {
   }
   paintThemeBtn(theme0)
   themeBtn.onclick = () => setTheme(currentTheme() === 'dark' ? 'light' : 'dark')
-  onTheme(t => { paintThemeBtn(t); globe.setTheme(t) })
+  onTheme(t => { paintThemeBtn(t); globe.setTheme(t); view() })
 
   document.querySelectorAll<HTMLElement>('[data-icon]').forEach(el => { el.innerHTML = icons[el.dataset.icon as keyof typeof icons] })
   document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { b.innerHTML = icons.play })
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ app: 'triptrack', version: 2, home: homeKey, trips }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ app: 'triptrack', version: 3, home: homeKey, trips, wishes }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `trip-track-${new Date().toISOString().slice(0, 10)}.json`
@@ -312,7 +332,16 @@ async function boot() {
 
   const goTo = (t: HTMLElement) => {
     if (t.dataset.act === 'log') openLog()
-    else if (t.dataset.act === 'theme') { setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); view() }
+    else if (t.dataset.act === 'theme') setTheme(currentTheme() === 'dark' ? 'light' : 'dark')
+    else if (t.dataset.act === 'unwish' && t.dataset.id) { void deleteWish(t.dataset.id); toast('Removed from your dream list.') }
+    else if (t.dataset.act === 'plan' || t.dataset.wishgo) {
+      const w = wishes.find(x => x.id === (t.dataset.id ?? t.dataset.wishgo))
+      if (!w) return
+      const city = w.place ? (geo.cityByKey.get(placeKey(w.iso, w.place)) ?? { key: placeKey(w.iso, w.place), name: w.place.name, iso: w.iso, lat: w.place.lat, lng: w.place.lng, pop: 0, cap: false, fold: '' }) : undefined
+      showTab('map')
+      if (t.dataset.act === 'plan') drawer.open({ k: 'form', iso: w.iso, city })
+      else drawer.open(city ? { k: 'city', city } : { k: 'country', iso: w.iso })
+    }
     else if (t.dataset.act === 'export') exportData()
     else if (t.dataset.act === 'home-search') drawer.open({ k: 'search', purpose: 'home' })
     else if (t.dataset.quick) {
@@ -321,7 +350,9 @@ async function boot() {
       if (city) { showTab('map'); drawer.open({ k: 'city', city }) }
     } else if (t.dataset.city) {
       const city = geo.cityByKey.get(t.dataset.city)
-      if (city) { showTab('map'); drawer.open({ k: 'city', city }) }
+      showTab('map')
+      if (city) drawer.open({ k: 'city', city })
+      else drawer.open({ k: 'country', iso: t.dataset.city.split('|')[0] })
     } else if (t.dataset.trip) {
       const trip = trips.find(x => x.id === t.dataset.trip)
       const city = trip?.place ? geo.cityByKey.get(placeKey(trip.iso, trip.place)) : undefined
@@ -335,7 +366,7 @@ async function boot() {
   }
   for (const id of ['story', 'passport']) {
     $(id).addEventListener('click', e => {
-      const t = (e.target as HTMLElement).closest<HTMLElement>('[data-act],[data-country],[data-city],[data-quick],[data-trip],[data-continent]')
+      const t = (e.target as HTMLElement).closest<HTMLElement>('[data-act],[data-country],[data-city],[data-quick],[data-trip],[data-continent],[data-wishgo]')
       if (!t) return
       buzz(8)
       if (t.dataset.continent) {
@@ -355,7 +386,7 @@ async function boot() {
       const data = JSON.parse(await f.text())
       const list: Trip[] = Array.isArray(data) ? data : data.trips
       if (!Array.isArray(list) || list.some(t => !t.id || !t.iso)) throw new Error('shape')
-      await replaceAll(list)
+      await replaceAll(list, Array.isArray(data) || !Array.isArray(data.wishes) ? [] : data.wishes)
       if (!Array.isArray(data) && data.home) await setHome(data.home)
       toast('Backup restored.')
     } catch {
@@ -405,6 +436,14 @@ async function boot() {
     else if (e.key === 'Escape' && replaying) replaying = false
     else if (e.key === 'Escape' && drawer.isOpen()) drawer.close()
   })
+
+  // the phone's back button closes the sheet instead of leaving the app
+  new MutationObserver(() => {
+    const open = dr.classList.contains('open')
+    if (open && history.state?.sheet !== 1) history.pushState({ sheet: 1 }, '')
+    else if (!open && history.state?.sheet === 1) history.back()
+  }).observe(dr, { attributes: true, attributeFilter: ['class'] })
+  addEventListener('popstate', () => { if (drawer.isOpen()) drawer.close() })
 
   navigator.storage?.persist?.().catch(() => {})
   let startTab = 'map'

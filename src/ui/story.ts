@@ -1,5 +1,5 @@
 import { CONTINENTS, flagUrl, type Country } from '../data/geo'
-import type { Trip } from '../store'
+import type { Trip, Wish } from '../store'
 import { esc, fmtRange, plural } from './format'
 import { icons } from './icons'
 
@@ -11,6 +11,7 @@ export interface StoryModel {
   km: number
   worldTotal: number
   recent: { trip: Trip; country: Country }[]
+  wishes: { wish: Wish; country: Country }[]
   upcoming: { trip: Trip; country: Country; days: number }[]
   farthest?: { name: string; km: number }
   hasHome: boolean
@@ -32,6 +33,21 @@ function upcoming(m: StoryModel) {
         <span class="lr-main"><b>${esc(trip.place?.name ?? country.properties.n)}</b><small>${esc(country.properties.n)}</small></span>
         <time class="soon">${when(days)}</time>
       </button></li>`).join('')}</ul>`
+}
+
+function dreams(m: StoryModel) {
+  return `
+    <h3 class="section">Dream list</h3>
+    ${m.wishes.length ? `<ul class="log dreams">${m.wishes.map(({ wish, country }) => `
+      <li class="dream-row">
+        <button class="log-row" data-wishgo="${esc(wish.id)}">
+          ${flag(country)}
+          <span class="lr-main"><b>${esc(wish.place?.name ?? country.properties.n)}</b><small>${wish.place ? esc(country.properties.n) : 'Whole country'}</small></span>
+        </button>
+        <button class="mini" data-act="plan" data-id="${esc(wish.id)}">Plan it</button>
+        <button class="mini ghost" data-act="unwish" data-id="${esc(wish.id)}" aria-label="Remove from dream list">${icons.close}</button>
+      </li>`).join('')}</ul>`
+      : `<p class="t-note">Tap any city or country on the map and choose "Add to dream list". Places you wish to see glow as dashed flags.</p>`}`
 }
 
 const flag = (c: Country) => (flagUrl(c) ? `<img class="flag" src="${flagUrl(c)}" alt="" />` : '')
@@ -60,6 +76,7 @@ export function renderStory(m: StoryModel): string {
         <p class="quick-label">Or start with a favourite</p>
         <div class="quick">${QUICK.map(q => `<button class="chip" data-quick="${q}">${q}</button>`).join('')}</div>
         ${m.upcoming.length ? upcoming(m) : ''}
+        ${dreams(m)}
       </div>
       ${settings(m)}`
   }
@@ -116,6 +133,7 @@ export function renderStory(m: StoryModel): string {
       </button></li>`).join('')}</ul>
 
     ${upcoming(m)}
+    ${dreams(m)}
     <h3 class="section">Recent trips</h3>
     <ul class="log">${m.recent.map(({ trip, country }) => `
       <li><button class="log-row" data-trip="${esc(trip.id)}" data-country="${esc(country.properties.i)}">

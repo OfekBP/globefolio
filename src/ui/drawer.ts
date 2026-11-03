@@ -1,5 +1,5 @@
 import { flagUrl, placeKey, search, type City, type Country, type Geo, type Hit } from '../data/geo'
-import type { Trip } from '../store'
+import type { Trip, Wish } from '../store'
 import { esc, fmtRange, plural } from './format'
 import { icons } from './icons'
 
@@ -20,6 +20,8 @@ interface Deps {
   save(t: Omit<Trip, 'id'> & { id?: string }): Promise<void>
   remove(id: string): Promise<void>
   setHome(key: string): Promise<void>
+  wishes(): Wish[]
+  toggleWish(iso: string, city?: City): Promise<void>
 }
 
 const popText = (k: number) => (k >= 1000 ? `${(k / 1000).toFixed(1).replace(/\.0$/, '')}M people` : k > 0 ? `${k}K people` : '')
@@ -50,6 +52,8 @@ export function createDrawer(d: Deps) {
       else d.focus({ country: countryOf(next.k === 'form' || next.k === 'country' ? next.iso : '') })
     }
     render()
+    // places show as a half sheet so the globe stays visible above them
+    root.classList.toggle('half', next.k === 'city' || next.k === 'country')
     root.classList.add('open')
     root.setAttribute('aria-hidden', 'false')
     document.body.classList.add('drawer-open')
@@ -85,7 +89,7 @@ export function createDrawer(d: Deps) {
       <div class="sheet">
         ${closeBtn}
         <h2 class="title">${home ? 'Where do you call home?' : scoped ? `Cities in ${esc(scoped.properties.n)}` : 'Where did you go?'}</h2>
-        <p class="lede">${home ? 'Light trails will fly from here to every place you log.' : 'Pick a city and only that city lights up. The country still counts as visited.'}</p>
+        <p class="lede">${home ? 'Trip Track measures every journey from here.' : 'Pick a city and only that city lights up. The country still counts as visited.'}</p>
         <label class="sr" for="q">Search</label>
         <div class="search-field">
           ${icons.search}
@@ -128,7 +132,7 @@ export function createDrawer(d: Deps) {
       else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(0, active - 1); draw() }
       else if (e.key === 'Enter' && hits[active]) { e.preventDefault(); pick(hits[active]) }
     })
-    list.addEventListener('mousedown', e => {
+    list.addEventListener('click', e => {
       const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-i]')
       if (li) { e.preventDefault(); pick(hits[+li.dataset.i!]) }
     })
@@ -149,6 +153,9 @@ export function createDrawer(d: Deps) {
       </li>`).join('')}</ol>`
   }
 
+  const wished = (iso: string, city?: City) =>
+    d.wishes().some(w => w.iso === iso && (city ? !!w.place && placeKey(iso, w.place) === city.key : !w.place))
+
   // ── country journal ────────────────────────────────────
   function renderCountry(iso: string) {
     const c = countryOf(iso)
@@ -168,9 +175,9 @@ export function createDrawer(d: Deps) {
         <div class="foot-actions">
           <button class="solid" data-act="search-in">Search a city in ${esc(c.properties.n)}</button>
           <button class="text" data-act="whole">Mark the whole country</button>
+          <button class="text" data-act="wish">${wished(iso) ? 'On your dream list. Remove' : 'Add to dream list'}</button>
         </div>
       </div>`
-    root.querySelector<HTMLElement>('[data-act="search-in"]')!.focus()
   }
 
   // ── city journal ───────────────────────────────────────
@@ -187,10 +194,10 @@ export function createDrawer(d: Deps) {
         ${mine.length ? entries(mine, false) : ''}
         <div class="foot-actions">
           <button class="solid" data-act="log-city">${mine.length ? 'Log another visit' : "I've been here"}</button>
+          <button class="text" data-act="wish">${wished(city.iso, city) ? 'On your dream list. Remove' : 'Add to dream list'}</button>
           ${isHome ? '' : `<button class="text" data-act="home">Make this my home</button>`}
         </div>
       </div>`
-    root.querySelector<HTMLElement>('[data-act="log-city"]')!.focus()
   }
 
   // ── trip form ──────────────────────────────────────────
@@ -232,7 +239,6 @@ export function createDrawer(d: Deps) {
       })
       open(city ? { k: 'city', city } : { k: 'country', iso })
     })
-    root.querySelector<HTMLInputElement>('#f-start')!.focus()
   }
 
   // ── delegated actions ──────────────────────────────────
@@ -252,6 +258,7 @@ export function createDrawer(d: Deps) {
     else if (act === 'pick-city') { const city = geo.cityByKey.get(btn.dataset.key!); if (city) open({ k: 'form', iso: city.iso, city }) }
     else if (act === 'log-city' && mode.k === 'city') open({ k: 'form', iso: mode.city.iso, city: mode.city })
     else if (act === 'cancel-form' && mode.k === 'form') open(mode.city ? { k: 'city', city: mode.city } : { k: 'country', iso: mode.iso })
+    else if (act === 'wish' && iso) { await d.toggleWish(iso, mode.k === 'city' ? mode.city : undefined); render() }
     else if (act === 'home' && mode.k === 'city') { await d.setHome(mode.city.key); render() }
     else if (act === 'open-city' && trip) { const city = cityOfTrip(trip); if (city) open({ k: 'city', city }) }
     else if (act === 'edit' && trip && iso) open({ k: 'form', iso, trip })
