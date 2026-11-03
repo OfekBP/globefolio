@@ -11,16 +11,29 @@ export interface LitCity { city: City; trips: number }
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// Continent families: each country takes one shade, so the map reads like a printed atlas.
+const FAMILY: Record<string, number[]> = {
+  Africa: [0xf9cf86, 0xf5be74, 0xfbdc9c],
+  Asia: [0xf7b4c2, 0xf2a2b6, 0xf9c8d2],
+  Europe: [0xb7d6f2, 0xa3c7ec, 0xc8e0f7],
+  'North America': [0xb2e1c0, 0x9bd5ad, 0xc4ebce],
+  'South America': [0xd4c4f1, 0xc3b0ea, 0xe0d5f7],
+  Oceania: [0xf8e19b, 0xf2d57e, 0xfbeab3],
+}
+const hash = (s: string) => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h }
+
 const SKIN = {
   light: {
-    tiles: 'Canvas/World_Light_Gray_Base', ocean: '#dde4e2', atmosphere: '#b9cdc6', fill: 0x17614b,
-    arc: ['rgba(23,97,75,0.2)', 'rgba(23,97,75,0.9)'],
-    border: 'rgba(23,33,28,0.4)', region: 'rgba(23,33,28,0.22)', city: 'rgba(23,97,75,1)',
+    ocean: '#a9dcf0', atmosphere: '#ffffff', fill: 0xffc93c,
+    arc: ['rgba(255,111,142,0.25)', 'rgba(255,111,142,1)'],
+    border: 'rgba(255,255,255,0.95)', region: 'rgba(255,255,255,0.7)', city: 'rgba(31,42,68,1)',
+    base: { s: 0, l: 0 }, lit: { s: 0.1, l: -0.05 }, full: { s: 0.28, l: -0.1 },
   },
   dark: {
-    tiles: 'Canvas/World_Dark_Gray_Base', ocean: '#0c1411', atmosphere: '#3f6b58', fill: 0xc9f24a,
-    arc: ['rgba(201,242,74,0.15)', 'rgba(201,242,74,0.9)'],
-    border: 'rgba(237,241,230,0.4)', region: 'rgba(237,241,230,0.2)', city: 'rgba(201,242,74,1)',
+    ocean: '#12284a', atmosphere: '#5b8fd6', fill: 0xffc93c,
+    arc: ['rgba(255,201,60,0.2)', 'rgba(255,201,60,1)'],
+    border: 'rgba(255,255,255,0.22)', region: 'rgba(255,255,255,0.12)', city: 'rgba(255,201,60,1)',
+    base: { s: -0.25, l: -0.34 }, lit: { s: -0.1, l: -0.2 }, full: { s: 0.05, l: -0.06 },
   },
 }
 
@@ -35,7 +48,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   let theme = initial
   let skin = SKIN[theme]
   let whole = new Set<string>()
-  let litKeys = new Set<string>()
+  let litIso = new Set<string>()
   let hover: Country | null = null
   let selected: Country | null = null
   let altitude = 2.1
@@ -49,32 +62,25 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   const mats = new Map<string, MeshBasicMaterial>()
   const matFor = (c: Country) => {
     let m = mats.get(c.properties.i)
-    if (!m) {
-      m = new MeshBasicMaterial({ color: skin.fill, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide })
-      mats.set(c.properties.i, m)
-    }
+    if (!m) { m = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide }); mats.set(c.properties.i, m) }
     return m
   }
 
   function paint() {
-    // whole-country fills fade as you zoom in, so the map's own detail takes over
-    const fade = altitude < 0.6 ? Math.max(0.16, altitude / 0.6) : 1
+    const tmp = new Color()
     for (const c of geo.countries) {
-      const m = matFor(c)
-      const full = whole.has(c.properties.i)
-      const hot = c === hover || c === selected
-      m.color.set(full ? skin.fill : theme === 'dark' ? 0xffffff : 0x1c3552)
-      m.opacity = full ? (hot ? 0.62 : 0.46) * fade : hot ? 0.1 : 0
+      const iso = c.properties.i
+      const fam = FAMILY[c.properties.c]
+      tmp.set(fam ? fam[hash(iso) % fam.length] : 0xeef3f7)
+      const tone = whole.has(iso) ? skin.full : litIso.has(iso) ? skin.lit : skin.base
+      if (fam) tmp.offsetHSL(0, tone.s, tone.l)
+      if (c === selected || c === hover) tmp.offsetHSL(0, 0.05, theme === 'dark' ? 0.08 : -0.06)
+      matFor(c).color.copy(tmp)
     }
   }
 
-  const tileUrl = (x: number, y: number, l: number) =>
-    `https://server.arcgisonline.com/ArcGIS/rest/services/${skin.tiles}/MapServer/tile/${l}/${y}/${x}`
-
   const globe = new Globe(el, { animateIn: false })
     .backgroundColor('rgba(0,0,0,0)')
-    .globeTileEngineUrl(tileUrl)
-    .globeTileEngineMaxLevel(16)
     .showAtmosphere(true)
     .atmosphereColor(skin.atmosphere)
     .atmosphereAltitude(0.18)
@@ -98,7 +104,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .arcDashGap(0.25)
     .arcDashAnimateTime(0)
     .arcsTransitionDuration(0)
-    .ringColor(() => (t: number) => `rgba(255,120,70,${0.9 * (1 - t)})`)
+    .ringColor(() => (t: number) => `rgba(255,111,142,${0.9 * (1 - t)})`)
     .ringMaxRadius(2.2)
     .ringPropagationSpeed(1.4)
     .ringRepeatPeriod(1700)
@@ -144,11 +150,6 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       .arcColor(() => skin.arc)
       .polygonStrokeColor(() => skin.border)
       .pathColor((d: object) => ((d as Line).kind === 'city' ? skin.city : skin.region))
-    // the tile engine keeps loaded tiles, so swap the source, clear the cache, then nudge the camera so it refetches
-    globe.globeTileEngineUrl((x: number, y: number, l: number) => tileUrl(x, y, l))
-    ;(globe as unknown as { globeTileEngineClearCache(): void }).globeTileEngineClearCache()
-    const p = globe.pointOfView()
-    globe.pointOfView({ ...p, altitude: p.altitude * 1.001 })
     paint()
   }
 
@@ -156,7 +157,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   const controls = globe.controls()
   controls.autoRotate = !reduceMotion
   controls.autoRotateSpeed = 0.3
-  controls.minDistance = 100.35 // street-level
+  controls.minDistance = 104 // close enough to read a city outline
   controls.maxDistance = 560
   controls.enableDamping = true
   controls.dampingFactor = 0.08
@@ -203,7 +204,8 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     setTheme(t: Theme) { theme = t; applySkin() },
     setWholeCountries(v: Set<string>) { whole = v; paint() },
     setCities(c: LitCity[]) {
-      litKeys = new Set(c.map(x => x.city.key))
+      litIso = new Set(c.map(x => x.city.iso))
+      paint()
       lit = c
       syncPaths()
       globe.htmlElementsData(c)
@@ -221,11 +223,11 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     },
     flyToPoint(lat: number, lng: number, alt: number, ms = 1500) { globe.pointOfView({ lat, lng, altitude: alt }, ms) },
     flyToCity(c: City, ms = 1900) {
-      globe.pointOfView({ lat: c.lat, lng: c.lng, altitude: 0.07 }, ms)
+      globe.pointOfView({ lat: c.lat, lng: c.lng, altitude: 0.12 }, ms)
     },
     zoomBy(f: number) {
       const p = globe.pointOfView()
-      globe.pointOfView({ lat: p.lat, lng: p.lng, altitude: Math.min(6, Math.max(0.004, p.altitude * f)) }, 600)
+      globe.pointOfView({ lat: p.lat, lng: p.lng, altitude: Math.min(6, Math.max(0.04, p.altitude * f)) }, 600)
     },
     reset() { globe.pointOfView({ lat: 20, lng: 10, altitude: 1.7 }, 1400) },
     intro(lat: number, lng: number) {

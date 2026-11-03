@@ -4,7 +4,7 @@
   "description": "Track every trip. Light up your world.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4efe4",
-  "theme_color": "#17614b",
+  "background_color": "#fff8ec",
+  "theme_color": "#0e7490",
   "icons": [{ "src": "/brand/logo-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

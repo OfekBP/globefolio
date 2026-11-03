@@ -3,6 +3,7 @@ import { anchorOf, distanceKm, flagUrl, loadGeo, placeKey, type City } from './d
 import { createGlobe, type LitCity, type Trail } from './globe'
 import { allTrips, deleteTrip, getHome, onChange, replaceAll, saveTrip, setHome, type Trip } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
+import { confetti } from './ui/confetti'
 import { createDrawer, type Focus } from './ui/drawer'
 import { esc, fmtRange, plural, yearOf } from './ui/format'
 import { icons } from './ui/icons'
@@ -11,6 +12,9 @@ import { createTimeline } from './ui/timeline'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 const WORLD_TOTAL = 195
+const CONTINENT_VIEW: Record<string, [number, number, number]> = {
+  Africa: [3, 20, 1.5], Asia: [35, 90, 1.7], Europe: [52, 15, 1], 'North America': [45, -100, 1.6], 'South America': [-15, -60, 1.5], Oceania: [-25, 140, 1.3],
+}
 
 async function boot() {
   const theme0 = initTheme()
@@ -50,7 +54,7 @@ async function boot() {
     trips: () => trips,
     homeKey: () => homeKey,
     focus: onFocus,
-    save: t => saveTrip(t),
+    save: async t => { await saveTrip(t); if (!t.id) confetti() },
     remove: id => deleteTrip(id),
     setHome: key => setHome(key),
   })
@@ -225,8 +229,13 @@ async function boot() {
   document.querySelectorAll<HTMLElement>('[data-icon]').forEach(el => { el.innerHTML = icons[el.dataset.icon as keyof typeof icons] })
 
   $('story').addEventListener('click', e => {
-    const t = (e.target as HTMLElement).closest<HTMLElement>('[data-act],[data-country]')
+    const t = (e.target as HTMLElement).closest<HTMLElement>('[data-act],[data-country],[data-continent]')
     if (!t) return
+    if (t.dataset.continent) {
+      const v = CONTINENT_VIEW[t.dataset.continent]
+      if (v) { document.getElementById('stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); globe.flyToPoint(v[0], v[1], v[2], 1800) }
+      return
+    }
     if (t.dataset.act === 'log') openLog()
     else if (t.dataset.act === 'home-search') drawer.open({ k: 'search', purpose: 'home' })
     else if (t.dataset.trip) {

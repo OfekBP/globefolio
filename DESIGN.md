@@ -16,7 +16,7 @@
 The first visit follows the system theme; after that the choice is saved. Globe skin follows the theme: light uses the Esri Topo basemap on a sky-blue stage; dark uses Esri satellite imagery on deep navy with stars.
 
 ## Type
-- Display: **DM Serif Display** 700 (headline clamp 36-64px, tile numbers 62px, drawer title 32-42px, section titles 28px).
+- Display: **Fraunces** 700 (headline clamp 36-64px, tile numbers 62px, drawer title 32-42px, section titles 28px).
 - Body: **DM Sans** 16/1.55, 500-700 for labels and chips. Tabular numerals for dates and distances.
 
 ## Shape and depth
@@ -37,3 +37,5 @@ Large radii (stage 36px, tiles 30px, drawer 30px, chips and buttons fully round)
 No neon, no glass or blur, no section numbers or kickers, no icon-heading-text card grids as page structure, no emoji flags (real SVG flags).
 
 > Update: the look moved from soft pastel UI to an atlas / field-journal style (warm paper, pine green, marker-lime highlights, hairline rules, hard offset shadows, serif headlines). See BRAND.md for the current tokens; where this file disagrees, BRAND.md wins.
+
+> Update 2: current look is the sunny colorful atlas (Lagoon, Sunshine, Blush; Fraunces + DM Sans; tile-free globe with per-continent pastels). BRAND.md wins over older notes here.

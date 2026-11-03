@@ -90,7 +90,7 @@ export function renderStory(m: StoryModel): string {
         <span class="t-icon">${icons.compass}</span>
         <p class="t-label">Continents</p>
         <p class="t-big">${m.continents.size}<span> of ${CONTINENTS.length}</span></p>
-        <ul class="cont">${CONTINENTS.map(c => `<li class="${m.continents.has(c) ? 'on' : ''}">${c}</li>`).join('')}</ul>
+        <ul class="cont">${CONTINENTS.map(c => `<li class="${m.continents.has(c) ? 'on' : ''}" role="button" tabindex="0" data-continent="${c}">${c}</li>`).join('')}</ul>
       </div>
       <div class="tile t-km">
         <span class="t-icon">${icons.route}</span>

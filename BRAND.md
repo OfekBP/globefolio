@@ -11,17 +11,17 @@ A pin riding an orbit. The pin is where you have been, the orbit is the track th
 Files: `logo-horizontal(.svg|-dark.svg)`, `logo-stacked.svg`, `logo-mark.svg` (app icon), `logo-glyph.svg` (no tile), `favicon.svg`, `wordmark(.svg|-dark.svg)`.
 Clear space: one pin-hole diameter. Minimum: icon 16 px, horizontal logo 96 px wide. Never stretch, recolor the tile, outline, or rotate it.
 
-## Color (roughly 65% paper/night, 20% ink, 10% pine, 5% marker)
-Trip Pine #17614B (places you have been, buttons, logo tile), Marker #D4F04A (highlighter; dark-mode accent #C9F24A), Field Ink #17211C, Atlas Paper #F4EFE4, Map Gray #DDE4E2, Night Field #0D1511.
+## Color
+Lagoon #0E7490 (actions, logo tile), Sunshine #FFC93C (pins, highlighter, dark-mode action), Blush #FF6F8E (trails, stamps), Mint #7ED6B0, Dusk Ink #1F2A44, Cream #FFF8EC, Open Sea #A9DCF0, Night Sea #101B33. On the globe each continent has its own pastel family (Africa sand, Asia rose, Europe blue, North America green, South America lilac, Oceania butter); visited countries get a richer shade.
 
 ## Type
-DM Serif Display (headlines, numerals, wordmark; one weight) and DM Sans (everything else; 400 to 700).
+Fraunces (soft, warm serif for headlines, numerals, wordmark; 600 to 700) and DM Sans (everything else).
 
 ## Style
-Atlas and field-journal: hairline rules, hard offset shadows, square-ish corners, highlighter emphasis. No gradients, blur or pastel cards.
+Sunny atlas: big soft corners, pastel tiles that echo the map, highlighter on key words. No neon, mascots or emoji.
 
 ## Voice
 Second person, plain words, short sentences. "You've lit 12 cities." Not "Achievement unlocked: 12 city nodes!". Errors name the problem and the way out.
 
 ## Motifs
-The Track (dashed arc with a traveler), the Glow (pulsing pine pin), the Stamp (passport stamps per country).
+The Track (dashed arc with a traveler), the Glow (pulsing lagoon pin), the Stamp (passport stamps per country).

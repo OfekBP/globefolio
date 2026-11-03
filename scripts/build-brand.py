@@ -12,10 +12,11 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.recordingPen import DecomposingRecordingPen
 
-PINE, INK, LIME, PAPER, CHALK = "#17614B", "#17211C", "#D4F04A", "#F4EFE4", "#EDF1E6"
-CORAL, SUN = PINE, LIME  # tile/pin colour and traveller dot
+LAGOON, INK, SUN, BLUSH, CREAM = "#0E7490", "#1F2A44", "#FFC93C", "#FF6F8E", "#FFF8EC"
+CORAL = LAGOON  # tile colour (name kept from the first version of this script)
+CHALK = CREAM
 
-font = TTFont(sys.argv[1])  # DM Serif Display (static)
+font = instancer.instantiateVariableFont(TTFont(sys.argv[1]), {"wght": 640, "opsz": 72, "SOFT": 100, "WONK": 0})  # Fraunces
 gs = font.getGlyphSet()
 cmap = font.getBestCmap()
 upm = font["head"].unitsPerEm
@@ -101,21 +102,21 @@ out.mkdir(parents=True, exist_ok=True)
 SIZE = 42
 cap_px = cap / upm * SIZE
 baseline = 32 + cap_px / 2
-for name, text_color, dot in (("logo-horizontal.svg", INK, PINE), ("logo-horizontal-dark.svg", CHALK, LIME)):
+for name, text_color, dot in (("logo-horizontal.svg", INK, BLUSH), ("logo-horizontal-dark.svg", CHALK, SUN)):
     wm, width = wordmark(SIZE, 80, baseline, text_color, dot)
     (out / name).write_text(svg(80 + width + 2, 64, mark() + wm))
 
 # stacked lockup
 SIZE_S = 40
-wm, width = wordmark(SIZE_S, 0, 0, INK, CORAL)
+wm, width = wordmark(SIZE_S, 0, 0, INK, BLUSH)
 cap_s = cap / upm * SIZE_S
 W = max(width, 96)
-body = mark(x=(W - 96) / 2, y=0, size=96) + wordmark(SIZE_S, (W - width) / 2, 96 + 20 + cap_s, INK, CORAL)[0]
+body = mark(x=(W - 96) / 2, y=0, size=96) + wordmark(SIZE_S, (W - width) / 2, 96 + 20 + cap_s, INK, BLUSH)[0]
 (out / "logo-stacked.svg").write_text(svg(W, 96 + 20 + cap_s + 8, body))
 
 # wordmark alone (for inline use at any size)
-wm, width = wordmark(SIZE, 0, cap_px, INK, CORAL)
+wm, width = wordmark(SIZE, 0, cap_px, INK, BLUSH)
 (out / "wordmark.svg").write_text(svg(width, cap_px + 12, wm))
-wm, width = wordmark(SIZE, 0, cap_px, CHALK, LIME)
+wm, width = wordmark(SIZE, 0, cap_px, CHALK, SUN)
 (out / "wordmark-dark.svg").write_text(svg(width, cap_px + 12, wm))
 print("brand files:", sorted(p.name for p in out.iterdir()))
