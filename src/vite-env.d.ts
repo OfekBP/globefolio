@@ -10,3 +10,5 @@ interface ImportMetaEnv {
   /** Where people write to you; shown on the legal pages and in the account screen. */
   readonly VITE_CONTACT_EMAIL?: string
 }
+
+declare const __APP_VERSION__: string

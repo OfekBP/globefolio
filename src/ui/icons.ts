@@ -19,6 +19,8 @@ export const icons = {
   spark: svg('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8L21.5 18.5l-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/>'),
   stamp: svg('<rect x="5" y="2.5" width="14" height="19" rx="3"/><circle cx="12" cy="10" r="3.4"/><path d="M8.6 10h6.8M12 6.6c1.5 1.3 1.5 5.5 0 6.8M9 17.5h6"/>'),
   journal: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/>'),
+  cog: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>'),
+  chevron: svg('<path d="m9 5 7 7-7 7"/>'),
   close: svg('<path d="M6 6l12 12M18 6 6 18"/>'),
   back: svg('<path d="M15 5l-7 7 7 7"/>'),
   check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),

@@ -42,6 +42,7 @@ function csp(env: Record<string, string>): Plugin {
 }
 
 export default defineConfig(({ mode }) => ({
+  define: { __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync('package.json', 'utf8')).version) },
   base: './', // relative URLs, so it works at a domain root or under a sub-path like github.io/repo/
   plugins: [csp(loadEnv(mode, process.cwd(), 'VITE_'))],
   build: {

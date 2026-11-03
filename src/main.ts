@@ -11,6 +11,8 @@ import { toast } from './ui/toast'
 import { createDrawer, type Focus } from './ui/drawer'
 import { renderAccount } from './ui/account'
 import { renderLanguage } from './ui/language'
+import { renderSettings } from './ui/settings'
+import { onPrefs, prefs } from './prefs'
 import { cloudEnabled } from './supabase'
 import { getProfile, getSession, initAuth, onAuth } from './auth'
 import { startSync, stopSync } from './sync'
@@ -253,6 +255,7 @@ async function boot() {
   // ── controls ───────────────────────────────────────────
   const openLog = () => drawer.open({ k: 'search', purpose: 'log' })
   $('stage-search').onclick = openLog
+  $('settings').onclick = () => { buzz(8); openSettings() }
   $('reset').onclick = () => { drawer.close(); globe.reset(); buzz(8) }
 
   // ── tabs: map, passport, journal ─────────────────────────
@@ -372,6 +375,14 @@ async function boot() {
 
   const openAccount = () => drawer.open({ k: 'extra', render: (root, back) => renderAccount(root, { back, close: () => drawer.close() }) })
 
+  const openLanguage = () => drawer.open({ k: 'extra', render: (root, back) => renderLanguage(root, () => { back(); openSettings() }) })
+  const openSettings = () => drawer.open({ k: 'extra', render: (root, back) => renderSettings(root, {
+    back, cloud: cloudEnabled, signedIn: !!getSession(), handle: getProfile()?.handle, homeName: homeCity()?.name,
+    openAccount, openLanguage, openShared: () => openShared(), openHome: () => drawer.open({ k: 'search', purpose: 'home' }),
+    exportData, importFile,
+    eraseAll: async () => { await replaceAll([], []); toast(L('set.erased')) },
+  }) })
+
   const overlay = (rows: MapRow[] | null, handle?: string) => {
     friendRows = rows; friendHandle = rows ? handle : undefined
     view()
@@ -426,7 +437,8 @@ async function boot() {
       else drawer.open(city ? { k: 'city', city } : { k: 'country', iso: w.iso })
     }
     else if (t.dataset.act === 'export') exportData()
-    else if (t.dataset.act === 'language') drawer.open({ k: 'extra', render: (root, back) => renderLanguage(root, back) })
+    else if (t.dataset.act === 'language') openLanguage()
+    else if (t.dataset.act === 'settings') openSettings()
     else if (t.dataset.act === 'account') openAccount()
     else if (t.dataset.act === 'shared') openShared()
     else if (t.dataset.act === 'home-search') drawer.open({ k: 'search', purpose: 'home' })
@@ -463,11 +475,7 @@ async function boot() {
       goTo(t)
     })
   }
-  $('story').addEventListener('change', async e => {
-    const input = e.target as HTMLInputElement
-    if (input.id !== 'import') return
-    const f = input.files?.[0]
-    if (!f) return
+  async function importFile(f: File) {
     try {
       const data = JSON.parse(await f.text())
       const list: Trip[] = Array.isArray(data) ? data : data.trips
@@ -478,11 +486,10 @@ async function boot() {
     } catch {
       toast(L('toast.badFile'))
     }
-    input.value = ''
-  })
+  }
 
   // ── delight: haptics, the stamp slam, swipe-down sheet ──
-  function buzz(ms: number) { try { if (navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(ms) } catch { /* unsupported */ } }
+  function buzz(ms: number) { try { if (prefs().haptics && navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(ms) } catch { /* unsupported */ } }
 
   function slam(c: Country, since?: string) {
     const el = $('slam')
@@ -537,6 +544,7 @@ async function boot() {
   showTab(TABS.includes(startTab as never) ? (startTab as (typeof TABS)[number]) : 'map')
 
   onChange(refresh)
+  onPrefs(() => view())
   onLocale(() => {
     paintThemeBtn(currentTheme())
     setReplayLabel(replaying ? 'x' : null)

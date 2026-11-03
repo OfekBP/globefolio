@@ -1,6 +1,7 @@
 import Globe from 'globe.gl'
 import { CanvasTexture, Color, DoubleSide, MeshBasicMaterial, SRGBColorSpace } from 'three'
 import { altitudeFor, anchorOf, flagUrl, type City, type Country, type Geo } from './data/geo'
+import { prefs } from './prefs'
 import { cname, t } from './i18n'
 import type { Theme } from './theme'
 import { esc } from './ui/format'
@@ -304,7 +305,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
 
   // ── controls ─────────────────────────────────────────
   const controls = globe.controls()
-  controls.autoRotate = !reduceMotion
+  controls.autoRotate = !reduceMotion && prefs().spin
   controls.autoRotateSpeed = 0.45
   controls.minDistance = 104 // close enough to read a city outline
   controls.maxDistance = 560
@@ -402,7 +403,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       selected = c
       paint()
       wake(2600)
-      controls.autoRotate = !reduceMotion && !c
+      controls.autoRotate = !reduceMotion && prefs().spin && !c
       globe.ringsData(ring ? [ring] : c ? [{ lat: anchorOf(c).lat, lng: anchorOf(c).lng }] : [])
     },
     flyToCountry(c: Country, ms = 1500) {

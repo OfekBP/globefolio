@@ -1,5 +1,6 @@
 import { CONTINENTS, flagUrl, type Country } from '../data/geo'
-import { LOCALES, cname, getLocale, num as fmtNum, t } from '../i18n'
+import { cname, num as fmtNum, t } from '../i18n'
+import { inUnits, prefs } from '../prefs'
 import type { Trip, Wish } from '../store'
 import { count, esc, fmtRange } from './format'
 import { icons } from './icons'
@@ -25,6 +26,7 @@ export interface StoryModel {
 
 const EARTH_KM = 40075
 const num = (n: number) => fmtNum(Math.round(n))
+const mi = () => prefs().units === 'mi'
 function upcoming(m: StoryModel) {
   if (!m.upcoming.length) return ''
   const when = (d: number) => (d <= 0 ? t('when.today') : d === 1 ? t('when.tomorrow') : t('when.inDays', { n: d }))
@@ -60,21 +62,10 @@ const hello = () => { const h = new Date().getHours(); return t(h < 5 ? 'hello.n
 
 const QUICK = ['Paris', 'Rome', 'Tokyo', 'New York', 'London', 'Barcelona', 'Istanbul', 'Bangkok']
 
-const langName = () => LOCALES.find(l => l.code === getLocale())?.name ?? 'English'
-
-const settings = (m: StoryModel) => `
-  <h3 class="section">${t('section.settings')}</h3>
-  <ul class="setting">
-    ${m.account ? `<li><button data-act="account"><span>${icons.user}</span><b>${m.account.signedIn ? `@${esc(m.account.handle ?? '')}` : t('acct.row')}</b><small>${m.account.signedIn ? t('acct.title') : t('acct.rowNote')}</small></button></li>` : ''}
-    ${m.account?.signedIn ? `<li><button data-act="shared"><span>${icons.globe}</span><b>${t('set.shared')}</b><small>${t('set.sharedNote')}</small></button></li>` : ''}
-    <li><button data-act="language"><span>${icons.globe}</span><b>${t('set.language')}</b><small>${esc(langName())}</small></button></li>
-    <li><button data-act="theme"><span>${m.theme === 'dark' ? icons.sun : icons.moon}</span><b>${m.theme === 'dark' ? t('set.light') : t('set.dark')}</b><small>${t('set.look')}</small></button></li>
-    <li><button data-act="home-search"><span>${icons.pin}</span><b>${m.homeName ? t('set.home', { name: esc(m.homeName) }) : t('set.chooseHome')}</b><small>${t('set.homeNote')}</small></button></li>
-    <li><button data-act="export"><span>${icons.download}</span><b>${t('set.export')}</b><small>${t('set.exportNote')}</small></button></li>
-    <li><label><span>${icons.upload}</span><b>${t('set.import')}</b><small>${t('set.importNote')}</small><input id="import" type="file" accept="application/json" hidden /></label></li>
-  </ul>
-  <p class="fine">${m.account ? t('set.fineCloud') : t('set.fine')}</p>
-  ${m.account ? `<p class="fine"><a href="./privacy.html">${t('acct.privacy')}</a> · <a href="./terms.html">${t('acct.terms')}</a></p>` : ''}`
+const settings = () => `
+  <ul class="setting settings-row-end">
+    <li><button data-act="settings"><span>${icons.cog}</span><b>${t('map.settings')}</b><small>${t('set.rowNote')}</small><i class="go" aria-hidden="true">${icons.chevron}</i></button></li>
+  </ul>`
 
 // the same pastels the map paints each continent with, so a chip and its land match
 const CONT_COLOR: Record<string, string> = {
@@ -93,7 +84,7 @@ export function renderStory(m: StoryModel): string {
         ${m.upcoming.length ? upcoming(m) : ''}
         ${dreams(m)}
       </div>
-      ${settings(m)}`
+      ${settings()}`
   }
 
   const n = m.countries.length
@@ -112,7 +103,7 @@ export function renderStory(m: StoryModel): string {
     <div class="hero-copy">
       <p class="hello">${hello()}</p>
       <h2 class="headline">${headline}</h2>
-      <p class="sub">${[around, m.farthest ? t('story.farthest', { name: esc(m.farthest.name), km: num(m.farthest.km) }) : ''].filter(Boolean).join(' ')}</p>
+      <p class="sub">${[around, m.farthest ? (mi() ? t('story.farthestMi', { name: esc(m.farthest.name), mi: num(inUnits(m.farthest.km)) }) : t('story.farthest', { name: esc(m.farthest.name), km: num(m.farthest.km) })) : ''].filter(Boolean).join(' ')}</p>
     </div>
 
     <div class="tiles">
@@ -136,7 +127,7 @@ export function renderStory(m: StoryModel): string {
         <span class="t-icon">${icons.route}</span>
         <p class="t-label">${t('tile.distance')}</p>
         ${m.hasHome
-          ? `<p class="t-big">${num(m.km)}<span> ${t('tile.kmUnit')}</span></p><p class="t-note">${t('tile.distanceNote')}</p>`
+          ? `<p class="t-big">${num(inUnits(m.km))}<span> ${t(mi() ? 'tile.miUnit' : 'tile.kmUnit')}</span></p><p class="t-note">${t('tile.distanceNote')}</p>`
           : `<p class="t-note">${t('tile.noHome')}</p><button class="text" data-act="home-search">${t('tile.chooseHome')}</button>`}
       </div>
       <div class="tile t-trips">
@@ -164,5 +155,5 @@ export function renderStory(m: StoryModel): string {
         <time>${fmtRange(trip.startDate, trip.endDate)}</time>
         ${trip.notes ? `<span class="lr-note">${esc(trip.notes)}</span>` : ''}
       </button></li>`).join('')}</ul>
-    ${settings(m)}`
+    ${settings()}`
 }
