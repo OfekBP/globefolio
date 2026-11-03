@@ -40,7 +40,7 @@ export function renderPassport(m: PassportModel): string {
         <circle cx="60" cy="45" r="8" fill="#FFF8EC"/>
       </svg>
       <h2>${t('pp.title')}</h2>
-      <p class="cover-kicker">Tripglobe</p>
+      <p class="cover-kicker">GlobeFolio</p>
       <p class="cover-sub">${n ? `<span>${count('country', n)}</span><span>${count('city', m.cities.length)}</span>` : `<span>${t('pp.empty')}</span>`}</p>
     </section>`
 

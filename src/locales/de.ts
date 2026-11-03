@@ -1,7 +1,7 @@
 import type { Dict } from '../i18n'
 
 const de: Dict = {
-  'app.title': 'Tripglobe',
+  'app.title': 'GlobeFolio',
   'app.description': 'Halte jede Reise fest. Bring deine Welt zum Leuchten. Ein privater 3D-Globus mit allen Städten und Ländern, in denen du warst, mit Passstempeln und Reisetagebuch.',
 
   'n.country': { one: '{n} Land', other: '{n} Länder' },
@@ -71,7 +71,7 @@ const de: Dict = {
   'tile.distance': 'Zurückgelegte Strecke',
   'tile.kmUnit': 'km',
   'tile.distanceNote': 'Hin- und Rückreisen von zu Hause',
-  'tile.noHome': 'Lege eine Heimatstadt fest, dann misst Tripglobe jede Reise.',
+  'tile.noHome': 'Lege eine Heimatstadt fest, dann misst GlobeFolio jede Reise.',
   'tile.chooseHome': 'Heimat wählen',
   'tile.trips': 'Eingetragene Reisen',
   'section.lit': 'Leuchtende Orte',
@@ -99,7 +99,7 @@ const de: Dict = {
   'search.homeTitle': 'Wo ist dein Zuhause?',
   'search.citiesIn': 'Städte in {country}',
   'search.title': 'Wohin ging es?',
-  'search.homeLede': 'Tripglobe misst jede Reise von hier aus.',
+  'search.homeLede': 'GlobeFolio misst jede Reise von hier aus.',
   'search.lede': 'Wähle eine Stadt, und nur diese Stadt leuchtet. Das Land zählt trotzdem als besucht.',
   'search.label': 'Suchen',
   'search.phHome': 'Heimatstadt suchen',
@@ -145,7 +145,7 @@ const de: Dict = {
   'toast.wishRemoved': 'Von der Traumliste entfernt.',
   'toast.wishAdded': '{place} steht auf deiner Traumliste.',
   'toast.restored': 'Sicherung wiederhergestellt.',
-  'toast.badFile': 'Diese Datei ist kein Tripglobe-Export.',
+  'toast.badFile': 'Diese Datei ist kein GlobeFolio-Export.',
   'slam.new': 'Neuer Stempel!',
   'slam.added': 'Zu deinem Reisepass hinzugefügt',
   'slam.ok': 'Wunderbar',

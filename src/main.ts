@@ -368,7 +368,7 @@ async function boot() {
     const blob = new Blob([JSON.stringify({ app: 'triptrack', version: 3, home: homeKey, trips, wishes }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `tripglobe-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `globefolio-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(a.href)
   }

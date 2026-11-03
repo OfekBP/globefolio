@@ -1,7 +1,7 @@
 import type { Dict } from '../i18n'
 
 const ja: Dict = {
-  'app.title': 'Tripglobe',
+  'app.title': 'GlobeFolio',
   'app.description': 'すべての旅を記録して、あなたの世界を輝かせよう。訪れた都市と国を3Dの地球儀に残せるプライベートなアプリ。パスポートのスタンプと旅の日記つき。',
 
   'n.country': { other: '{n}か国' },
@@ -71,7 +71,7 @@ const ja: Dict = {
   'tile.distance': '移動距離',
   'tile.kmUnit': 'km',
   'tile.distanceNote': '自宅からの往復',
-  'tile.noHome': '自宅の都市を設定すると、Tripglobeがすべての旅を計測します。',
+  'tile.noHome': '自宅の都市を設定すると、GlobeFolioがすべての旅を計測します。',
   'tile.chooseHome': '自宅を選ぶ',
   'tile.trips': '記録した旅',
   'section.lit': '点灯した場所',
@@ -99,7 +99,7 @@ const ja: Dict = {
   'search.homeTitle': 'あなたの家はどこですか？',
   'search.citiesIn': '{country}の都市',
   'search.title': 'どこへ行きましたか？',
-  'search.homeLede': 'Tripglobeはここを起点にすべての旅を計測します。',
+  'search.homeLede': 'GlobeFolioはここを起点にすべての旅を計測します。',
   'search.lede': '都市を選ぶと、その都市だけが光ります。国は訪問済みとして数えられます。',
   'search.label': '検索',
   'search.phHome': '自宅の都市を検索',
@@ -145,7 +145,7 @@ const ja: Dict = {
   'toast.wishRemoved': '行きたいリストから削除しました。',
   'toast.wishAdded': '{place}を行きたいリストに追加しました。',
   'toast.restored': 'バックアップを復元しました。',
-  'toast.badFile': 'このファイルはTripglobeの書き出しファイルではありません。',
+  'toast.badFile': 'このファイルはGlobeFolioの書き出しファイルではありません。',
   'slam.new': '新しいスタンプ！',
   'slam.added': 'パスポートに追加しました',
   'slam.ok': 'いいね',

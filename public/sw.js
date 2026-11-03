@@ -1,6 +1,6 @@
 // Offline cache for the app itself: pages, scripts, map data and flags are served from cache first, then refreshed in the background.
 // Only same-origin files are cached. Anything else (the cloud API, sign-in, other sites) goes straight to the network and is never stored.
-const CACHE = 'tripglobe-v3'
+const CACHE = 'globefolio-v1'
 self.addEventListener('install', () => { self.skipWaiting() })
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())))
 self.addEventListener('fetch', e => {

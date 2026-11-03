@@ -2,7 +2,7 @@ import type { Dict } from '../i18n'
 
 // English is the source language. {name} marks a value filled in by the app; plural entries are chosen by the count `n`.
 const en: Dict = {
-  'app.title': 'Tripglobe',
+  'app.title': 'GlobeFolio',
   'app.description': 'Track every trip. Light up your world. A private 3D globe of every city and country you have been to, with passport stamps and a travel journal.',
 
   // nouns with counts
@@ -76,7 +76,7 @@ const en: Dict = {
   'tile.distance': 'Distance traveled',
   'tile.kmUnit': 'km',
   'tile.distanceNote': 'Round trips from home',
-  'tile.noHome': 'Set a home city and Tripglobe will measure every trip.',
+  'tile.noHome': 'Set a home city and GlobeFolio will measure every trip.',
   'tile.chooseHome': 'Choose home',
   'tile.trips': 'Trips logged',
   'section.lit': "Places you've lit",
@@ -105,7 +105,7 @@ const en: Dict = {
   'search.homeTitle': 'Where do you call home?',
   'search.citiesIn': 'Cities in {country}',
   'search.title': 'Where did you go?',
-  'search.homeLede': 'Tripglobe measures every journey from here.',
+  'search.homeLede': 'GlobeFolio measures every journey from here.',
   'search.lede': 'Pick a city and only that city lights up. The country still counts as visited.',
   'search.label': 'Search',
   'search.phHome': 'Search your home city',
@@ -152,7 +152,7 @@ const en: Dict = {
   'toast.wishRemoved': 'Removed from your dream list.',
   'toast.wishAdded': '{place} is on your dream list.',
   'toast.restored': 'Backup restored.',
-  'toast.badFile': 'That file is not a Tripglobe export.',
+  'toast.badFile': 'That file is not a GlobeFolio export.',
   'slam.new': 'New stamp!',
   'slam.added': 'Added to your passport',
   'slam.ok': 'Lovely',

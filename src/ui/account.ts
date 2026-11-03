@@ -129,7 +129,7 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
         const data = await exportCloudData()
         const a = document.createElement('a')
         a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
-        a.download = `tripglobe-account-${new Date().toISOString().slice(0, 10)}.json`
+        a.download = `globefolio-account-${new Date().toISOString().slice(0, 10)}.json`
         a.click()
         URL.revokeObjectURL(a.href)
       } catch { status.textContent = t('acct.error') }

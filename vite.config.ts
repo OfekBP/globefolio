@@ -9,7 +9,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
  */
 function csp(env: Record<string, string>): Plugin {
   return {
-    name: 'tripglobe-csp',
+    name: 'globefolio-csp',
     apply: 'build',
     // runs on the finished files, so the script hashes match exactly what the browser will read
     closeBundle() {

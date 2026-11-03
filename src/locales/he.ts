@@ -1,7 +1,7 @@
 import type { Dict } from '../i18n'
 
 const he: Dict = {
-  'app.title': 'Tripglobe',
+  'app.title': 'GlobeFolio',
   'app.description': 'תעדו כל טיול. הדליקו את העולם שלכם. גלובוס תלת־ממדי פרטי של כל עיר ומדינה שביקרתם בהן, עם חותמות דרכון ויומן מסע.',
 
   'n.country': { one: 'מדינה אחת', two: 'שתי מדינות', many: '{n} מדינות', other: '{n} מדינות' },
@@ -71,7 +71,7 @@ const he: Dict = {
   'tile.distance': 'מרחק שנסעתם',
   'tile.kmUnit': 'ק״מ',
   'tile.distanceNote': 'הלוך וחזור מהבית',
-  'tile.noHome': 'בחרו עיר מגורים ו־Tripglobe ימדוד כל טיול.',
+  'tile.noHome': 'בחרו עיר מגורים ו־GlobeFolio ימדוד כל טיול.',
   'tile.chooseHome': 'בחירת בית',
   'tile.trips': 'טיולים שתועדו',
   'section.lit': 'מקומות שהדלקתם',
@@ -99,7 +99,7 @@ const he: Dict = {
   'search.homeTitle': 'איפה הבית שלכם?',
   'search.citiesIn': 'ערים ב{country}',
   'search.title': 'לאן נסעתם?',
-  'search.homeLede': 'Tripglobe מודד כל מסע מכאן.',
+  'search.homeLede': 'GlobeFolio מודד כל מסע מכאן.',
   'search.lede': 'בחרו עיר ורק היא תידלק. המדינה עדיין נחשבת כמבוקרת.',
   'search.label': 'חיפוש',
   'search.phHome': 'חיפוש עיר המגורים',
@@ -145,7 +145,7 @@ const he: Dict = {
   'toast.wishRemoved': 'הוסר מרשימת החלומות.',
   'toast.wishAdded': '{place} ברשימת החלומות שלכם.',
   'toast.restored': 'הגיבוי שוחזר.',
-  'toast.badFile': 'הקובץ הזה אינו ייצוא של Tripglobe.',
+  'toast.badFile': 'הקובץ הזה אינו ייצוא של GlobeFolio.',
   'slam.new': 'חותמת חדשה!',
   'slam.added': 'נוספה לדרכון שלכם',
   'slam.ok': 'מעולה',

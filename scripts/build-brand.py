@@ -1,4 +1,4 @@
-"""Builds the Tripglobe logo files with the wordmark converted to outlines (no font needed to display them).
+"""Builds the GlobeFolio logo files with the wordmark converted to outlines (no font needed to display them).
 
     python scripts/build-brand.py <BricolageGrotesque variable .ttf>
 
@@ -23,7 +23,7 @@ upm = font["head"].unitsPerEm
 cap = font["OS/2"].sCapHeight
 
 # manual kerning in em (the variable font's GPOS pairs are not applied by this script)
-KERN = {("T", "r"): -0.03, ("r", "i"): 0.0, ("T", "r"): -0.03, ("r", "a"): -0.004, ("a", "c"): 0.0}
+KERN = {("G", "l"): 0.0, ("F", "o"): -0.02, ("o", "l"): 0.0}
 TRACK = -0.006
 
 
@@ -43,19 +43,19 @@ def dot_of_i():
 
 
 def wordmark(size, x0, baseline, color, dot_color):
-    """Returns (svg path markup, width) for 'Tripglobe' set at `size` px."""
+    """Returns (svg path markup, width) for 'GlobeFolio' set at `size` px."""
     s = size / upm
     x = x0
     out = []
-    text = "Tripglobe"
+    text = "GlobeFolio"
     for i, ch in enumerate(text):
-        name = cmap[ord("ı")] if ch == "i" and i == 2 else cmap[ord(ch)]
+        name = cmap[ord("ı")] if ch == "i" and i == 8 else cmap[ord(ch)]
         pen = SVGPathPen(gs)
         gs[name].draw(TransformPen(pen, (s, 0, 0, -s, x, baseline)))
         d = pen.getCommands()
         if d:
             out.append(f'<path d="{d}" fill="{color}"/>')
-        if ch == "i" and i == 2:
+        if ch == "i" and i == 8:
             cx, cy, r = dot_of_i()
             out.append(f'<circle cx="{x + cx * s:.2f}" cy="{baseline - cy * s:.2f}" r="{r * s * 1.06:.2f}" fill="{dot_color}"/>')
         adv = gs[name].width * s
@@ -87,7 +87,7 @@ def mark(x=0, y=0, size=64, tile=True, ink=None):
     )
 
 
-def svg(w, h, body, title="Tripglobe"):
+def svg(w, h, body, title="GlobeFolio"):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w:.0f}" height="{h:.0f}" viewBox="0 0 {w:.2f} {h:.2f}" role="img" aria-label="{title}">'
             f'<title>{title}</title>{body}</svg>\n')
 
@@ -98,7 +98,7 @@ out.mkdir(parents=True, exist_ok=True)
 # symbols
 (out / "logo-mark.svg").write_text(svg(64, 64, mark()))
 (out / "favicon.svg").write_text(svg(64, 64, mark()))
-(out / "logo-glyph.svg").write_text(svg(64, 64, mark(tile=False), "Tripglobe mark"))
+(out / "logo-glyph.svg").write_text(svg(64, 64, mark(tile=False), "GlobeFolio mark"))
 
 # horizontal lockups
 SIZE = 42

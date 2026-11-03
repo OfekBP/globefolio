@@ -1,4 +1,4 @@
--- Tripglobe backend: accounts, synced trips, friends, shared trips.
+-- GlobeFolio backend: accounts, synced trips, friends, shared trips.
 -- Private by default. Every table has row level security; the browser only ever holds the public anon key.
 -- Run with the Supabase CLI (`supabase db push`) or paste into the SQL editor.
 
@@ -8,7 +8,7 @@ create type public.visibility as enum ('private', 'friends', 'public');
 create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   handle text not null unique
-    check (handle ~ '^[a-z0-9_]{3,20}$' and handle not in ('admin', 'support', 'tripglobe', 'help', 'root', 'staff', 'official')),
+    check (handle ~ '^[a-z0-9_]{3,20}$' and handle not in ('admin', 'support', 'tripglobe', 'globefolio', 'help', 'root', 'staff', 'official')),
   display_name text check (char_length(display_name) <= 40),
   home_city_key text check (char_length(home_city_key) <= 120),
   visibility public.visibility not null default 'private',

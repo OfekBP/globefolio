@@ -5,7 +5,7 @@ export type Visibility = 'private' | 'friends' | 'public'
 export interface Profile { id: string; handle: string; display_name: string | null; visibility: Visibility; home_city_key: string | null }
 
 export const appleEnabled = import.meta.env.VITE_APPLE_SIGNIN === '1'
-export const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'privacy@tripglobe.example'
+export const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'privacy@globefolio.example'
 
 let session: Session | null = null
 let profile: Profile | null = null
@@ -51,7 +51,7 @@ export async function signInWithEmail(email: string) {
   fail((await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: appUrl(), shouldCreateUser: true } })).error)
 }
 
-export const handleOk = (h: string) => /^[a-z0-9_]{3,20}$/.test(h) && !['admin', 'support', 'tripglobe', 'help', 'root', 'staff', 'official'].includes(h)
+export const handleOk = (h: string) => /^[a-z0-9_]{3,20}$/.test(h) && !['admin', 'support', 'tripglobe', 'globefolio', 'help', 'root', 'staff', 'official'].includes(h)
 
 export async function handleAvailable(h: string): Promise<boolean> {
   if (!supabase || !handleOk(h)) return false

@@ -1,7 +1,7 @@
 import type { Dict } from '../i18n'
 
 const zh: Dict = {
-  'app.title': 'Tripglobe',
+  'app.title': 'GlobeFolio',
   'app.description': '记录每一次旅行，点亮你的世界。一个私密的 3D 地球，收录你去过的每座城市和每个国家，配有护照印章和旅行日记。',
 
   'n.country': { other: '{n} 个国家' },
@@ -71,7 +71,7 @@ const zh: Dict = {
   'tile.distance': '旅行距离',
   'tile.kmUnit': '公里',
   'tile.distanceNote': '从家出发的往返行程',
-  'tile.noHome': '设置你的家乡城市，Tripglobe 就会测算每次旅行。',
+  'tile.noHome': '设置你的家乡城市，GlobeFolio 就会测算每次旅行。',
   'tile.chooseHome': '选择家乡',
   'tile.trips': '已记录的旅行',
   'section.lit': '你点亮的地方',
@@ -99,7 +99,7 @@ const zh: Dict = {
   'search.homeTitle': '你的家在哪里？',
   'search.citiesIn': '{country}的城市',
   'search.title': '你去了哪里？',
-  'search.homeLede': 'Tripglobe 会以这里为起点测算每次旅行。',
+  'search.homeLede': 'GlobeFolio 会以这里为起点测算每次旅行。',
   'search.lede': '选择一座城市，只有这座城市会亮起，所在国家仍算作去过。',
   'search.label': '搜索',
   'search.phHome': '搜索你的家乡城市',
@@ -145,7 +145,7 @@ const zh: Dict = {
   'toast.wishRemoved': '已从心愿清单移除。',
   'toast.wishAdded': '{place}已加入你的心愿清单。',
   'toast.restored': '备份已恢复。',
-  'toast.badFile': '这个文件不是 Tripglobe 导出的文件。',
+  'toast.badFile': '这个文件不是 GlobeFolio 导出的文件。',
   'slam.new': '新印章！',
   'slam.added': '已加入你的护照',
   'slam.ok': '太棒了',

@@ -1,4 +1,4 @@
-// Builds the lightweight geo data Tripglobe ships from Natural Earth (public domain).
+// Builds the lightweight geo data GlobeFolio ships from Natural Earth (public domain).
 //   node scripts/build-geo.mjs <dir with ne_50m_admin_0_countries.geojson as countries.geojson and ne_10m_populated_places_simple.geojson as places.geojson>
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'

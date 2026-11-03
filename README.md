@@ -1,4 +1,4 @@
-# Tripglobe
+# GlobeFolio
 
 *Light up your world.* A private, friendly 3D globe of everywhere you have been. Log a city and only that city lights up, while its country counts as visited. Every country and city you add is stamped into a passport.
 
@@ -57,7 +57,7 @@ The build uses relative URLs, so `dist/` works on any static host, at a domain r
 
 Set `VITE_SITE_URL` (with a trailing slash) to the final address so link previews find the social image; `.env` holds a default and the Pages workflow sets it automatically.
 
-The service worker (`public/sw.js`) only registers in production builds. It caches the app, map data and flags, so after the first visit Tripglobe opens with no connection. Bump `CACHE` in `sw.js` if you ever need to force every phone to drop old files.
+The service worker (`public/sw.js`) only registers in production builds. It caches the app, map data and flags, so after the first visit GlobeFolio opens with no connection. Bump `CACHE` in `sw.js` if you ever need to force every phone to drop old files.
 
 ## Stack
 

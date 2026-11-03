@@ -1,7 +1,7 @@
 import type { Dict } from '../i18n'
 
 const ru: Dict = {
-  'app.title': 'Tripglobe',
+  'app.title': 'GlobeFolio',
   'app.description': 'Отмечайте каждое путешествие. Зажгите свой мир. Личный 3D-глобус всех городов и стран, где вы бывали, со штампами паспорта и дневником путешествий.',
 
   'n.country': { one: '{n} страна', few: '{n} страны', many: '{n} стран', other: '{n} страны' },
@@ -71,7 +71,7 @@ const ru: Dict = {
   'tile.distance': 'Пройденный путь',
   'tile.kmUnit': 'км',
   'tile.distanceNote': 'Поездки туда и обратно от дома',
-  'tile.noHome': 'Укажите родной город, и Tripglobe измерит каждую поездку.',
+  'tile.noHome': 'Укажите родной город, и GlobeFolio измерит каждую поездку.',
   'tile.chooseHome': 'Выбрать дом',
   'tile.trips': 'Записано поездок',
   'section.lit': 'Зажжённые места',
@@ -99,7 +99,7 @@ const ru: Dict = {
   'search.homeTitle': 'Где ваш дом?',
   'search.citiesIn': 'Города: {country}',
   'search.title': 'Куда вы ездили?',
-  'search.homeLede': 'Tripglobe измеряет каждую поездку от этого места.',
+  'search.homeLede': 'GlobeFolio измеряет каждую поездку от этого места.',
   'search.lede': 'Выберите город, и загорится только он. Страна всё равно считается посещённой.',
   'search.label': 'Поиск',
   'search.phHome': 'Найдите родной город',
@@ -145,7 +145,7 @@ const ru: Dict = {
   'toast.wishRemoved': 'Убрано из списка мечтаний.',
   'toast.wishAdded': '{place} теперь в списке мечтаний.',
   'toast.restored': 'Копия восстановлена.',
-  'toast.badFile': 'Этот файл не является экспортом Tripglobe.',
+  'toast.badFile': 'Этот файл не является экспортом GlobeFolio.',
   'slam.new': 'Новый штамп!',
   'slam.added': 'Добавлен в ваш паспорт',
   'slam.ok': 'Отлично',
