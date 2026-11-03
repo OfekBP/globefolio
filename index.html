@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#eaf4fb" />
+  <meta name="theme-color" content="#f4efe4" />
   <title>Trip Track</title>
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -18,7 +18,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
 </head>
 <body>
   <header class="bar">
@@ -41,7 +41,10 @@
         <button id="reset" class="icon-btn" type="button" aria-label="Reset view"><span data-icon="reset"></span></button>
       </div>
 
-      <p class="hint">Drag to spin · scroll to zoom · zoom in far enough to see every city</p>
+      <button id="replay" class="replay" type="button" hidden><span data-icon="play"></span><span id="replay-label">Replay my journey</span></button>
+      <div id="hud" class="hud" hidden aria-live="polite"><b id="hud-name"></b><small id="hud-when"></small></div>
+
+      <p class="hint">Drag to spin · click the globe, then scroll to zoom</p>
 
       <div id="timeline" class="timeline" hidden>
         <label for="year">Years</label>

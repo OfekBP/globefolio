@@ -13,16 +13,14 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const SKIN = {
   light: {
-    tiles: 'World_Topo_Map', labels: false, ocean: '#bfe0f2', atmosphere: '#9fd2ee', fill: 0xff5a2c,
-    arc: ['rgba(255,90,44,0.25)', 'rgba(255,90,44,0.95)'], label: '#1c3552',
-    border: 'rgba(18,38,63,0.55)', region: 'rgba(18,38,63,0.28)', city: 'rgba(214,63,18,0.95)',
-    sky: null as string | null,
+    tiles: 'Canvas/World_Light_Gray_Base', ocean: '#dde4e2', atmosphere: '#b9cdc6', fill: 0x17614b,
+    arc: ['rgba(23,97,75,0.2)', 'rgba(23,97,75,0.9)'],
+    border: 'rgba(23,33,28,0.4)', region: 'rgba(23,33,28,0.22)', city: 'rgba(23,97,75,1)',
   },
   dark: {
-    tiles: 'World_Imagery', labels: true, ocean: '#071a36', atmosphere: '#4f86c6', fill: 0xff8a5c,
-    arc: ['rgba(255,138,92,0.25)', 'rgba(255,214,150,0.95)'], label: '#e8eef8',
-    border: 'rgba(255,255,255,0.6)', region: 'rgba(255,255,255,0.3)', city: 'rgba(255,190,140,0.95)',
-    sky: '/geo/night-sky.png' as string | null,
+    tiles: 'Canvas/World_Dark_Gray_Base', ocean: '#0c1411', atmosphere: '#3f6b58', fill: 0xc9f24a,
+    arc: ['rgba(201,242,74,0.15)', 'rgba(201,242,74,0.9)'],
+    border: 'rgba(237,241,230,0.4)', region: 'rgba(237,241,230,0.2)', city: 'rgba(201,242,74,1)',
   },
 }
 
@@ -76,7 +74,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   const globe = new Globe(el, { animateIn: false })
     .backgroundColor('rgba(0,0,0,0)')
     .globeTileEngineUrl(tileUrl)
-    .globeTileEngineMaxLevel(17)
+    .globeTileEngineMaxLevel(16)
     .showAtmosphere(true)
     .atmosphereColor(skin.atmosphere)
     .atmosphereAltitude(0.18)
@@ -86,18 +84,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .polygonStrokeColor(() => skin.border)
     .polygonAltitude(0.0015)
     .polygonsTransitionDuration(0)
-    .polygonLabel(d => h.describe(d as Country))
-    .onPolygonHover(d => {
-      hover = (d as Country) ?? null
-      paint()
-      el.style.cursor = hover ? 'pointer' : 'grab'
-    })
-    .onPolygonClick((d, _e, at) => {
-      // Zoomed in, a tap on a city's spot picks that city; otherwise it picks the country.
-      const city = at && at.altitude < 1 ? cityNear(at.lat, at.lng, at.altitude) : undefined
-      if (city) h.onCity(city)
-      else h.onCountry(d as Country)
-    })
+    .onPolygonClick(d => h.onCountry(d as Country))
     .pathPointLat((p: object) => (p as Pt)[0])
     .pathPointLng((p: object) => (p as Pt)[1])
     .pathPoints((d: object) => (d as Line).pts)
@@ -107,10 +94,9 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .arcColor(() => skin.arc)
     .arcStroke(0.5)
     .arcAltitudeAutoScale(0.32)
-    .arcDashLength(0.4)
-    .arcDashGap(0.9)
-    .arcDashInitialGap(() => Math.random())
-    .arcDashAnimateTime(reduceMotion ? 0 : 4200)
+    .arcDashLength(0.5)
+    .arcDashGap(0.25)
+    .arcDashAnimateTime(0)
     .arcsTransitionDuration(0)
     .ringColor(() => (t: number) => `rgba(255,120,70,${0.9 * (1 - t)})`)
     .ringMaxRadius(2.2)
@@ -124,28 +110,6 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       node.style.opacity = visible ? '1' : '0'
       node.style.pointerEvents = visible ? 'auto' : 'none'
     })
-    .labelLat(d => (d as City).lat)
-    .labelLng(d => (d as City).lng)
-    .labelText(d => (d as City).name)
-    .labelAltitude(0.0025)
-    .labelResolution(2)
-    .labelIncludeDot(true)
-    .onLabelClick(d => h.onCity(d as City))
-
-  /** The biggest city within a tap-sized radius of a map point (radius shrinks as you zoom in). */
-  function cityNear(lat: number, lng: number, alt: number): City | undefined {
-    const tol = Math.max(0.02, alt * 3)
-    const cosLat = Math.cos((lat * Math.PI) / 180)
-    let best: City | undefined
-    for (const c of geo.cities) {
-      let dLng = Math.abs(c.lng - lng)
-      if (dLng > 180) dLng = 360 - dLng
-      const dx = dLng * cosLat, dy = c.lat - lat
-      if (dx * dx + dy * dy > tol * tol) continue
-      if (!best || c.pop > best.pop) best = c
-    }
-    return best
-  }
 
   function pinEl(d: LitCity) {
     const b = document.createElement('button')
@@ -177,9 +141,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     sphere.color = new Color(skin.ocean)
     globe
       .atmosphereColor(skin.atmosphere)
-      .backgroundImageUrl(skin.sky ?? '')
       .arcColor(() => skin.arc)
-      .labelColor(() => skin.label)
       .polygonStrokeColor(() => skin.border)
       .pathColor((d: object) => ((d as Line).kind === 'city' ? skin.city : skin.region))
     // the tile engine keeps loaded tiles, so swap the source, clear the cache, then nudge the camera so it refetches
@@ -188,7 +150,6 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const p = globe.pointOfView()
     globe.pointOfView({ ...p, altitude: p.altitude * 1.001 })
     paint()
-    refreshLabels(true)
   }
 
   // ── controls ─────────────────────────────────────────
@@ -216,7 +177,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     controls.rotateSpeed = Math.min(1, Math.max(0.03, altitude * 0.7))
     clearTimeout(labelTimer)
     labelTimer = window.setTimeout(() => {
-      paint(); refreshLabels(); h.onView(altitude)
+      paint(); h.onView(altitude)
       // trails are drawn in world units, so thin them as you close in or they swallow the city
       const w = altitude > 0.8 ? 0.5 : altitude > 0.3 ? 0.18 : altitude > 0.1 ? 0.05 : 0.012
       if (w !== arcW) { arcW = w; globe.arcStroke(w) }
@@ -225,34 +186,12 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     }, 140)
   })
 
-  /** Show the biggest unvisited cities around the view centre; how many depends on how close you are. */
-  let lastKey = ''
-  function refreshLabels(force = false) {
-    const p = globe.pointOfView()
-    const alt = p.altitude
-    if (alt > 1.1 || !skin.labels) {
-      if (lastKey !== 'none') { globe.labelsData([]); lastKey = 'none' }
-      return
-    }
-    const minPop = alt > 0.7 ? 1500 : alt > 0.45 ? 700 : alt > 0.25 ? 250 : alt > 0.12 ? 90 : alt > 0.05 ? 25 : 0
-    const radius = ((Math.acos(1 / (1 + alt)) * 180) / Math.PI) * 0.85
-    const key = `${p.lat.toFixed(1)}|${p.lng.toFixed(1)}|${minPop}|${Math.round(radius)}`
-    if (!force && key === lastKey) return
-    lastKey = key
-    const cosLat = Math.cos((p.lat * Math.PI) / 180)
-    const out: City[] = []
-    for (const c of geo.cities) {
-      if (c.pop < minPop || litKeys.has(c.key)) continue
-      let dLng = Math.abs(c.lng - p.lng)
-      if (dLng > 180) dLng = 360 - dLng
-      const dx = dLng * cosLat, dy = c.lat - p.lat
-      if (dx * dx + dy * dy > radius * radius) continue
-      out.push(c)
-      if (out.length >= 110) break // cities are sorted by population, so these are the biggest
-    }
-    const size = Math.max(0.03, alt * 0.3)
-    globe.labelSize(() => size).labelDotRadius(() => size * 0.32).labelColor(() => skin.label).labelsData(out)
-  }
+  // cap the pixel ratio: retina canvases are 4x the fill cost for no visible gain on a map
+  globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+  // wheel scrolls the page until you click into the globe, so the page never gets trapped
+  controls.enableZoom = false
+  el.addEventListener('pointerdown', () => { controls.enableZoom = true })
+  el.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') controls.enableZoom = false })
 
   const resize = () => globe.width(el.clientWidth).height(el.clientHeight)
   new ResizeObserver(resize).observe(el)
@@ -268,7 +207,6 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       lit = c
       syncPaths()
       globe.htmlElementsData(c)
-      refreshLabels(true)
     },
     setTrails(t: Trail[]) { globe.arcsData(t) },
     setSelected(c: Country | null, ring?: { lat: number; lng: number }) {
@@ -281,6 +219,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       const a = anchorOf(c)
       globe.pointOfView({ lat: a.lat, lng: a.lng, altitude: altitudeFor(a.span) }, ms)
     },
+    flyToPoint(lat: number, lng: number, alt: number, ms = 1500) { globe.pointOfView({ lat, lng, altitude: alt }, ms) },
     flyToCity(c: City, ms = 1900) {
       globe.pointOfView({ lat: c.lat, lng: c.lng, altitude: 0.07 }, ms)
     },

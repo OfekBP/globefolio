@@ -14,6 +14,7 @@ export const icons = {
   compass: svg('<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>'),
   download: svg('<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/>'),
   upload: svg('<path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 20h14"/>'),
+  play: svg('<path d="M8 5v14l11-7z" fill="currentColor"/>'),
   close: svg('<path d="M6 6l12 12M18 6 6 18"/>'),
   back: svg('<path d="M15 5l-7 7 7 7"/>'),
   check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),

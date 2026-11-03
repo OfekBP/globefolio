@@ -1,6 +1,6 @@
 # Trip Track design system
 
-**World:** a friendly travel keepsake. A big, real-looking globe you can fall into, with soft rounded surfaces, warm coral for "you were here", and plain-spoken sentences below it. Light and dark are both first-class; the owner chooses.
+**World:** a friendly travel keepsake. A big, real-looking globe you can fall into, with soft rounded surfaces, warm pine for "you were here", and plain-spoken sentences below it. Light and dark are both first-class; the owner chooses.
 
 ## Themes
 | Token | Light | Dark | Role |
@@ -9,22 +9,22 @@
 | `--surface` / `--surface-2` | #fff / #eef5fb | #111f36 / #182a47 | cards, drawer / inputs, entries |
 | `--ink` | #12263f | #eaf1fb | text |
 | `--dim` | #556a83 | #9db0c8 | secondary text (AA) |
-| `--accent` | #ff5a2c | #ff8a5c | lit cities, whole-country fill, bars, slider |
-| `--btn` | #d63f12 (white text) | #ff8a5c (dark text) | primary actions |
-| tints | coral #ffe2d6, sun #ffefbf, teal #d3f2ee, sky #d7eafc | same hues at ~15% alpha | stat tiles |
+| `--accent` | #17614B | #C9F24A | lit cities, whole-country fill, bars, slider |
+| `--btn` | #d63f12 (white text) | #C9F24A (dark text) | primary actions |
+| tints | pine #ffe2d6, sun #ffefbf, teal #d3f2ee, sky #d7eafc | same hues at ~15% alpha | stat tiles |
 
 The first visit follows the system theme; after that the choice is saved. Globe skin follows the theme: light uses the Esri Topo basemap on a sky-blue stage; dark uses Esri satellite imagery on deep navy with stars.
 
 ## Type
-- Display: **Bricolage Grotesque** 700 (headline clamp 36-64px, tile numbers 62px, drawer title 32-42px, section titles 28px).
-- Body: **Figtree** 16/1.55, 500-700 for labels and chips. Tabular numerals for dates and distances.
+- Display: **DM Serif Display** 700 (headline clamp 36-64px, tile numbers 62px, drawer title 32-42px, section titles 28px).
+- Body: **DM Sans** 16/1.55, 500-700 for labels and chips. Tabular numerals for dates and distances.
 
 ## Shape and depth
 Large radii (stage 36px, tiles 30px, drawer 30px, chips and buttons fully round). Depth is a soft offset shadow, never a halo. Surfaces are solid; no blur.
 
 ## Components
 - **Stage:** the globe in a rounded sky panel with a floating search pill, zoom stack, hint chip and a year-timeline pill.
-- **Pins:** a coral dot with a white ring and a slow pulse; the city name chip appears when you are zoomed in.
+- **Pins:** a pine dot with a white ring and a slow pulse; the city name chip appears when you are zoomed in.
 - **Drawer:** floating rounded sheet from the right (bottom sheet on phones). Modes: search (cities and countries with flags), country, city, trip form.
 - **Story:** one sentence headline with highlighted counts, four asymmetric pastel tiles (world %, continents, distance, trips), flag chips for each country, a recent-trips list.
 
@@ -35,3 +35,5 @@ Large radii (stage 36px, tiles 30px, drawer 30px, chips and buttons fully round)
 
 ## Rules
 No neon, no glass or blur, no section numbers or kickers, no icon-heading-text card grids as page structure, no emoji flags (real SVG flags).
+
+> Update: the look moved from soft pastel UI to an atlas / field-journal style (warm paper, pine green, marker-lime highlights, hairline rules, hard offset shadows, serif headlines). See BRAND.md for the current tokens; where this file disagrees, BRAND.md wins.

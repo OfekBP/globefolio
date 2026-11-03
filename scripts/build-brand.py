@@ -12,17 +12,18 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.recordingPen import DecomposingRecordingPen
 
-CORAL, INK, SUN, SKY, PAPER = "#FF5A2C", "#12263F", "#FFD35C", "#CDE7F7", "#F1F7FC"
+PINE, INK, LIME, PAPER, CHALK = "#17614B", "#17211C", "#D4F04A", "#F4EFE4", "#EDF1E6"
+CORAL, SUN = PINE, LIME  # tile/pin colour and traveller dot
 
-font = instancer.instantiateVariableFont(TTFont(sys.argv[1]), {"wght": 780, "opsz": 60, "wdth": 100})
+font = TTFont(sys.argv[1])  # DM Serif Display (static)
 gs = font.getGlyphSet()
 cmap = font.getBestCmap()
 upm = font["head"].unitsPerEm
 cap = font["OS/2"].sCapHeight
 
 # manual kerning in em (the variable font's GPOS pairs are not applied by this script)
-KERN = {("T", "r"): -0.045, ("r", "i"): 0.0, ("i", "p"): 0.004, ("T", "r"): -0.045, ("r", "a"): -0.006, ("a", "c"): 0.0, ("c", "k"): 0.0}
-TRACK = -0.004
+KERN = {("T", "r"): -0.03, ("r", "i"): 0.0, ("T", "r"): -0.03, ("r", "a"): -0.004, ("a", "c"): 0.0}
+TRACK = 0.004
 
 
 def dot_of_i():
@@ -65,9 +66,9 @@ def wordmark(size, x0, baseline, color, dot_color):
 def mark(x=0, y=0, size=64, tile=True, ink=None):
     """The mark: a pin riding an orbit. `tile=False` draws it on transparent with coral pin."""
     k = size / 64
-    pin_fill = "#fff" if tile else CORAL
+    pin_fill = CHALK if tile else CORAL
     hole = CORAL if tile else "var(--hole,#fff)"
-    orbit = "#fff" if tile else CORAL
+    orbit = CHALK if tile else CORAL
     gap = CORAL if tile else "var(--hole,#fff)"
     t = f'<rect width="64" height="64" rx="18" fill="{CORAL}"/>' if tile else ""
     return (
@@ -100,8 +101,8 @@ out.mkdir(parents=True, exist_ok=True)
 SIZE = 42
 cap_px = cap / upm * SIZE
 baseline = 32 + cap_px / 2
-for name, text_color in (("logo-horizontal.svg", INK), ("logo-horizontal-dark.svg", "#F4F8FD")):
-    wm, width = wordmark(SIZE, 80, baseline, text_color, CORAL)
+for name, text_color, dot in (("logo-horizontal.svg", INK, PINE), ("logo-horizontal-dark.svg", CHALK, LIME)):
+    wm, width = wordmark(SIZE, 80, baseline, text_color, dot)
     (out / name).write_text(svg(80 + width + 2, 64, mark() + wm))
 
 # stacked lockup
@@ -115,6 +116,6 @@ body = mark(x=(W - 96) / 2, y=0, size=96) + wordmark(SIZE_S, (W - width) / 2, 96
 # wordmark alone (for inline use at any size)
 wm, width = wordmark(SIZE, 0, cap_px, INK, CORAL)
 (out / "wordmark.svg").write_text(svg(width, cap_px + 12, wm))
-wm, width = wordmark(SIZE, 0, cap_px, "#F4F8FD", CORAL)
+wm, width = wordmark(SIZE, 0, cap_px, CHALK, LIME)
 (out / "wordmark-dark.svg").write_text(svg(width, cap_px + 12, wm))
 print("brand files:", sorted(p.name for p in out.iterdir()))

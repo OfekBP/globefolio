@@ -4,7 +4,7 @@ import { createGlobe, type LitCity, type Trail } from './globe'
 import { allTrips, deleteTrip, getHome, onChange, replaceAll, saveTrip, setHome, type Trip } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
 import { createDrawer, type Focus } from './ui/drawer'
-import { esc, plural, yearOf } from './ui/format'
+import { esc, fmtRange, plural, yearOf } from './ui/format'
 import { icons } from './ui/icons'
 import { renderStory } from './ui/story'
 import { createTimeline } from './ui/timeline'
@@ -18,6 +18,7 @@ async function boot() {
   let trips: Trip[] = []
   let homeKey: string | undefined
   let year: number | null = null
+  let replayN: number | null = null // while replaying, only the first N trips (oldest first) are lit
   const info = new Map<string, { cities: number; whole: boolean }>()
 
   // ── globe ──────────────────────────────────────────────
@@ -63,7 +64,9 @@ async function boot() {
     const today = new Date().toISOString().slice(0, 10)
     // trips dated in the future are plans: they never light the map or count in stats
     const past = trips.filter(t => !t.startDate || t.startDate <= today)
-    const shown = year === null ? past : past.filter(t => { const y = yearOf(t.startDate); return y === undefined || y <= year! })
+    const chrono = [...past].sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''))
+    const shown = replayN !== null ? chrono.slice(0, replayN).reverse()
+      : year === null ? past : past.filter(t => { const y = yearOf(t.startDate); return y === undefined || y <= year! })
     const upcoming = trips.filter(t => t.startDate && t.startDate > today).sort((a, b) => a.startDate!.localeCompare(b.startDate!))
       .map(trip => ({ trip, country: geo.byIso.get(trip.iso)!, days: Math.ceil((Date.parse(trip.startDate!) - Date.parse(today)) / 864e5) }))
       .filter(u => u.country)
@@ -133,6 +136,8 @@ async function boot() {
     const years = trips.map(t => yearOf(t.startDate)).filter((y): y is number => y !== undefined)
     timeline.setYears(years)
     $('stage').classList.toggle('empty', !trips.length)
+    $('replay').hidden = past.filter(t => t.startDate).length < 2
+    countUp()
   }
 
   async function refresh() {
@@ -149,6 +154,63 @@ async function boot() {
   $('zoom-in').onclick = () => globe.zoomBy(0.45)
   $('zoom-out').onclick = () => globe.zoomBy(2.2)
   $('reset').onclick = () => { drawer.close(); globe.reset() }
+
+  // ── journey replay: fly through every trip in order, lighting the map as you go ──
+  let replaying = false
+  const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
+  async function replay() {
+    if (replaying) { replaying = false; return }
+    const today = new Date().toISOString().slice(0, 10)
+    const order = trips.filter(t => t.startDate && t.startDate <= today).sort((a, b) => a.startDate!.localeCompare(b.startDate!))
+    if (order.length < 2) return
+    replaying = true
+    drawer.close()
+    $('stage').scrollIntoView({ behavior: 'smooth', block: 'start' })
+    $('replay-label').textContent = 'Stop'
+    $('hud').hidden = false
+    replayN = 0; view()
+    globe.reset(); await wait(1200)
+    for (let i = 0; i < order.length && replaying; i++) {
+      const t = order[i]
+      const c = geo.byIso.get(t.iso)
+      if (!c) continue
+      const a = t.place ?? anchorOf(c)
+      $('hud-name').textContent = t.place?.name ?? c.properties.n
+      $('hud-when').textContent = `${t.place ? c.properties.n + ' · ' : ''}${fmtRange(t.startDate, undefined)}`
+      globe.flyToPoint(a.lat, a.lng, t.place ? 0.35 : 0.9, 1700)
+      await wait(1500)
+      if (!replaying) break
+      replayN = i + 1; view()
+      await wait(1300)
+    }
+    replaying = false
+    replayN = null; view()
+    $('hud').hidden = true
+    $('replay-label').textContent = 'Replay my journey'
+    globe.reset()
+  }
+  $('replay').onclick = replay
+
+  // big numbers tick up when they appear, once per value
+  const shownNums = new Map<string, string>()
+  function countUp() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    document.querySelectorAll<HTMLElement>('.t-big').forEach((el, idx) => {
+      const node = el.firstChild
+      if (!node || node.nodeType !== 3) return
+      const target = parseInt((node.textContent ?? '').replace(/,/g, ''), 10)
+      const text = node.textContent ?? ''
+      if (!Number.isFinite(target) || shownNums.get(String(idx)) === text) return
+      shownNums.set(String(idx), text)
+      const t0 = performance.now()
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / 900)
+        node.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString('en')
+        if (p < 1) requestAnimationFrame(step); else node.textContent = text
+      }
+      requestAnimationFrame(step)
+    })
+  }
 
   const themeBtn = $('theme')
   const paintThemeBtn = (t: Theme) => {
@@ -207,6 +269,7 @@ async function boot() {
     const t = e.target as HTMLElement
     const typing = t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement
     if (e.key === '/' && !typing) { e.preventDefault(); openLog() }
+    else if (e.key === 'Escape' && replaying) replaying = false
     else if (e.key === 'Escape' && drawer.isOpen()) drawer.close()
   })
 
