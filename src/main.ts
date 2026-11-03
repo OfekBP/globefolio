@@ -1,9 +1,10 @@
 import './styles.css'
-import { anchorOf, distanceKm, flagUrl, loadGeo, placeKey, type City } from './data/geo'
+import { anchorOf, distanceKm, flagUrl, loadGeo, placeKey, type City, type Country } from './data/geo'
 import { createGlobe, type LitCity, type Trail } from './globe'
 import { allTrips, deleteTrip, getHome, onChange, replaceAll, saveTrip, setHome, type Trip } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
 import { confetti } from './ui/confetti'
+import { toast } from './ui/toast'
 import { createDrawer, type Focus } from './ui/drawer'
 import { esc, fmtRange, plural, yearOf } from './ui/format'
 import { icons } from './ui/icons'
@@ -25,17 +26,26 @@ async function boot() {
   let replayN: number | null = null // while replaying, only the first N trips (oldest first) are lit
   const info = new Map<string, { cities: number; whole: boolean }>()
 
+  const geoTip = (c: Country) => {
+    const i = info.get(c.properties.i)
+    const status = i ? (i.cities ? plural(i.cities, 'city', 'cities') + ' lit' : 'Whole country') : 'Tap to explore'
+    const f = flagUrl(c)
+    return `<div class="tip">${f ? `<img class="flag" src="${f}" alt="" />` : ''}<b>${esc(c.properties.n)}</b><span>${status}</span></div>`
+  }
+
   // ── globe ──────────────────────────────────────────────
   const globe = createGlobe($('globe'), geo, theme0, {
     onCountry: c => drawer.open({ k: 'country', iso: c.properties.i }),
     onCity: city => drawer.open({ k: 'city', city }),
-    onView: alt => $('stage').classList.toggle('near', alt < 1.6),
-    describe: c => {
-      const i = info.get(c.properties.i)
-      const status = i ? (i.cities ? plural(i.cities, 'city', 'cities') + ' lit' : 'Whole country') : ''
-      const f = flagUrl(c)
-      return `<div class="tip">${f ? `<img class="flag" src="${f}" alt="" />` : ''}<b>${esc(c.properties.n)}</b>${status ? `<span>${status}</span>` : ''}</div>`
+    onHover: (c, x, y) => {
+      const tip = $('tip')
+      if (!c) { tip.hidden = true; return }
+      tip.innerHTML = geoTip(c)
+      tip.hidden = false
+      tip.style.transform = `translate(${Math.round(x + 14)}px, ${Math.round(y + 16)}px)`
     },
+    onView: alt => $('stage').classList.toggle('near', alt < 1.6),
+    describe: c => geoTip(c),
   })
 
   const onFocus = (f: Focus) => {
@@ -54,7 +64,10 @@ async function boot() {
     trips: () => trips,
     homeKey: () => homeKey,
     focus: onFocus,
-    save: async t => { await saveTrip(t); if (!t.id) confetti() },
+    save: async t => {
+      await saveTrip(t)
+      if (!t.id) { confetti(); toast(`${t.place?.name ?? geo.byIso.get(t.iso)?.properties.n ?? 'Trip'} added. Your world just got bigger.`) }
+    },
     remove: id => deleteTrip(id),
     setHome: key => setHome(key),
   })
@@ -140,7 +153,8 @@ async function boot() {
     const years = trips.map(t => yearOf(t.startDate)).filter((y): y is number => y !== undefined)
     timeline.setYears(years)
     $('stage').classList.toggle('empty', !trips.length)
-    $('replay').hidden = past.filter(t => t.startDate).length < 2
+    const canReplay = past.filter(t => t.startDate).length >= 2
+    document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { b.hidden = !canReplay })
     countUp()
   }
 
@@ -170,7 +184,7 @@ async function boot() {
     replaying = true
     drawer.close()
     $('stage').scrollIntoView({ behavior: 'smooth', block: 'start' })
-    $('replay-label').textContent = 'Stop'
+    setReplayLabel('Stop')
     $('hud').hidden = false
     replayN = 0; view()
     globe.reset(); await wait(1200)
@@ -190,10 +204,31 @@ async function boot() {
     replaying = false
     replayN = null; view()
     $('hud').hidden = true
-    $('replay-label').textContent = 'Replay my journey'
+    setReplayLabel(null)
     globe.reset()
   }
-  $('replay').onclick = replay
+  function setReplayLabel(text: string | null) {
+    document.querySelectorAll<HTMLElement>('.replay-label').forEach(l => {
+      l.textContent = text ?? (l.closest('.dock-btn') ? 'Replay' : 'Replay my journey')
+    })
+  }
+
+  // a random country you have not been to yet: fly there and open its page
+  function surprise() {
+    const todo = geo.countries.filter(c => !info.has(c.properties.i) && anchorOf(c).span > 3)
+    const pool = todo.length ? todo : geo.countries
+    const c = pool[Math.floor(Math.random() * pool.length)]
+    document.getElementById('stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    drawer.open({ k: 'country', iso: c.properties.i })
+  }
+
+  document.addEventListener('click', e => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-do]')
+    if (!b) return
+    if (b.dataset.do === 'replay') replay()
+    else if (b.dataset.do === 'surprise') surprise()
+    else if (b.dataset.do === 'log') openLog()
+  })
 
   // big numbers tick up when they appear, once per value
   const shownNums = new Map<string, string>()
@@ -218,6 +253,7 @@ async function boot() {
 
   const themeBtn = $('theme')
   const paintThemeBtn = (t: Theme) => {
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#101b33' : '#fff8ec')
     document.querySelectorAll<HTMLImageElement>('.brand-logo').forEach(i => { i.src = t === 'dark' ? '/brand/logo-horizontal-dark.svg' : '/brand/logo-horizontal.svg' })
     themeBtn.innerHTML = t === 'dark' ? icons.sun : icons.moon
     themeBtn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
@@ -287,6 +323,9 @@ async function boot() {
 
   const home = homeCity()
   globe.intro(home?.lat ?? 22, home?.lng ?? 10)
+  const splash = document.getElementById('splash')
+  splash?.classList.add('gone')
+  setTimeout(() => splash?.remove(), 500)
 }
 
 boot()

@@ -16,7 +16,7 @@ LAGOON, INK, SUN, BLUSH, CREAM = "#0E7490", "#1F2A44", "#FFC93C", "#FF6F8E", "#F
 CORAL = LAGOON  # tile colour (name kept from the first version of this script)
 CHALK = CREAM
 
-font = instancer.instantiateVariableFont(TTFont(sys.argv[1]), {"wght": 640, "opsz": 72, "SOFT": 100, "WONK": 0})  # Fraunces
+font = instancer.instantiateVariableFont(TTFont(sys.argv[1]), {"wght": 850})  # Nunito
 gs = font.getGlyphSet()
 cmap = font.getBestCmap()
 upm = font["head"].unitsPerEm
@@ -24,7 +24,7 @@ cap = font["OS/2"].sCapHeight
 
 # manual kerning in em (the variable font's GPOS pairs are not applied by this script)
 KERN = {("T", "r"): -0.03, ("r", "i"): 0.0, ("T", "r"): -0.03, ("r", "a"): -0.004, ("a", "c"): 0.0}
-TRACK = 0.004
+TRACK = -0.006
 
 
 def dot_of_i():

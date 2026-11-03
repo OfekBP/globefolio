@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Trip Track" />
   <meta name="theme-color" content="#fff8ec" />
   <title>Trip Track</title>
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
@@ -18,9 +20,10 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fraunces:opsz,wght,SOFT@9..144,500..700,100&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
 <body>
+  <div id="splash" class="splash" aria-hidden="true"><img src="/brand/logo-mark.svg" alt="" width="84" height="84" /><p>Trip Track</p><span class="dots"><i></i><i></i><i></i></span></div>
   <header class="bar">
     <a class="brand" href="/" aria-label="Trip Track home"><img class="brand-logo" src="/brand/logo-horizontal.svg" alt="Trip Track" width="150" height="40" /></a>
     <nav class="actions" aria-label="Actions">
@@ -31,6 +34,7 @@
 
   <main>
     <section id="stage" class="stage" aria-label="Your world">
+      <div id="tip" class="tip-wrap" hidden></div>
       <div id="globe" role="application" aria-label="Interactive globe of the places you have been"></div>
 
       <button id="stage-search" class="search-pill" type="button"><span data-icon="search"></span>Search any city<kbd>/</kbd></button>
@@ -41,7 +45,10 @@
         <button id="reset" class="icon-btn" type="button" aria-label="Reset view"><span data-icon="reset"></span></button>
       </div>
 
-      <button id="replay" class="replay" type="button" hidden><span data-icon="play"></span><span id="replay-label">Replay my journey</span></button>
+      <div class="tools">
+        <button class="tool" data-do="replay" type="button" hidden><span data-icon="play"></span><span class="replay-label">Replay my journey</span></button>
+        <button class="tool alt" data-do="surprise" type="button"><span data-icon="spark"></span>Surprise me</button>
+      </div>
       <div id="hud" class="hud" hidden aria-live="polite"><b id="hud-name"></b><small id="hud-when"></small></div>
 
       <p class="hint">Drag to spin · click the globe, then scroll to zoom</p>
@@ -55,6 +62,12 @@
 
     <section id="story" class="story" aria-live="polite"></section>
   </main>
+
+  <nav class="dock" aria-label="Quick actions">
+    <button class="dock-btn" data-do="surprise" type="button"><span data-icon="spark"></span><small>Surprise</small></button>
+    <button class="dock-log" data-do="log" type="button"><span data-icon="plus"></span>Log a trip</button>
+    <button class="dock-btn" data-do="replay" type="button" hidden><span data-icon="play"></span><small class="replay-label">Replay</small></button>
+  </nav>
 
   <footer class="end">
     <div class="data">

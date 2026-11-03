@@ -15,6 +15,7 @@ export const icons = {
   download: svg('<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/>'),
   upload: svg('<path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 20h14"/>'),
   play: svg('<path d="M8 5v14l11-7z" fill="currentColor"/>'),
+  spark: svg('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8L21.5 18.5l-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/>'),
   close: svg('<path d="M6 6l12 12M18 6 6 18"/>'),
   back: svg('<path d="M15 5l-7 7 7 7"/>'),
   check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),

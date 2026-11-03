@@ -15,7 +15,7 @@ Clear space: one pin-hole diameter. Minimum: icon 16 px, horizontal logo 96 px w
 Lagoon #0E7490 (actions, logo tile), Sunshine #FFC93C (pins, highlighter, dark-mode action), Blush #FF6F8E (trails, stamps), Mint #7ED6B0, Dusk Ink #1F2A44, Cream #FFF8EC, Open Sea #A9DCF0, Night Sea #101B33. On the globe each continent has its own pastel family (Africa sand, Asia rose, Europe blue, North America green, South America lilac, Oceania butter); visited countries get a richer shade.
 
 ## Type
-Fraunces (soft, warm serif for headlines, numerals, wordmark; 600 to 700) and DM Sans (everything else).
+Nunito (soft, warm serif for headlines, numerals, wordmark; 600 to 700) and Nunito (everything else).
 
 ## Style
 Sunny atlas: big soft corners, pastel tiles that echo the map, highlighter on key words. No neon, mascots or emoji.
