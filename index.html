@@ -3,32 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#04060b" />
+  <meta name="theme-color" content="#eaf4fb" />
   <title>Wayfarer</title>
+  <script>
+    // Apply the saved theme before first paint so there is no flash.
+    try {
+      var t = localStorage.getItem('wayfarer:theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Tenor+Sans&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div id="globe" aria-label="Interactive globe of the places you have been" role="application"></div>
-  <div class="vignette" aria-hidden="true"></div>
-
-  <header class="top">
-    <h1 class="mark">Wayfarer</h1>
-    <nav class="tools" aria-label="Actions">
-      <button id="log" class="log" type="button">Log a trip <kbd>/</kbd></button>
-      <button id="export" class="quiet" type="button">Export</button>
-      <label class="quiet" tabindex="0">Import<input id="import" type="file" accept="application/json" hidden /></label>
+  <header class="bar">
+    <a class="brand" href="/" aria-label="Wayfarer home">
+      <span class="logo" data-icon="globe"></span>
+      <span class="wordmark">Wayfarer</span>
+    </a>
+    <nav class="actions" aria-label="Actions">
+      <button id="theme" class="icon-btn" type="button" aria-label="Switch theme"></button>
+      <button id="log" class="solid" type="button"><span data-icon="plus"></span>Log a trip</button>
     </nav>
   </header>
 
-  <footer class="foot">
-    <p id="line" class="line" aria-live="polite"></p>
-    <div id="timeline" class="timeline" hidden>
-      <label for="year">Years</label>
-      <input id="year" type="range" step="1" />
-      <output for="year"></output>
+  <main>
+    <section id="stage" class="stage" aria-label="Your world">
+      <div id="globe" role="application" aria-label="Interactive globe of the places you have been"></div>
+
+      <button id="stage-search" class="search-pill" type="button"><span data-icon="search"></span>Search any city<kbd>/</kbd></button>
+
+      <div class="zoom" role="group" aria-label="Zoom">
+        <button id="zoom-in" class="icon-btn" type="button" aria-label="Zoom in"><span data-icon="plus"></span></button>
+        <button id="zoom-out" class="icon-btn" type="button" aria-label="Zoom out"><span data-icon="minus"></span></button>
+        <button id="reset" class="icon-btn" type="button" aria-label="Reset view"><span data-icon="reset"></span></button>
+      </div>
+
+      <p class="hint">Drag to spin · scroll to zoom · zoom in far enough to see every city</p>
+
+      <div id="timeline" class="timeline" hidden>
+        <label for="year">Years</label>
+        <input id="year" type="range" step="1" />
+        <output for="year"></output>
+      </div>
+    </section>
+
+    <section id="story" class="story" aria-live="polite"></section>
+  </main>
+
+  <footer class="end">
+    <div class="data">
+      <button id="export" class="text" type="button"><span data-icon="download"></span>Export backup</button>
+      <label class="text" tabindex="0"><span data-icon="upload"></span>Import<input id="import" type="file" accept="application/json" hidden /></label>
     </div>
+    <p>Your trips stay in this browser. Map tiles: Esri, HERE, Garmin, © OpenStreetMap contributors. Cities and borders from Natural Earth. Flags by country-flag-icons.</p>
   </footer>
 
   <aside id="drawer" class="drawer" aria-label="Journal" aria-hidden="true"></aside>

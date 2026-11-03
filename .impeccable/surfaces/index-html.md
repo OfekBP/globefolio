@@ -7,17 +7,15 @@ related_targets: ["src/main.ts","src/styles.css"]
 
 # Surface: Wayfarer main globe (Experience)
 
-Visitor mode: Experience. The globe is the work; the interface recedes. Single owner, desk or couch, dim room, evening.
-
-Audience / job: the owner looks back over their travels and logs new trips. Action: log a trip, open a country's journal, scrub years.
-User-pinned: cinematic night Earth, globe + trip journal; must not feel like generic sci-fi/neon, cluttered panels, or cartoonish.
+Visitor mode: Experience. The globe is the work; stats and sentences follow below it. Single owner, desk or couch, any light (theme is the owner's choice).
+User-pinned (round two): friendly like Traviary, Globetrotter, Orvenara; big interactive globe with stats and sentences below; light and dark; city-level lighting; deep zoom to see actual cities; flags.
 
 ## Direction contract
 
-THESIS: Earth seen from the ISS cupola at night, where your travels are the city lights. Refuses the glowing-cyan HUD dashboard and the stat-tile card stack; there is no dashboard, only the planet and a journal that slides in.
-OWN-WORLD: near-black blue void (#04060b), moonlight-warm white text (#e9e4da), sodium-vapour amber (#ffb454, hot #ffd89b) as the only light that means "you were here", a thin airglow-blue limb on the atmosphere. Flat solid drawer (no blur glass), hairline rules, no rounded-card boxes. Display face Tenor Sans, body Hanken Grotesk with tabular numerals.
-STORY: the owner sees their life as lit land, trusts it is theirs and local, and acts by clicking a country or pressing "/" to log a trip.
-FIRST VIEWPORT: full-bleed globe slowly settling from a high orbit; wordmark small top-left; a single display-size sentence bottom-left ("You have lit 23 countries, 11% of the world."); "Log a trip" text action and Export/Import quiet top-right; timeline hairline along the bottom once dated trips exist. No panel open until summoned.
-FORM: orbit-photograph globe with additive amber country fills, light trails from home, journal drawer from the right. Position 1 of own list (user-pinned direction, concept-seed skipped as pinned beats the roll). seed: none (unavailable)
+THESIS: a friendly travel keepsake where the globe is the hero and the page below tells your story in plain sentences. Refuses the cold HUD dashboard and the generic SaaS stat-card grid.
+OWN-WORLD: soft sky-blue stage in light, deep navy stage with satellite Earth in dark; coral (#ff5a2c / #ff8a5c) is the only "you were here" color; pastel tinted tiles (coral, sky, teal, sun); Bricolage Grotesque display with Figtree body; fully round pills, 30px+ radii, soft offset shadows, real SVG flags, no blur or neon.
+STORY: the owner sees their life as lit cities on a real planet, feels proud of the sentence below it, and acts by searching a city or tapping the map.
+FIRST VIEWPORT: header with logo, theme toggle and "Log a trip"; a large rounded stage with the globe, a floating "Search any city" pill, zoom stack, timeline pill; the headline sentence peeks under the stage.
+FORM: friendly globe-plus-story page; position 1 (user-pinned reference apps, concept-seed skipped as pinned beats the roll). seed: none (unavailable)
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

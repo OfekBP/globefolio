@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-11-03T11:54:48.990Z",
+        "reason": "agent decided: index.html has no styles; the scale is in src/styles.css (body 15px, display 28-54px, wordmark/labels 11-15px) and detect on the CSS is clean"
+      }
+    ]
+  }
+}

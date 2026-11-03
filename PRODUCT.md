@@ -20,7 +20,7 @@ Wayfarer is a private, interactive 3D globe of everywhere the owner has traveled
 
 ## Positioning
 
-A keepsake, not a dashboard. The globe is the product; the data is a memory layer on top of it. Unlike travel-tracker apps, it is local, personal, and cinematic rather than a social or stats service.
+A keepsake, not a dashboard. The globe is the product; the data is a memory layer on top of it. Unlike travel-tracker apps, it is local, personal, and friendly rather than a social or stats service.
 
 ## Operating Context
 
@@ -28,17 +28,19 @@ Entry is manual: the owner types countries, dates, optional places and notes. No
 
 ## Capabilities and Constraints
 
-- Globe with all countries; visited ones lit.
-- Click a country: fly there, read its journal entries.
-- Log, edit, delete trips (country, optional place with coordinates, dates, notes).
-- Home country; light trails from home to destinations.
+- Trips are city-level: logging a city lights only that city, while its country still counts as visited. Logging a whole country fills it.
+- Bundled Natural Earth city list (7k+) for offline search; deep zoom to street-level map tiles (online).
+- Click a country or tap near a city: fly there, read its journal entries; flags throughout.
+- Log, edit, delete trips (city or whole country, dates, notes).
+- Home city; light trails from home to destinations; distance traveled.
+- Light and dark themes chosen by the owner.
 - Timeline scrubber to replay travel through the years.
 - Export/import JSON. No accounts, no server.
-- Undecided: photos per trip, wishlist, city-level deep zoom (MapLibre), sharing.
+- Undecided: photos per trip, wishlist cities, sharing, offline map tiles.
 
 ## Brand Commitments
 
-Name: Wayfarer. Tagline: "Your world, lit up." Feel pinned by the user: cinematic night Earth, a journal beside the globe.
+Name: Wayfarer. Tagline: "Your world, lit up." Feel pinned by the user (second round): friendly like Traviary, Globetrotter, Orvenara; big interactive globe with stats and sentences below; light and dark modes. (Round one was cinematic night Earth, superseded.)
 
 ## Evidence on Hand
 

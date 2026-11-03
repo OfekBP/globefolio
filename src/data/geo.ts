@@ -1,0 +1,127 @@
+import type { Place } from '../store'
+
+export interface Country {
+  type: 'Feature'
+  properties: { n: string; i: string; a: string; c: string }
+  geometry: { type: 'MultiPolygon'; coordinates: number[][][][] }
+}
+
+export interface City {
+  key: string
+  name: string
+  iso: string
+  lat: number
+  lng: number
+  pop: number // thousands
+  cap: boolean
+  fold: string
+}
+
+export interface Geo {
+  countries: Country[]
+  byIso: Map<string, Country>
+  cities: City[]
+  citiesByIso: Map<string, City[]>
+  cityByKey: Map<string, City>
+}
+
+export interface Anchor { lat: number; lng: number; span: number }
+
+export const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania']
+
+const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+/** A city is identified by country + name + rounded latitude, so trips can find it again from the saved place. */
+export const placeKey = (iso: string, p: Pick<Place, 'name' | 'lat'>) => `${iso}|${p.name}|${p.lat.toFixed(1)}`
+
+export async function loadGeo(): Promise<Geo> {
+  const [cj, rows] = await Promise.all([
+    fetch('/geo/countries.json').then(r => r.json()),
+    fetch('/geo/cities.json').then(r => r.json()) as Promise<[string, string, number, number, number, number][]>,
+  ])
+  const countries: Country[] = cj.features
+  const byIso = new Map(countries.map(c => [c.properties.i, c]))
+  const cities: City[] = []
+  const citiesByIso = new Map<string, City[]>()
+  const cityByKey = new Map<string, City>()
+  for (const [name, iso, lat, lng, pop, cap] of rows) {
+    const city: City = { key: placeKey(iso, { name, lat }), name, iso, lat, lng, pop, cap: !!cap, fold: fold(name) }
+    if (cityByKey.has(city.key)) continue
+    cities.push(city)
+    cityByKey.set(city.key, city)
+    const list = citiesByIso.get(iso)
+    if (list) list.push(city)
+    else citiesByIso.set(iso, [city])
+  }
+  return { countries, byIso, cities, citiesByIso, cityByKey }
+}
+
+const anchors = new WeakMap<Country, Anchor>()
+
+/** Centre and angular size of a country's largest landmass (so the US centres on the mainland, not Alaska). */
+export function anchorOf(c: Country): Anchor {
+  const hit = anchors.get(c)
+  if (hit) return hit
+  let best = c.geometry.coordinates[0][0], bestArea = -1
+  for (const poly of c.geometry.coordinates) {
+    const [x0, y0, x1, y1] = bbox(poly[0])
+    const area = (x1 - x0) * (y1 - y0)
+    if (area > bestArea) { best = poly[0]; bestArea = area }
+  }
+  const [x0, y0, x1, y1] = bbox(best)
+  const a = { lat: (y0 + y1) / 2, lng: (x0 + x1) / 2, span: Math.max(x1 - x0, y1 - y0) }
+  anchors.set(c, a)
+  return a
+}
+
+function bbox(ring: number[][]): [number, number, number, number] {
+  let x0 = 180, y0 = 90, x1 = -180, y1 = -90
+  for (const [x, y] of ring) {
+    if (x < x0) x0 = x
+    if (x > x1) x1 = x
+    if (y < y0) y0 = y
+    if (y > y1) y1 = y
+  }
+  return [x0, y0, x1, y1]
+}
+
+/** Camera altitude (globe radii) that frames a country of the given angular span. */
+export const altitudeFor = (span: number) => Math.min(2.2, Math.max(0.12, span / 70 + 0.1))
+
+export const flagUrl = (c: Country) => (c.properties.a ? `/flags/${c.properties.a}.svg` : '')
+
+export type Hit = { kind: 'city'; city: City } | { kind: 'country'; country: Country }
+
+/** One box for both: cities rank by population, countries slot in when their name matches. */
+export function search(geo: Geo, q: string, opts: { iso?: string; citiesOnly?: boolean; limit?: number } = {}): Hit[] {
+  const needle = fold(q.trim())
+  if (!needle) return []
+  const limit = opts.limit ?? 9
+  const countryStarts: Hit[] = [], cityStarts: Hit[] = [], within: Hit[] = []
+  if (!opts.citiesOnly && !opts.iso) {
+    for (const country of geo.countries) {
+      const n = fold(country.properties.n)
+      if (n.startsWith(needle)) countryStarts.push({ kind: 'country', country })
+      else if (n.includes(needle)) within.push({ kind: 'country', country })
+    }
+  }
+  const pool = opts.iso ? geo.citiesByIso.get(opts.iso) ?? [] : geo.cities
+  for (const city of pool) {
+    if (city.fold.startsWith(needle)) cityStarts.push({ kind: 'city', city })
+    else if (within.length < 200 && city.fold.includes(needle)) within.push({ kind: 'city', city })
+  }
+  // Big cities lead, but a matching country is never buried under a pile of small towns.
+  const exact = (h: Hit) => (h.kind === 'city' ? h.city.fold : fold(h.country.properties.n)) === needle
+  const lead = [...countryStarts, ...cityStarts].filter(exact)
+  const rest = [...cityStarts.slice(0, 3), ...countryStarts, ...cityStarts.slice(3)].filter(h => !lead.includes(h))
+  const starts = [...lead, ...rest]
+  return [...starts, ...within].slice(0, limit)
+}
+
+/** Great-circle distance in km. */
+export function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number) {
+  const r = Math.PI / 180
+  const h = Math.sin(((bLat - aLat) * r) / 2) ** 2 +
+    Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(((bLng - aLng) * r) / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.sqrt(h))
+}

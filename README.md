@@ -1,8 +1,8 @@
 # Wayfarer
 
-*Your world, lit up.* A private, interactive 3D globe of everywhere you have been. Visited countries glow like city lights, trips become a journal, and a timeline replays your travels.
+*Your world, lit up.* A private, friendly 3D globe of everywhere you have been. Log a city and only that city lights up, while its country counts as visited. Zoom from the whole Earth down to street level.
 
-Everything stays on your machine (IndexedDB). Optional place search uses OpenStreetMap Nominatim.
+Everything stays in your browser (IndexedDB). No accounts, no server.
 
 ## Run
 
@@ -13,16 +13,30 @@ npm run dev
 
 ## Use
 
-- Click a country to fly there and read its journal.
-- Press `/` (or "Log a trip") to log a trip. Esc closes the journal.
-- Set a home country to draw light trails to every destination.
-- Drag the years slider to replay your travels.
-- Export / Import a JSON backup.
+- **Log a trip:** press `/` or "Log a trip", search any city (or a whole country), add dates and a note.
+- **Light up a city:** pick a city and only that city glows. The country is counted but not filled.
+- **Deep zoom:** scroll in to reach real map detail; tap near a city to open it.
+- **Home city:** set one to draw light trails and measure distance.
+- **Timeline:** drag the years slider to replay your travels.
+- **Light / dark:** the sun/moon button; first visit follows your system.
+- **Backup:** Export / Import a JSON file.
 
 ## Stack
 
-Vite, TypeScript, globe.gl (three.js), idb. Country borders from Natural Earth (public domain), night texture from three-globe examples.
+Vite, TypeScript, globe.gl (three.js), idb. Data and credits:
+
+- Country borders and 7,000+ cities: [Natural Earth](https://www.naturalearthdata.com/) (public domain), reduced by `scripts/build-geo.mjs`.
+- Map tiles: Esri (Topo and World Imagery), © OpenStreetMap contributors. Tiles are fetched live, so deep zoom needs a connection.
+- Flags: [country-flag-icons](https://gitlab.com/catamphetamine/country-flag-icons) (MIT).
+
+## Rebuild the geo data
+
+Download `ne_50m_admin_0_countries.geojson` as `countries.geojson` and `ne_10m_populated_places_simple.geojson` as `places.geojson` from Natural Earth into one folder, then:
+
+```bash
+node scripts/build-geo.mjs <that folder>
+```
 
 ## Roadmap
 
-Photos per trip, wishlist countries, city-level deep zoom, shareable poster export.
+Photos per trip, wishlist cities, shareable poster export, installable offline PWA.

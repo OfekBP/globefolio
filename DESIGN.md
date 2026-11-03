@@ -1,34 +1,37 @@
 # Wayfarer design system
 
-**World:** Earth at night from orbit. Your travels are the city lights. The globe leads; the journal is a guest.
+**World:** a friendly travel keepsake. A big, real-looking globe you can fall into, with soft rounded surfaces, warm coral for "you were here", and plain-spoken sentences below it. Light and dark are both first-class; the owner chooses.
 
-## Color
-| Token | Value | Role |
-|---|---|---|
-| `--void` | #04060b | page and globe ground |
-| `--sheet` | #070a11 | journal drawer, tooltip |
-| `--ink` | #e9e4da | text (moonlight-warm white) |
-| `--dim` | #9a9cab | secondary text, labels (AA on void/sheet) |
-| `--sodium` | #ffb454 | the only light that means "you were here": lit countries, key numbers, focus ring, primary action |
-| `--sodium-hot` | #ffd89b | hover/selected lit land, timeline thumb |
-| `--alert` | #ff9d8a | errors, destructive hover |
-| atmosphere | #5f93d4 | thin airglow on the limb, 3D only |
+## Themes
+| Token | Light | Dark | Role |
+|---|---|---|---|
+| `--bg` | #f1f7fc | #0a1424 | page |
+| `--surface` / `--surface-2` | #fff / #eef5fb | #111f36 / #182a47 | cards, drawer / inputs, entries |
+| `--ink` | #12263f | #eaf1fb | text |
+| `--dim` | #556a83 | #9db0c8 | secondary text (AA) |
+| `--accent` | #ff5a2c | #ff8a5c | lit cities, whole-country fill, bars, slider |
+| `--btn` | #d63f12 (white text) | #ff8a5c (dark text) | primary actions |
+| tints | coral #ffe2d6, sun #ffefbf, teal #d3f2ee, sky #d7eafc | same hues at ~15% alpha | stat tiles |
 
-Lit land is an additive amber fill (`#ff8c1a`, 0.48 opacity, 0.7 on hover/selected). Unvisited land is untouched night texture.
+The first visit follows the system theme; after that the choice is saved. Globe skin follows the theme: light uses the Esri Topo basemap on a sky-blue stage; dark uses Esri satellite imagery on deep navy with stars.
 
 ## Type
-- Display: **Tenor Sans** (wordmark tracked 0.46em caps; sentence stat clamp 28-46px; drawer title clamp 36-54px).
-- Body: **Hanken Grotesk** 15/1.55; tabular numerals for dates and distances; 11px tracked caps for field labels.
+- Display: **Bricolage Grotesque** 700 (headline clamp 36-64px, tile numbers 62px, drawer title 32-42px, section titles 28px).
+- Body: **Figtree** 16/1.55, 500-700 for labels and chips. Tabular numerals for dates and distances.
+
+## Shape and depth
+Large radii (stage 36px, tiles 30px, drawer 30px, chips and buttons fully round). Depth is a soft offset shadow, never a halo. Surfaces are solid; no blur.
 
 ## Components
-- Drawer: solid, hairline left rule, slides from right (bottom sheet under 800px). Modes: search, country journal, trip form. No blur, no cards.
-- Entries: dated hairline-separated list, amber uppercase date, display-face place, notes in ink.
-- Buttons: squared (3px radius). Outline amber for "Log a trip", solid amber for the single primary action in a sheet, text buttons for everything else.
-- Inputs: underline only; amber underline on focus.
-- Timeline: 1px hairline filled amber to the chosen year; right end = all time.
+- **Stage:** the globe in a rounded sky panel with a floating search pill, zoom stack, hint chip and a year-timeline pill.
+- **Pins:** a coral dot with a white ring and a slow pulse; the city name chip appears when you are zoomed in.
+- **Drawer:** floating rounded sheet from the right (bottom sheet on phones). Modes: search (cities and countries with flags), country, city, trip form.
+- **Story:** one sentence headline with highlighted counts, four asymmetric pastel tiles (world %, continents, distance, trips), flag chips for each country, a recent-trips list.
 
-## Motion
-One authored moment: the opening descent from high orbit to home. Drawer ease `cubic-bezier(.16,1,.3,1)` 550ms. Light trails travel from home to each destination. All motion collapses under `prefers-reduced-motion`.
+## Behaviour
+- Logging a city lights only that city (pin + trail from home); the country counts as visited but is not filled. Logging "whole country" fills it.
+- Deep zoom swaps to street-level map tiles; click a spot near a city to open it.
+- Motion: opening descent, drawer slide (550ms ease-out), pulsing pins, travelling trails. All collapse under `prefers-reduced-motion`.
 
 ## Rules
-No glass or blur, no neon cyan, no stat-tile cards, no kickers or section numbers, no gradient text.
+No neon, no glass or blur, no section numbers or kickers, no icon-heading-text card grids as page structure, no emoji flags (real SVG flags).
