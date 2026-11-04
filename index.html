@@ -34,7 +34,24 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <filter id="ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter>
   </svg>
-  <div id="splash" class="splash" aria-hidden="true"><img src="/brand/logo-mark.svg" alt="" width="84" height="84" /><p>GlobeFolio</p><span class="dots"><i></i><i></i><i></i></span></div>
+  <div id="splash" class="splash" role="status" aria-label="GlobeFolio">
+    <svg class="splash-globe" viewBox="0 0 160 160" aria-hidden="true">
+      <defs>
+        <clipPath id="sg-clip"><circle cx="80" cy="84" r="54"/></clipPath>
+        <radialGradient id="sg-shade" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#0e7490" stop-opacity=".42"/></radialGradient>
+      </defs>
+      <circle class="sg-orbit" cx="80" cy="84" r="70" fill="none" stroke="#FFC93C" stroke-width="4" stroke-linecap="round" stroke-dasharray="46 394"/>
+      <circle cx="80" cy="84" r="54" fill="#A9DCF0"/>
+      <g clip-path="url(#sg-clip)">
+        <g class="sg-land" fill="#7ED6B0"><g id="sg-strip"><path d="M14 62c8-9 20-11 27-5s2 13-3 17-2 12-9 17-17 0-19-13-1-12 4-16z"/><path d="M70 50c9-7 20-5 26 2s0 15-6 19-2 17-11 21-14-6-13-17 0-17 4-25z"/><path d="M118 70c7-4 15-2 18 4s-3 11-8 12-8 8-13 5-4-14 3-21z"/><path d="M168 56c6-5 15-4 19 2s-1 11-5 14-3 11-9 11-8-9-7-16 0-8 2-11z"/><circle cx="96" cy="112" r="6"/><circle cx="150" cy="104" r="4"/></g><use href="#sg-strip" x="224"/></g>
+        <g fill="none" stroke="#fff" stroke-width="1.2" opacity=".55"><path d="M26 84h108M32 62h96M32 106h96"/><ellipse class="sg-m" cx="80" cy="84" rx="24" ry="54"/><ellipse class="sg-m sg-m2" cx="80" cy="84" rx="24" ry="54"/></g>
+        <circle cx="80" cy="84" r="54" fill="url(#sg-shade)"/>
+      </g>
+      <circle cx="80" cy="84" r="54" fill="none" stroke="#FFF8EC" stroke-width="3.4"/>
+      <g class="sg-pin"><path d="M121 20c-6.4 0-11.6 4.8-11.6 10.9C109.4 40 121 52 121 52s11.6-12 11.6-21.1c0-6.1-5.2-10.9-11.6-10.9z" fill="#FF6F8E" stroke="#FFF8EC" stroke-width="3" stroke-linejoin="round"/><circle cx="121" cy="31" r="4.2" fill="#FFF8EC"/></g>
+    </svg>
+    <p>GlobeFolio</p>
+  </div>
 
   <div id="app">
     <main id="view-map" class="view map" data-i18n-label="map.aria" aria-label="Your world">

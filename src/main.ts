@@ -628,7 +628,7 @@ boot().catch(err => {
   if (!splash) return
   splash.removeAttribute('aria-hidden')
   splash.classList.remove('gone')
-  splash.querySelector('.dots')?.remove()
+  splash.classList.add('failed')
   splash.insertAdjacentHTML('beforeend', `<p class="boot-err" role="alert">${esc(L('acct.error'))}</p><button class="solid" type="button" id="boot-retry">${esc(L('retry'))}</button>`)
   document.getElementById('boot-retry')!.onclick = () => location.reload()
 })

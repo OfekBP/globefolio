@@ -180,9 +180,34 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     .htmlAltitude(0.002)
     .htmlElement(d => pinEl(d as LitCity))
     .htmlElementVisibilityModifier((node, visible) => {
-      node.style.opacity = visible ? '1' : '0'
-      node.style.pointerEvents = visible ? 'auto' : 'none'
+      // a flag fades out as it nears the buttons, timeline, passport card or tab bar, instead of sliding over them
+      const o = visible ? clearance(node) : 0
+      node.style.opacity = String(o)
+      node.style.pointerEvents = o > 0.5 ? 'auto' : 'none'
     })
+
+  // screen areas the interface covers; measured at most a few times a second, not on every frame
+  const COVER = ['#stage-search', '#settings', '.map-fabs', '#timeline', '#glance', '#hud', '.tabs', '.tab-add']
+  let covers: DOMRect[] = []
+  let coversAt = 0
+  const FADE = 36 // px over which a flag fades before it touches a card
+  function clearance(node: HTMLElement): number {
+    const now = performance.now()
+    if (now - coversAt > 250) {
+      coversAt = now
+      covers = COVER.flatMap(q => { const el = document.querySelector<HTMLElement>(q); return el && !el.hidden && el.offsetParent !== null ? [el.getBoundingClientRect()] : [] })
+    }
+    const r = node.getBoundingClientRect()
+    // the flag stands above its anchor: about 22px to each side, 50px up
+    const x0 = r.left - 22, x1 = r.left + 22, y0 = r.top - 50, y1 = r.top + 4
+    let o = 1
+    for (const c of covers) {
+      const dx = Math.max(c.left - x1, x0 - c.right, 0)
+      const dy = Math.max(c.top - y1, y0 - c.bottom, 0)
+      o = Math.min(o, Math.hypot(dx, dy) / FADE)
+    }
+    return Math.round(Math.min(1, o) * 20) / 20
+  }
 
   /** A lit place wears its flag: a round badge on a stem for cities, a small flag banner for whole countries. */
   function pinEl(d: LitCity) {
