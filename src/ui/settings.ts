@@ -81,7 +81,7 @@ export function renderSettings(root: HTMLElement, ctx: SettingsCtx) {
 
   root.onclick = e => {
     const el = e.target as HTMLElement
-    const theme = el.closest<HTMLElement>('[data-theme]')
+    const theme = el.closest<HTMLElement>('button[data-theme]')
     if (theme) { setTheme(theme.dataset.theme as 'light' | 'dark'); render(); return }
     const unit = el.closest<HTMLElement>('[data-seg]')
     if (unit) { setPref('units', unit.dataset.seg as Units); render(); return }
