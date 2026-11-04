@@ -566,3 +566,8 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .wel-lang svg { width: 18px; height: 18px; flex: none }
 .wel-lang select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: inherit; font: 700 14px/1.2 var(--body); padding: 2px 2px; cursor: pointer; max-width: 140px }
 .wel-lang select:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px }
+
+/* on a phone the sheet leaves the top buttons peeking out; while it is open they must not catch a stray tap (it used to land on Settings) */
+@media (max-width: 700px) {
+  body:has(#drawer.open) .map-top { pointer-events: none; opacity: 0.55; transition: opacity 0.2s }
+}
