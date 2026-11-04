@@ -483,7 +483,7 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .lang-row svg { width: 20px; height: 20px; color: var(--accent-text) }
 .auth-stack { display: grid; gap: 10px; margin-top: 22px }
 .auth-stack [hidden] { display: none !important }
-.g-btn { position: relative; display: block; height: 50px; max-width: 420px; width: 100%; margin: 0 auto; color-scheme: light }
+.g-btn { position: relative; display: block; height: 50px; max-width: 420px; width: 100%; justify-self: center; color-scheme: light }
 .g-face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 16px; background: var(--surface); color: var(--ink); border: 1.5px solid var(--line); box-shadow: var(--shadow); font: 800 16px/1 var(--body); pointer-events: none; transition: transform 0.2s var(--ease), border-color 0.2s }
 .g-face svg { width: 22px; height: 22px; flex: none }
 .g-btn:hover .g-face { border-color: var(--accent) }
@@ -541,3 +541,4 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .setting .switch-row .sw-text b, .setting .switch-row .sw-text small { display: block }
 
 [dir='rtl'] { --dir: -1 }
+.title:focus, .sheet [tabindex='-1']:focus { outline: none }
