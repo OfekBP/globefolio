@@ -561,3 +561,8 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .ghost-btn { background: transparent; color: var(--ink); border: 2px solid var(--ink); box-shadow: none }
 .ghost-btn:hover { background: var(--surface-2) }
 :root[data-theme='dark'] .ghost-btn { box-shadow: none }
+
+.wel-lang { position: absolute; top: max(14px, env(safe-area-inset-top)); inset-inline-end: 16px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink) }
+.wel-lang svg { width: 18px; height: 18px; flex: none }
+.wel-lang select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: inherit; font: 700 14px/1.2 var(--body); padding: 2px 2px; cursor: pointer; max-width: 140px }
+.wel-lang select:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px }

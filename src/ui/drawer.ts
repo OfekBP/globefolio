@@ -1,4 +1,4 @@
-import { flagUrl, placeKey, search, type City, type Country, type Geo, type Hit } from '../data/geo'
+import { cityName, flagUrl, placeKey, placeName, search, type City, type Country, type Geo, type Hit } from '../data/geo'
 import type { Trip, Wish } from '../store'
 import { cname, t } from '../i18n'
 import { count, esc, fmtRange } from './format'
@@ -114,7 +114,7 @@ export function createDrawer(d: Deps) {
     let active = 0
     const rowOf = (h: Hit, i: number) => {
       const c = h.kind === 'city' ? countryOf(h.city.iso) : h.country
-      const name = h.kind === 'city' ? h.city.name : cname(h.country)
+      const name = h.kind === 'city' ? cityName(h.city) : cname(h.country)
       const sub = h.kind === 'city' ? [h.city.region, c ? cname(c) : ''].filter(Boolean).join(', ') : t('place.whole')
       return `<li role="option" id="opt-${i}" aria-selected="${i === active}" data-i="${i}">
         ${flag(c)}<span class="r-name">${esc(name)}</span><span class="r-sub">${esc(sub)}</span></li>`
@@ -154,7 +154,7 @@ export function createDrawer(d: Deps) {
     return `<ol class="entries">${list.map(tr => `
       <li class="entry">
         <time>${fmtRange(tr.startDate, tr.endDate)}</time>
-        ${showPlace ? `<p class="place">${tr.place ? `<button class="link" data-act="open-city" data-id="${tr.id}">${esc(tr.place.name)}</button>` : t('place.whole')}</p>` : ''}
+        ${showPlace ? `<p class="place">${tr.place ? `<button class="link" data-act="open-city" data-id="${tr.id}">${esc(placeName(tr.iso, tr.place))}</button>` : t('place.whole')}</p>` : ''}
         ${tr.notes ? `<p class="note">${esc(tr.notes)}</p>` : ''}
         <div class="row-actions">
           <button class="text" data-act="edit" data-id="${tr.id}">${t('entry.edit')}</button>
@@ -199,7 +199,7 @@ export function createDrawer(d: Deps) {
       <div class="sheet">
         ${closeBtn}
         <button class="back" data-act="goto-country">${icons.back}${flag(c)}${esc(cname(c))}</button>
-        <h2 class="title">${esc(city.name)}</h2>
+        <h2 class="title">${esc(cityName(city))}</h2>
         <p class="lede">${[isHome ? t('city.home') : '', mine.length ? count('trip', mine.length) : t('country.notYet'), popText(city.pop)].filter(Boolean).join(' · ')}</p>
         ${mine.length ? entries(mine, false) : ''}
         <div class="foot-actions">
@@ -218,7 +218,7 @@ export function createDrawer(d: Deps) {
       <form class="sheet" id="trip-form" novalidate>
         ${closeBtn}
         <h2 class="title">${trip ? t('form.edit') : t('form.log')}</h2>
-        <p class="where">${flag(c)}<span>${city ? `<b>${esc(city.name)}</b>, ${esc([city.region, cname(c)].filter(Boolean).join(', '))}` : t('form.wholeCountry', { country: `<b>${esc(cname(c))}</b>` })}</span></p>
+        <p class="where">${flag(c)}<span>${city ? `<b>${esc(cityName(city))}</b>, ${esc([city.region, cname(c)].filter(Boolean).join(', '))}` : t('form.wholeCountry', { country: `<b>${esc(cname(c))}</b>` })}</span></p>
         ${city ? '' : `<p class="note-box">${t('form.noCity', { link: `<button type="button" class="link" data-act="search-in">${t('form.pickCity')}</button>` })}</p>`}
         <div class="two">
           <div class="field"><label for="f-start">${t('form.from')}</label><input id="f-start" type="date" value="${trip?.startDate ?? ''}" /></div>

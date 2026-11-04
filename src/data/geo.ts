@@ -17,7 +17,8 @@ export interface City {
   cap: boolean
   fold: string
   region?: string // only where another city in the country shares the name
-  alts?: string[] // the name in the reader's own script (Hebrew, Arabic, Russian, Chinese, Japanese), folded for matching
+  local?: string // the name in the chosen language, when GeoNames has one that differs from the English name
+  alts?: string[] // every local spelling, folded, so a city can be found by typing it in the reader's language
 }
 
 export interface Geo {
@@ -59,20 +60,29 @@ export async function loadGeo(): Promise<Geo> {
   return { countries, byIso, cities, citiesByIso, cityByKey }
 }
 
-const ALT_LANGS = ['he', 'ar', 'ru', 'zh', 'ja']
+const ALT_LANGS = ['es', 'fr', 'de', 'pt', 'ru', 'ar', 'he', 'zh', 'ja']
 let altFor = ''
+const localByKey = new Map<string, string>()
 
-/** Lets people find a city by typing it in their own language. Only the current language's file is fetched, and only for scripts we have names for. */
+/** A city's name in the chosen language (English when we have no translation). */
+export const cityName = (c: City) => c.local ?? localByKey.get(c.key) ?? c.name
+/** The same for a saved trip's place, which only keeps the English name. */
+export const placeName = (iso: string, p: Pick<Place, 'name' | 'lat'>) => localByKey.get(placeKey(iso, p)) ?? p.name
+
+/** Fetches this language's city names (one small file per language, only the one in use). The first name is shown; all of them are searchable. */
 export async function loadAltNames(geo: Geo, lang = getLocale()) {
   if (altFor === lang) return
-  if (!ALT_LANGS.includes(lang)) {
-    if (altFor) for (const c of geo.cities) c.alts = undefined
-    altFor = lang
-    return
-  }
+  localByKey.clear()
+  for (const c of geo.cities) { c.local = undefined; c.alts = undefined }
+  if (!ALT_LANGS.includes(lang)) { altFor = lang; return }
   try {
     const names = (await fetch(`${import.meta.env.BASE_URL}geo/names-${lang}.json`).then(r => r.json())) as Record<string, string>
-    for (const c of geo.cities) { const n = names[c.key]; c.alts = n ? n.split('|').map(fold) : undefined }
+    for (const [key, n] of Object.entries(names)) {
+      const parts = n.split('|')
+      localByKey.set(key, parts[0])
+      const c = geo.cityByKey.get(key)
+      if (c) { c.local = parts[0]; c.alts = parts.map(fold) }
+    }
     altFor = lang
   } catch { /* offline and not cached yet: English names still work */ }
 }

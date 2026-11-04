@@ -1,6 +1,6 @@
 import Globe from 'globe.gl'
 import { CanvasTexture, Color, DoubleSide, MeshBasicMaterial, SRGBColorSpace } from 'three'
-import { altitudeFor, anchorOf, flagUrl, type City, type Country, type Geo } from './data/geo'
+import { altitudeFor, anchorOf, cityName, flagUrl, type City, type Country, type Geo } from './data/geo'
 import { prefs } from './prefs'
 import { cname, t } from './i18n'
 import type { Theme } from './theme'
@@ -191,9 +191,9 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const b = document.createElement('button')
     b.type = 'button'
     b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}${d.dream ? ' pin-dream' : ''}${d.friend ? ' pin-friend' : ''}`
-    const label = d.kind === 'country' ? d.city.name : `${d.city.name}, ${[d.city.region, country ? cname(country) : ''].filter(Boolean).join(', ')}`
+    const label = d.kind === 'country' ? cityName(d.city) : `${cityName(d.city)}, ${[d.city.region, country ? cname(country) : ''].filter(Boolean).join(', ')}`
     b.setAttribute('aria-label', d.dream && !d.friend ? t('map.dream', { name: label }) : label)
-    b.innerHTML = `<span class="pin-glow"></span><span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(d.city.name)}</span>`
+    b.innerHTML = `<span class="pin-glow"></span><span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(cityName(d.city))}</span>`
     b.addEventListener('click', e => {
       e.stopPropagation()
       if (d.kind === 'country' && country) h.onCountry(country)

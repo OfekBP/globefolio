@@ -1,4 +1,4 @@
-import { flagUrl, type City, type Country } from '../data/geo'
+import { cityName, flagUrl, type City, type Country } from '../data/geo'
 import { cname, getLocale, t } from '../i18n'
 import { esc, stampDate } from './format'
 
@@ -74,13 +74,13 @@ export function cityStamp(city: City, country: Country | undefined, since: strin
   const ink = inkOf(city.key)
   const flag = country ? flagUrl(country) : ''
   const txt = 'font-family="Nunito Variable, Noto Sans Arabic Variable, Noto Sans Hebrew Variable, system-ui, sans-serif" font-weight="800" fill="currentColor"'
-  return `<svg class="stamp-svg wide" viewBox="0 0 160 84" style="color:${ink}" role="img" aria-label="${esc(t('stamp.aria', { name: city.name }))}">
+  return `<svg class="stamp-svg wide" viewBox="0 0 160 84" style="color:${ink}" role="img" aria-label="${esc(t('stamp.aria', { name: cityName(city) }))}">
     <defs><clipPath id="${uid}c"><circle cx="34" cy="42" r="19"/></clipPath></defs>
     <rect x="3" y="3" width="154" height="78" rx="14" fill="none" stroke="currentColor" stroke-width="3"/>
     <rect x="8.5" y="8.5" width="143" height="67" rx="10" fill="none" stroke="currentColor" stroke-width="1.1"/>
     ${flag ? `<image href="${flag}" x="5.5" y="23" width="57" height="38" preserveAspectRatio="xMidYMid slice" clip-path="url(#${uid}c)"/>` : ''}
     <circle cx="34" cy="42" r="19" fill="none" stroke="currentColor" stroke-width="1.6"/>
-    <text ${txt} x="62" y="36" font-size="14" letter-spacing="${sp(0.4)}">${esc(short(city.name.toUpperCase(), 11))}</text>
+    <text ${txt} x="62" y="36" font-size="14" letter-spacing="${sp(0.4)}">${esc(short(upper(cityName(city)), 11))}</text>
     <text ${txt} x="62" y="50" font-size="7.5" letter-spacing="${sp(1.5)}">${esc(short(upper(country ? cname(country) : ''), 20))}</text>
     <text ${txt} x="62" y="64" font-size="8" letter-spacing="${sp(1)}">${stampDate(since)}</text>
   </svg>`

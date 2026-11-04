@@ -1,4 +1,4 @@
-import { CONTINENTS, flagUrl, type Country } from '../data/geo'
+import { CONTINENTS, flagUrl, placeName, type Country } from '../data/geo'
 import { cname, num as fmtNum, t } from '../i18n'
 import { inUnits, prefs } from '../prefs'
 import type { Trip, Wish } from '../store'
@@ -35,7 +35,7 @@ function upcoming(m: StoryModel) {
     <ul class="log upcoming">${m.upcoming.slice(0, 4).map(({ trip, country, days }) => `
       <li><button class="log-row" data-trip="${esc(trip.id)}" data-country="${esc(country.properties.i)}">
         ${flag(country)}
-        <span class="lr-main"><b>${esc(trip.place?.name ?? cname(country))}</b><small>${esc(cname(country))}</small></span>
+        <span class="lr-main"><b>${esc(trip.place ? placeName(trip.iso, trip.place) : cname(country))}</b><small>${esc(cname(country))}</small></span>
         <time class="soon">${when(days)}</time>
       </button></li>`).join('')}</ul>`
 }
@@ -47,7 +47,7 @@ function dreams(m: StoryModel) {
       <li class="dream-row">
         <button class="log-row" data-wishgo="${esc(wish.id)}">
           ${flag(country)}
-          <span class="lr-main"><b>${esc(wish.place?.name ?? cname(country))}</b><small>${wish.place ? esc(cname(country)) : t('place.whole')}</small></span>
+          <span class="lr-main"><b>${esc(wish.place ? placeName(wish.iso, wish.place) : cname(country))}</b><small>${wish.place ? esc(cname(country)) : t('place.whole')}</small></span>
         </button>
         <button class="mini" data-act="plan" data-id="${esc(wish.id)}">${t('dream.plan')}</button>
         <button class="mini ghost" data-act="unwish" data-id="${esc(wish.id)}" aria-label="${t('dream.remove')}">${icons.close}</button>
@@ -151,7 +151,7 @@ export function renderStory(m: StoryModel): string {
     <ul class="log">${m.recent.map(({ trip, country }) => `
       <li><button class="log-row" data-trip="${esc(trip.id)}" data-country="${esc(country.properties.i)}">
         ${flag(country)}
-        <span class="lr-main"><b>${esc(trip.place?.name ?? cname(country))}</b><small>${trip.place ? esc(cname(country)) : t('place.whole')}</small></span>
+        <span class="lr-main"><b>${esc(trip.place ? placeName(trip.iso, trip.place) : cname(country))}</b><small>${trip.place ? esc(cname(country)) : t('place.whole')}</small></span>
         <time>${fmtRange(trip.startDate, trip.endDate)}</time>
         ${trip.notes ? `<span class="lr-note">${esc(trip.notes)}</span>` : ''}
       </button></li>`).join('')}</ul>

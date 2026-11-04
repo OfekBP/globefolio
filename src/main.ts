@@ -2,7 +2,7 @@ import '@fontsource-variable/nunito'
 import '@fontsource-variable/noto-sans-arabic'
 import '@fontsource-variable/noto-sans-hebrew'
 import './styles.css'
-import { anchorOf, distanceKm, loadAltNames, loadGeo, placeKey, type City, type Country } from './data/geo'
+import { anchorOf, cityName, distanceKm, loadAltNames, loadGeo, placeKey, placeName, type City, type Country } from './data/geo'
 import type { LitCity } from './globe'
 import { allTrips, allWishes, deleteTrip, deleteWish, getHome, onChange, replaceAll, saveTrip, saveWish, setHome, type Trip, type Wish } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
@@ -83,7 +83,7 @@ async function boot() {
       confetti()
       const c = geo.byIso.get(t.iso)
       if (wasNew && c) slam(c, t.startDate)
-      else toast(L('toast.added', { place: t.place?.name ?? (c ? cname(c) : L('toast.tripFallback')) }))
+      else toast(L('toast.added', { place: t.place ? placeName(t.iso, t.place) : (c ? cname(c) : L('toast.tripFallback')) }))
     },
     remove: async id => {
       const gone = trips.find(t => t.id === id)
@@ -96,7 +96,7 @@ async function boot() {
     toggleWish: async (iso, city) => {
       const hit = wishes.find(w => w.iso === iso && (city ? !!w.place && placeKey(iso, w.place) === city.key : !w.place))
       if (hit) { await deleteWish(hit.id); toast(L('toast.wishRemoved')) }
-      else { await saveWish({ iso, place: city ? { name: city.name, lat: city.lat, lng: city.lng } : undefined }); toast(L('toast.wishAdded', { place: city?.name ?? (geo.byIso.get(iso) ? cname(geo.byIso.get(iso)!) : '') })) }
+      else { await saveWish({ iso, place: city ? { name: city.name, lat: city.lat, lng: city.lng } : undefined }); toast(L('toast.wishAdded', { place: (city ? cityName(city) : undefined) ?? (geo.byIso.get(iso) ? cname(geo.byIso.get(iso)!) : '') })) }
       buzz(12)
     },
   })
@@ -140,7 +140,7 @@ async function boot() {
         if (t.startDate && (!citySince.get(key) || t.startDate < citySince.get(key)!)) citySince.set(key, t.startDate)
         else if (!citySince.has(key)) citySince.set(key, undefined)
         row.cities.add(key)
-        target = { lat: city.lat, lng: city.lng, name: city.name }
+        target = { lat: city.lat, lng: city.lng, name: cityName(city) }
       } else {
         row.whole = true
         const a = anchorOf(country)
@@ -292,7 +292,7 @@ async function boot() {
       const c = geo.byIso.get(t.iso)
       if (!c) continue
       const a = t.place ?? anchorOf(c)
-      $('hud-name').textContent = t.place?.name ?? cname(c)
+      $('hud-name').textContent = t.place ? placeName(t.iso, t.place) : cname(c)
       $('hud-when').textContent = `${t.place ? cname(c) + ' · ' : ''}${fmtRange(t.startDate, undefined)}`
       globe.flyToPoint(a.lat, a.lng, t.place ? 0.35 : 0.9, 1700)
       await wait(1500)
@@ -551,9 +551,11 @@ async function boot() {
 
   onChange(refresh)
   onPrefs(() => view())
-  void loadAltNames(geo)
+  // city names come in their own file per language; once it arrives, redraw so the pins, lists and stamps use them
+  const names = () => loadAltNames(geo).then(() => { void refresh(); if (drawer.isOpen()) drawer.rerender() })
+  void names()
   onLocale(() => {
-    void loadAltNames(geo)
+    void names()
     setReplayLabel(replaying ? 'x' : null)
     document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { if (!replaying) b.setAttribute('aria-label', L('map.replay')) })
     view()

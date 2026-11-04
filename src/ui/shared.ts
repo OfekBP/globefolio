@@ -1,5 +1,5 @@
 import { getSession } from '../auth'
-import { flagUrl, search, type Geo, type Hit } from '../data/geo'
+import { cityName, flagUrl, placeName, search, type Geo, type Hit } from '../data/geo'
 import { listLinks } from '../friends'
 import { cname, t } from '../i18n'
 import { acceptInvite, createInviteLink, createShared, deleteShared, getMembers, getStops, inviteFriend, listShared, removeMember, removeStop, saveStop, setRole, watchTrip, type Member, type SharedTrip, type Stop } from '../shared'
@@ -90,7 +90,7 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
         <h3 class="sub-title">${t('sh.stops')}</h3>
         ${stops.length ? `<ol class="entries">${stops.map(s => {
           const c = ctx.geo.byIso.get(s.iso)
-          return `<li class="entry stop"><p class="place">${flag(ctx.geo, s.iso)} <b>${esc(s.place?.name ?? (c ? cname(c) : s.iso))}</b>${s.place && c ? `<small> ${esc(cname(c))}</small>` : ''}</p>
+          return `<li class="entry stop"><p class="place">${flag(ctx.geo, s.iso)} <b>${esc(s.place ? placeName(s.iso, s.place) : (c ? cname(c) : s.iso))}</b>${s.place && c ? `<small> ${esc(cname(c))}</small>` : ''}</p>
             ${canEdit ? `<div class="two"><div class="field"><label>${t('form.from')}</label><input type="date" data-ax="start" data-id="${s.id}" value="${s.start_date ?? ''}" /></div><div class="field"><label>${t('form.to')}</label><input type="date" data-ax="end" data-id="${s.id}" value="${s.end_date ?? ''}" /></div></div>
               <div class="field"><input data-ax="note" data-id="${s.id}" maxlength="2000" value="${esc(s.notes ?? '')}" placeholder="${t('form.notesPh')}" aria-label="${t('form.notes')}" /></div>
               <div class="row-actions"><button class="text danger" data-ax="rmstop" data-id="${s.id}">${t('entry.delete')}</button></div>`
@@ -118,7 +118,7 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
         const hits = search(ctx.geo, q.value, { limit: 6 })
         out.innerHTML = hits.map((h, i) => {
           const c = h.kind === 'city' ? ctx.geo.byIso.get(h.city.iso) : h.country
-          return `<li role="option" data-i="${i}">${c ? flag(ctx.geo, c.properties.i) : ''}<span class="r-name">${esc(h.kind === 'city' ? h.city.name : cname(h.country))}</span><span class="r-sub">${h.kind === 'city' && c ? esc([h.city.region, cname(c)].filter(Boolean).join(', ')) : t('place.whole')}</span></li>`
+          return `<li role="option" data-i="${i}">${c ? flag(ctx.geo, c.properties.i) : ''}<span class="r-name">${esc(h.kind === 'city' ? cityName(h.city) : cname(h.country))}</span><span class="r-sub">${h.kind === 'city' && c ? esc([h.city.region, cname(c)].filter(Boolean).join(', ')) : t('place.whole')}</span></li>`
         }).join('')
         out.onclick = async ev => {
           const li = (ev.target as HTMLElement).closest<HTMLElement>('li[data-i]')

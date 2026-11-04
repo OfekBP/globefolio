@@ -1,4 +1,4 @@
-import { CONTINENTS, type City, type Country } from '../data/geo'
+import { CONTINENTS, cityName, type City, type Country } from '../data/geo'
 import { cname, t } from '../i18n'
 import { count, esc } from './format'
 import { icons } from './icons'
@@ -59,7 +59,7 @@ export function renderPassport(m: PassportModel): string {
     for (let p = 0; p * 8 < m.cities.length; p++) {
       const chunk = m.cities.slice(p * 8, (p + 1) * 8)
       pages += page(t('pp.cities'), p + 1, chunk.map((c, i) => `
-        <button class="st wide" data-city="${esc(c.city.key)}" style="--rot:${tilt(i + 2)}deg;--i:${i}" aria-label="${esc(c.city.name)}">
+        <button class="st wide" data-city="${esc(c.city.key)}" style="--rot:${tilt(i + 2)}deg;--i:${i}" aria-label="${esc(cityName(c.city))}">
           ${cityStamp(c.city, c.country, c.since, `c${p}${i}`)}
         </button>`).join(''))
     }
