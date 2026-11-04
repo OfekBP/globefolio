@@ -45,20 +45,20 @@
         <button id="settings" class="icon-btn" type="button" data-i18n-label="map.settings" aria-label="Settings"><span data-icon="cog"></span></button>
       </header>
 
-      <div class="map-fabs">
-        <button id="reset" class="icon-btn" type="button" data-i18n-label="map.reset" aria-label="Reset view"><span data-icon="reset"></span></button>
-        <button class="icon-btn" data-do="replay" type="button" data-i18n-label="map.replay" aria-label="Replay my journey" hidden><span data-icon="play"></span></button>
-      </div>
-
       <div id="hud" class="hud" hidden aria-live="polite"><b id="hud-name"></b><small id="hud-when"></small></div>
 
-      <div id="timeline" class="timeline" hidden>
-        <label for="year" data-i18n="map.years">Years</label>
-        <input id="year" type="range" step="1" />
-        <output for="year"></output>
+      <div class="map-bottom">
+        <div class="map-fabs">
+          <button id="reset" class="icon-btn" type="button" data-i18n-label="map.reset" aria-label="Reset view"><span data-icon="reset"></span></button>
+          <button class="icon-btn" data-do="replay" type="button" data-i18n-label="map.replay" aria-label="Replay my journey" hidden><span data-icon="play"></span></button>
+        </div>
+        <div id="timeline" class="timeline" hidden>
+          <label for="year" data-i18n="map.years">Years</label>
+          <input id="year" type="range" step="1" />
+          <output for="year"></output>
+        </div>
+        <button id="glance" class="glance" type="button" data-i18n-label="glance.open" aria-label="Open your passport"></button>
       </div>
-
-      <button id="glance" class="glance" type="button" data-i18n-label="glance.open" aria-label="Open your passport"></button>
     </main>
 
     <section id="view-passport" class="view page" data-i18n-label="view.passport" aria-label="Passport" hidden><div id="passport" class="scroll"></div></section>
@@ -72,7 +72,7 @@
       <button class="tab" data-tab="journal" type="button"><span data-icon="journal"></span><small data-i18n="tab.journal">Journal</small></button>
     </nav>
 
-    <aside id="drawer" class="drawer" data-i18n-label="drawer.aria" aria-label="Trip details" aria-hidden="true"></aside>
+    <aside id="drawer" class="drawer" role="dialog" aria-modal="true" data-i18n-label="drawer.aria" aria-label="Trip details" aria-hidden="true"></aside>
     <div id="slam" class="slam" hidden></div>
   </div>
 

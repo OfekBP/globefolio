@@ -384,7 +384,8 @@ async function boot() {
   }
   const openFriends = () => { showTab('map'); drawer.open({ k: 'extra', render: (root, back) => renderFriends(root, {
     geo, back, close: () => drawer.close(), openAccount,
-    myIsos: () => new Set(info.keys()), overlay, overlayOf: () => friendHandle,
+    myIsos: () => new Set(trips.map(t => t.iso)), // every trip, not just what the timeline filter currently shows
+    overlay, overlayOf: () => friendHandle,
   }) }) }
   const openShared = (id?: string) => drawer.open({ k: 'extra', render: (root, back) => renderShared(root, {
     geo, back, close: () => drawer.close(), openAccount,
@@ -404,18 +405,28 @@ async function boot() {
   async function route() {
     const m = location.hash.match(/^#\/(u|join)\/([^/?#]+)/)
     if (!m) return
-    const arg = decodeURIComponent(m[2])
+    let arg = ''
+    try { arg = decodeURIComponent(m[2]) } catch { history.replaceState(null, '', location.pathname + location.search); return }
     history.replaceState(null, '', location.pathname + location.search)
     if (m[1] === 'u') {
       showTab('map')
       drawer.open({ k: 'extra', render: (root, back) => { void renderPublic(root, arg, { geo, close: () => drawer.close(), overlay }) } })
-    } else if (!getSession()) {
-      toast(L('fr.signinNote'))
-      openAccount()
     } else {
-      const id = await joinFromLink(arg)
-      if (id) { toast(L('sh.joined')); openShared(id) } else toast(L('sh.joinFail'))
+      // keep the invite until it has been used, so signing in first (or a dropped connection) does not lose it
+      try { sessionStorage.setItem(INVITE, arg) } catch { /* private mode */ }
+      if (!getSession()) { toast(L('fr.signinNote')); openAccount() } else await resumeInvite()
     }
+  }
+
+  const INVITE = 'globefolio:invite'
+  async function resumeInvite() {
+    let token: string | null = null
+    try { token = sessionStorage.getItem(INVITE) } catch { /* private mode */ }
+    if (!token || !getSession() || !getProfile()) return
+    const id = await joinFromLink(token)
+    if (id === 'offline') { toast(L('sh.joinOffline')); return }
+    try { sessionStorage.removeItem(INVITE) } catch { /* private mode */ }
+    if (id) { toast(L('sh.joined')); openShared(id) } else toast(L('sh.joinFail'))
   }
 
   const goTo = (t: HTMLElement) => {
@@ -565,14 +576,25 @@ async function boot() {
       document.querySelector('.tab[data-do=friends] .badge')?.remove()
       if (n) { const s = document.createElement('span'); s.className = 'badge'; s.textContent = fmtNum(n); document.querySelector('.tab[data-do=friends]')?.append(s) }
     }
+    // supabase-js re-announces the session when the tab regains focus; only react to a real change, so a half-typed form survives
+    let lastUid: string | undefined = '?'
+    let lastKey = ''
     onAuth(() => {
       const s = getSession()
-      unwatch(); unwatch = () => {}
-      if (s) { void startSync(s.user.id); unwatch = watchFriendships(() => void paintBadge()); void paintBadge() }
-      else { void stopSync({ wipe: false }); overlay(null); void paintBadge() }
+      if (s?.user.id !== lastUid) {
+        lastUid = s?.user.id
+        unwatch(); unwatch = () => {}
+        if (s) { void startSync(s.user.id); unwatch = watchFriendships(() => void paintBadge()); void paintBadge() }
+        else { void stopSync({ wipe: false }); overlay(null); void paintBadge() }
+      }
+      const p = getProfile()
+      const key = `${s?.user.id ?? ''}|${p?.handle ?? ''}|${p?.visibility ?? ''}|${p?.display_name ?? ''}`
+      if (key === lastKey) return
+      lastKey = key
       view()
       const m = drawer.current()
       if (m?.k === 'extra') drawer.rerender()
+      if (s && p) void resumeInvite()
     })
     await initAuth()
     addEventListener('hashchange', () => void route())

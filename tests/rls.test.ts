@@ -1,6 +1,6 @@
 // Proves the row level security rules, using an in-process Postgres (PGlite) with a stand-in for Supabase's auth schema.
 import { PGlite } from '@electric-sql/pglite'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 const A = '00000000-0000-0000-0000-00000000000a' // owner
@@ -31,7 +31,7 @@ beforeAll(async () => {
     grant usage on schema auth to anon, authenticated;
     grant execute on function auth.uid() to anon, authenticated;
   `)
-  await db.exec(readFileSync('supabase/migrations/20261103000000_init.sql', 'utf8'))
+  for (const f of readdirSync('supabase/migrations').sort()) await db.exec(readFileSync(`supabase/migrations/${f}`, 'utf8'))
   for (const [id, h, vis] of [[A, 'alice', 'friends'], [B, 'bob', 'friends'], [C, 'carol', 'public'], [D, 'dave', 'private']]) {
     await db.query('insert into auth.users (id) values ($1)', [id])
     await db.query('insert into public.profiles (id, handle, visibility) values ($1, $2, $3)', [id, h, vis])
@@ -95,6 +95,9 @@ describe('friends', () => {
     expect(rows).toHaveLength(1)
     expect(Object.keys(rows[0]).sort()).toEqual(['display_name', 'handle', 'id'])
     expect(await as(C, () => q(`select * from public.find_profiles('a')`))).toHaveLength(0)
+    // a query with nothing searchable left in it must not list everyone, and '_' is not a wildcard
+    expect(await as(C, () => q(`select * from public.find_profiles('@@')`))).toHaveLength(0)
+    expect(await as(C, () => q(`select * from public.find_profiles('a_')`))).toHaveLength(0)
   })
   it('only the addressee can accept, and a requester cannot self-accept', async () => {
     await as(C, async () => { await q(`insert into public.friendships (requester, addressee) values ($1, $2)`, [C, B]) })

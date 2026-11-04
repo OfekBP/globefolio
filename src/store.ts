@@ -198,8 +198,12 @@ export async function applyRemote(table: Table, rows: Row[]): Promise<number> {
 export async function resetSyncState() {
   const db = await dbp
   await db.clear('outbox')
-  for (const k of ['cursor:trips', 'cursor:wishes', 'userId', 'homeSynced']) await db.delete('meta', k)
+  // userId stays, so signing in as someone else later clears this device instead of uploading the previous person's rows
+  for (const k of ['cursor:trips', 'cursor:wishes', 'homeSynced']) await db.delete('meta', k)
 }
+
+/** The account was deleted: what is left on this phone becomes plain guest data again. */
+export async function forgetUser() { await (await dbp).delete('meta', 'userId') }
 
 /** Tombstones older than 30 days that the cloud already knows about can go. */
 export async function purgeTombstones() {

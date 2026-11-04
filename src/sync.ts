@@ -1,6 +1,6 @@
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { getProfile, updateProfile } from './auth'
-import { applyRemote, clearLocal, getHome, getMeta, markSynced, onChange, pendingRows, purgeTombstones, queueAll, resetSyncState, setHome, setMeta, type Table } from './store'
+import { applyRemote, clearLocal, forgetUser, getHome, getMeta, markSynced, onChange, pendingRows, purgeTombstones, queueAll, resetSyncState, setHome, setMeta, type Table } from './store'
 import { supabase } from './supabase'
 import { fromRemote, toRemote } from './syncMap'
 
@@ -19,8 +19,9 @@ export const syncState = () => state
 
 let uid: string | null = null
 let channel: RealtimeChannel | null = null
-let running = false
+let runP: Promise<void> | null = null
 let again = false
+let gen = 0
 let timer: ReturnType<typeof setTimeout> | undefined
 let retry = 0
 let wired = false
@@ -29,11 +30,15 @@ const TABLES: Table[] = ['trips', 'wishes']
 
 export async function startSync(userId: string) {
   if (!supabase || uid === userId) return
+  if (uid) await stopSync({ wipe: false }) // another account was active: let go of it first
+  uid = userId // claimed at once, so a second call for the same account cannot slip in during the awaits below
+  const g = ++gen
   const known = await getMeta('userId')
+  if (g !== gen) return
   if (known && known !== userId) await clearLocal() // a different account: never mix two people's data
   if (!known) await queueAll() // first sign-in here: the guest data on this phone joins the account
   await setMeta('userId', userId)
-  uid = userId
+  if (g !== gen) return
   if (!wired) {
     wired = true
     onChange(schedule)
@@ -46,12 +51,15 @@ export async function startSync(userId: string) {
   queue(0)
 }
 
-export async function stopSync({ wipe }: { wipe: boolean }) {
+export async function stopSync({ wipe, forget }: { wipe: boolean; forget?: boolean }) {
+  if (forget) await forgetUser()
   if (!uid && !wipe) return
-  if (channel && supabase) await supabase.removeChannel(channel)
-  channel = null
+  gen++
   uid = null
   clearTimeout(timer)
+  if (channel && supabase) await supabase.removeChannel(channel)
+  channel = null
+  if (runP) await runP.catch(() => {}) // a sync still in flight must not write into the database we are about to clear
   if (wipe) await clearLocal(); else await resetSyncState()
   set('off')
 }
@@ -59,6 +67,7 @@ export async function stopSync({ wipe }: { wipe: boolean }) {
 /** Push anything still waiting; used right before sign-out so no edit is lost. Returns false when something could not be sent. */
 export async function flush(): Promise<boolean> {
   if (!uid) return true
+  if (runP) await runP.catch(() => {})
   await run()
   return (await pendingRows()).length === 0
 }
@@ -70,11 +79,15 @@ function queue(delay: number) {
 }
 const schedule = () => queue(400)
 
-async function run() {
+function run(): Promise<void> {
+  if (runP) { again = true; return runP }
+  return (runP = work().finally(() => { runP = null }))
+}
+
+async function work() {
   if (!supabase || !uid) return
-  if (running) { again = true; return }
   if (!navigator.onLine) { set('offline'); return }
-  running = true
+  const g = gen
   set('syncing')
   try {
     await push()
@@ -90,8 +103,7 @@ async function run() {
     clearTimeout(timer)
     timer = setTimeout(run, 2000 * 2 ** retry) // back off: 4s, 8s ... about 2 minutes
   } finally {
-    running = false
-    if (again) { again = false; queue(100) }
+    if (again) { again = false; if (g === gen) queue(100) }
   }
 }
 

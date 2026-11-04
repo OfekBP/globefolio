@@ -5,6 +5,7 @@ import { cname, t } from '../i18n'
 import { acceptInvite, createInviteLink, createShared, deleteShared, getMembers, getStops, inviteFriend, listShared, removeMember, removeStop, saveStop, setRole, watchTrip, type Member, type SharedTrip, type Stop } from '../shared'
 import { count, esc, fmtRange } from './format'
 import { icons } from './icons'
+import { claim } from './sheet'
 import { toast } from './toast'
 
 export interface SharedCtx {
@@ -20,8 +21,8 @@ const head = () => `<button class="x" data-act="close" aria-label="${t('close')}
 const flag = (geo: Geo, iso: string) => { const c = geo.byIso.get(iso); return c && flagUrl(c) ? `<img class="flag" src="${flagUrl(c)}" alt="" />` : '' }
 
 /** Joins a trip from an invite link. Returns the trip id, or null when the invite is no good. */
-export async function joinFromLink(token: string): Promise<string | null> {
-  try { return await acceptInvite(token) } catch { return null }
+export async function joinFromLink(token: string): Promise<string | null | 'offline'> {
+  try { return await acceptInvite(token) } catch { return navigator.onLine ? null : 'offline' }
 }
 
 /** Plan trips together: a list of shared trips, and inside each one live stops, members and invites. */
@@ -34,11 +35,19 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
   }
   let stop = () => {}
   let current: SharedTrip | null = null
+  // closing or replacing the sheet ends the live subscription, and nothing may paint once it has gone
+  const alive = claim(root, () => stop())
 
   async function showList() {
     stop(); stop = () => {}; current = null
     let trips: SharedTrip[] = []
-    try { trips = await listShared() } catch { toast(t('acct.error')) }
+    try { trips = await listShared() } catch {
+      if (!alive()) return
+      root.innerHTML = `<div class="sheet">${head()}<h2 class="title">${t('sh.title')}</h2><p class="status error" role="alert">${t('acct.error')}</p>
+        <div class="foot-actions"><button class="solid" data-ax="list">${t('retry')}</button><button class="text" data-ax="back">${t('acct.back')}</button></div></div>`
+      return
+    }
+    if (!alive()) return
     root.innerHTML = `<div class="sheet">${head()}
       <h2 class="title">${t('sh.title')}</h2><p class="lede">${t('sh.lede')}</p>
       <form id="sh-new" class="inline-form"><input id="sh-name" maxlength="80" placeholder="${t('sh.namePh')}" aria-label="${t('sh.namePh')}" /><button class="solid" type="submit">${t('sh.create')}</button></form>
@@ -48,16 +57,20 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
       e.preventDefault()
       const v = root.querySelector<HTMLInputElement>('#sh-name')!.value.trim()
       if (!v) return
-      try { const id = await createShared(v); await showTrip(id) } catch { toast(t('acct.error')) }
+      const go = (e.submitter as HTMLButtonElement | null) ?? null
+      if (go) go.disabled = true
+      try { const id = await createShared(v); await showTrip(id) } catch { toast(t('acct.error')); if (go) go.disabled = false }
     }
   }
 
   async function showTrip(id: string) {
     stop()
     let trips: SharedTrip[] = []
-    try { trips = await listShared() } catch { /* shown below */ }
+    let listed = false
+    try { trips = await listShared(); listed = true } catch { /* handled below */ }
+    if (!alive()) return
     current = trips.find(x => x.id === id) ?? null
-    if (!current) { toast(t('sh.joinFail')); return showList() }
+    if (!current) { toast(listed ? t('sh.joinFail') : t('acct.error')); return showList() }
     const trip = current
     const canEdit = trip.role !== 'viewer'
     const mine = getSession()!.user.id
@@ -67,6 +80,7 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
     let friendsToAsk: { id: string; handle: string }[] = []
 
     const draw = () => {
+      if (!alive()) return
       // keep what someone is typing when a live update redraws the sheet
       const keep = root.querySelector<HTMLInputElement>('#sh-q')?.value ?? ''
       root.innerHTML = `<div class="sheet">${head()}
@@ -126,7 +140,11 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
       } catch { toast(t('acct.error')) }
       draw()
     }
-    stop = watchTrip(id, () => { if (root.isConnected && !(document.activeElement instanceof HTMLInputElement && root.contains(document.activeElement))) void refresh() }, h => { presence = h; if (root.isConnected) draw() })
+    // a live update never replaces the sheet while someone is typing in it; it catches up as soon as they leave the field
+    const typing = () => document.activeElement instanceof HTMLInputElement && root.contains(document.activeElement)
+    let stale = false
+    ;(root as unknown as { onfocusout: (() => void) | null }).onfocusout = () => { if (stale) { stale = false; setTimeout(() => { if (alive() && !typing()) void refresh() }, 0) } }
+    stop = watchTrip(id, () => { if (!alive()) return; if (typing()) stale = true; else void refresh() }, h => { presence = h; if (alive() && !typing()) draw() })
     await refresh()
   }
 
@@ -163,7 +181,10 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
     const id = el.dataset.id
     if (!id || !current) return
     try {
-      if (el.dataset.ax === 'role') { await setRole(current.id, id, el.value as 'editor' | 'viewer'); return }
+      if (el.dataset.ax === 'role') {
+        try { await setRole(current.id, id, el.value as 'editor' | 'viewer') } catch { toast(t('acct.error')); await showTrip(current.id) }
+        return
+      }
       const s = (await getStops(current.id)).find(x => x.id === id)
       if (!s) return
       const next = { ...s }

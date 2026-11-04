@@ -38,12 +38,14 @@ export async function findPeople(q: string): Promise<Person[]> {
   return (data ?? []) as Person[]
 }
 
-export const sendRequest = async (id: string) => fail((await need().from('friendships').insert({ requester: me(), addressee: id })).error)
+// a second tap on "add" hits the unique pair: the request already exists, which is what the person wanted
+const dup = (e: { code?: string; message: string } | null) => { if (e && e.code !== '23505') throw new Error(e.message) }
+export const sendRequest = async (id: string) => dup((await need().from('friendships').insert({ requester: me(), addressee: id })).error)
 export const acceptRequest = async (fromId: string) => fail((await need().from('friendships').update({ status: 'accepted' }).eq('requester', fromId).eq('addressee', me())).error)
 /** Declines a request, cancels one you sent, or ends a friendship. */
 export const removeLink = async (otherId: string) =>
   fail((await need().from('friendships').delete().or(`and(requester.eq.${me()},addressee.eq.${otherId}),and(requester.eq.${otherId},addressee.eq.${me()})`)).error)
-export const blockPerson = async (id: string) => fail((await need().from('blocks').insert({ blocker: me(), blocked: id })).error)
+export const blockPerson = async (id: string) => dup((await need().from('blocks').insert({ blocker: me(), blocked: id })).error)
 export const unblockPerson = async (id: string) => fail((await need().from('blocks').delete().eq('blocker', me()).eq('blocked', id)).error)
 export const reportPerson = async (id: string, reason: string) => fail((await need().from('reports').insert({ reporter: me(), reported: id, reason: reason.slice(0, 500) })).error)
 

@@ -1,4 +1,4 @@
-import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -23,7 +23,7 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
         <h2 class="title">${t('acct.title')}</h2>
         <p class="lede">${t('acct.lede')}</p>
         <div class="auth-stack">
-          ${googleButtonEnabled ? '<div class="g-btn" id="g-btn"></div>' : ''}
+          ${googleButtonEnabled ? `<div class="g-btn" id="g-btn"><div class="g-face"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>${t('acct.google')}</div><div class="g-hit" id="g-hit"></div></div>` : ''}
           <button class="solid wide" data-ax="google"${googleButtonEnabled ? ' hidden' : ''}>${t('acct.google')}</button>
           ${appleEnabled ? `<button class="solid wide dark" data-ax="apple">${t('acct.apple')}</button>` : ''}
         </div>
@@ -38,22 +38,40 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
       </div>`
     const status = root.querySelector<HTMLElement>('#a-status')!
     const say = (m: string, bad = false) => { status.textContent = m; status.classList.toggle('error', bad) }
-    const oauth = (p: 'google' | 'apple') => signInWithProvider(p).catch(() => say(t('acct.error'), true))
+    const oauth = (p: 'google' | 'apple', btn?: HTMLButtonElement | null) => {
+      if (btn) btn.disabled = true
+      return signInWithProvider(p).catch(() => { say(t('acct.error'), true); if (btn) btn.disabled = false })
+    }
     if (googleButtonEnabled) {
       const fallback = () => { root.querySelector<HTMLElement>('#g-btn')?.remove(); root.querySelector<HTMLElement>('[data-ax=google]')?.removeAttribute('hidden') }
-      renderGoogleButton(root.querySelector<HTMLElement>('#g-btn')!, () => say(t('acct.error'), true)).catch(fallback)
+      renderGoogleButton(root.querySelector<HTMLElement>('#g-hit')!, () => say(t('acct.error'), true)).catch(fallback)
     }
     root.onclick = e => {
-      const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
-      if (k === 'google') void oauth('google')
-      else if (k === 'apple') void oauth('apple')
+      const el = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-ax]')
+      const k = el?.dataset.ax
+      if (k === 'google') void oauth('google', el)
+      else if (k === 'apple') void oauth('apple', el)
       else if (k === 'back') ctx.back()
     }
     root.querySelector<HTMLFormElement>('#email-form')!.onsubmit = async e => {
       e.preventDefault()
       const email = root.querySelector<HTMLInputElement>('#a-email')!.value.trim()
       if (!/^\S+@\S+\.\S+$/.test(email)) { say(t('acct.error'), true); return }
+      const go = root.querySelector<HTMLButtonElement>('#email-form [type=submit]')
+      if (go) go.disabled = true // a second tap would only trip the email rate limit
       try { await signInWithEmail(email); say(t('acct.sent', { email })) } catch { say(t('acct.error'), true) }
+      if (go) go.disabled = false
+    }
+    return
+  }
+
+  if (!profile && profileLoadFailed()) {
+    // the profile could not be fetched (offline, say): that is not the same as having none, so do not offer to create one
+    root.innerHTML = `<div class="sheet">${head}<h2 class="title">${t('acct.title')}</h2><p class="status error" role="alert">${t('acct.error')}</p>
+      <div class="foot-actions"><button class="solid" data-ax="retry">${t('retry')}</button><button class="text" data-ax="back">${t('acct.back')}</button></div></div>`
+    root.onclick = e => {
+      const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
+      if (k === 'retry') void reloadProfile(); else if (k === 'back') ctx.back()
     }
     return
   }
@@ -80,7 +98,12 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
       status.classList.add('error')
       if (!handleOk(h)) { status.textContent = t('acct.handleBad'); return }
       if (!(await handleAvailable(h))) { status.textContent = t('acct.handleTaken'); return }
-      try { await createProfile(h, name); toast(`@${h}`) } catch { status.textContent = t('acct.handleTaken') }
+      const go = root.querySelector<HTMLButtonElement>('#handle-form [type=submit]')
+      if (go) go.disabled = true
+      try { await createProfile(h, name); toast(`@${h}`) } catch (err) {
+        status.textContent = /taken/i.test((err as Error).message) ? t('acct.handleTaken') : t('acct.error')
+        if (go) go.disabled = false
+      }
     }
     root.onclick = e => { if ((e.target as HTMLElement).closest('[data-ax=back]')) ctx.back() }
     return
@@ -119,12 +142,19 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
   const off = onSyncState(() => { if (line.isConnected) paint(); else off() })
 
   const status = root.querySelector<HTMLElement>('#a-status')!
+  let leaveAnyway = false
   const confirm = root.querySelector<HTMLInputElement>('#a-confirm')!
   const del = root.querySelector<HTMLButtonElement>('[data-ax=delete]')!
   confirm.oninput = () => { del.disabled = confirm.value.trim().toLowerCase() !== profile.handle }
   root.onchange = e => {
     const r = e.target as HTMLInputElement
-    if (r.name === 'vis') void updateProfile({ visibility: r.value as Visibility }).catch(() => { status.textContent = t('acct.error') })
+    if (r.name === 'vis') {
+      void updateProfile({ visibility: r.value as Visibility }).catch(() => {
+        status.textContent = t('acct.error')
+        // show what is really saved, not the choice that did not go through
+        root.querySelectorAll<HTMLInputElement>('input[name=vis]').forEach(i => { i.checked = i.value === getProfile()?.visibility })
+      })
+    }
   }
   root.onclick = async e => {
     const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
@@ -139,14 +169,14 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
         URL.revokeObjectURL(a.href)
       } catch { status.textContent = t('acct.error') }
     } else if (k === 'signout') {
-      if (!(await flush())) { status.textContent = t('acct.signOutFail'); return }
+      if (!(await flush()) && !leaveAnyway) { leaveAnyway = true; status.textContent = `${t('acct.signOutFail')} ${t('acct.signOutAgain')}`; return }
+      try { await signOutRemote() } catch { status.textContent = t('acct.error'); return } // only wipe this phone once the server agreed
       await stopSync({ wipe: true })
-      await signOutRemote()
       ctx.close()
     } else if (k === 'delete' && !del.disabled) {
       try {
         await deleteAccount()
-        await stopSync({ wipe: false }) // the trips on this phone stay, as a guest map
+        await stopSync({ wipe: false, forget: true }) // the trips on this phone stay, as a guest map
         await signOutRemote()
         ctx.close()
         toast(t('acct.deleted'))

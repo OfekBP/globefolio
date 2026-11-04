@@ -3,6 +3,7 @@ import type { Trip, Wish } from '../store'
 import { cname, t } from '../i18n'
 import { count, esc, fmtRange } from './format'
 import { icons } from './icons'
+import { release } from './sheet'
 
 export type Mode =
   | { k: 'search'; purpose: 'log' | 'home'; iso?: string }
@@ -46,6 +47,7 @@ export function createDrawer(d: Deps) {
   }
 
   function open(next: Mode) {
+    release(root)
     if (!mode) opener = document.activeElement as HTMLElement | null
     mode = next
     const key = next.k === 'search' || next.k === 'extra' ? '' : next.k === 'city' ? next.city.key : next.k === 'form' ? (next.city?.key ?? next.iso) : next.iso
@@ -61,9 +63,12 @@ export function createDrawer(d: Deps) {
     root.classList.add('open')
     root.setAttribute('aria-hidden', 'false')
     document.body.classList.add('drawer-open')
+    // move keyboard and screen-reader focus into the sheet (search focuses its own field)
+    if (next.k !== 'search') { const h = root.querySelector<HTMLElement>('.title'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }) } }
   }
 
   function close() {
+    release(root)
     mode = null
     focused = ''
     root.classList.remove('open')

@@ -9,19 +9,25 @@ export const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'privacy@globe
 
 let session: Session | null = null
 let profile: Profile | null = null
+let profileFailed = false
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach(fn => fn())
 
 export const onAuth = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn) } }
 export const getSession = () => session
 export const getProfile = () => profile
+/** true when the profile could not be loaded (offline, say), as opposed to not existing yet */
+export const profileLoadFailed = () => profileFailed
 export const signedIn = () => !!session
 
 async function loadProfile() {
-  if (!supabase || !session) { profile = null; return }
-  const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle()
-  profile = (data as Profile | null) ?? null
+  if (!supabase || !session) { profile = null; profileFailed = false; return }
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle()
+  profileFailed = !!error
+  if (!error) profile = (data as Profile | null) ?? null // on a failed load keep what we had rather than pretend there is no profile
 }
+
+export const reloadProfile = async () => { await loadProfile(); emit() }
 
 export async function initAuth() {
   if (!supabase) { return }
@@ -83,7 +89,7 @@ export async function renderGoogleButton(el: HTMLElement, onError: () => void) {
       if (error) onError()
     },
   })
-  gid.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'center', width: Math.min(400, Math.max(200, el.clientWidth || 280)), locale: document.documentElement.lang || 'en' })
+  gid.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'center', width: Math.min(400, Math.max(200, Math.floor((el.clientWidth || 280) / 1.25))), locale: document.documentElement.lang || 'en' })
 }
 
 export async function signInWithEmail(email: string) {
@@ -102,7 +108,7 @@ export async function handleAvailable(h: string): Promise<boolean> {
 export async function createProfile(handle: string, displayName: string) {
   if (!supabase || !session) throw new Error('Sign in first')
   const { error } = await supabase.from('profiles').insert({ id: session.user.id, handle, display_name: displayName.trim() || null })
-  if (error) throw new Error(error.code === '23505' ? 'That handle is taken' : error.message)
+  if (error) throw new Error(error.code === '23505' && /handle/i.test(`${error.message} ${error.details ?? ''}`) ? 'That handle is taken' : error.message)
   await loadProfile()
   emit()
 }
@@ -127,7 +133,7 @@ export async function deleteAccount() {
 }
 
 export async function signOutRemote() {
-  if (supabase) await supabase.auth.signOut()
+  if (supabase) fail((await supabase.auth.signOut()).error)
 }
 
 export { cloudEnabled }
