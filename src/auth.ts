@@ -46,6 +46,46 @@ export async function signInWithProvider(provider: 'google' | 'apple') {
   fail((await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: appUrl() } })).error)
 }
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+export const googleButtonEnabled = cloudEnabled && !!googleClientId
+
+interface GoogleId {
+  initialize(o: { client_id: string; nonce: string; callback: (r: { credential: string }) => void; use_fedcm_for_prompt?: boolean }): void
+  renderButton(el: HTMLElement, o: Record<string, unknown>): void
+}
+let gisLoad: Promise<void> | null = null
+const loadGis = () => gisLoad ??= new Promise<void>((ok, no) => {
+  const s = document.createElement('script')
+  s.src = 'https://accounts.google.com/gsi/client'
+  s.async = true
+  s.onload = () => ok()
+  s.onerror = () => { gisLoad = null; no(new Error('Google sign-in could not load')) }
+  document.head.append(s)
+})
+
+/**
+ * Google's own sign-in button. Unlike the redirect flow, the consent screen it opens names GlobeFolio rather than the
+ * backend address. The ID token it returns is exchanged with Supabase, bound to a one-time nonce.
+ */
+export async function renderGoogleButton(el: HTMLElement, onError: () => void) {
+  if (!supabase || !googleClientId) throw new Error('Google sign-in is not set up')
+  await loadGis()
+  const gid = (window as unknown as { google?: { accounts: { id: GoogleId } } }).google?.accounts.id
+  if (!gid) throw new Error('Google sign-in could not load')
+  const raw = crypto.randomUUID() + crypto.randomUUID()
+  const hashed = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)))].map(b => b.toString(16).padStart(2, '0')).join('')
+  gid.initialize({
+    client_id: googleClientId,
+    nonce: hashed,
+    use_fedcm_for_prompt: true,
+    callback: async r => {
+      const { error } = await supabase!.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: raw })
+      if (error) onError()
+    },
+  })
+  gid.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'center', width: Math.min(400, Math.max(200, el.clientWidth || 280)), locale: document.documentElement.lang || 'en' })
+}
+
 export async function signInWithEmail(email: string) {
   if (!supabase) throw new Error('Accounts are not set up yet')
   fail((await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: appUrl(), shouldCreateUser: true } })).error)

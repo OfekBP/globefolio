@@ -231,6 +231,8 @@ input, textarea { user-select: text; -webkit-user-select: text }
 .search-pill svg { width: 20px; height: 20px }
 .icon-btn { display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); transition: transform 0.2s var(--ease) }
 .icon-btn:active { transform: scale(0.92) }
+.icon-btn > span { display: grid; place-items: center; line-height: 0 }
+.icon-btn svg { display: block }
 .map-fabs { position: absolute; z-index: 4; inset-inline-end: 12px; bottom: 112px; display: grid; gap: 10px }
 .map-fabs .icon-btn { width: 48px; height: 48px }
 .map-fabs [hidden] { display: none }
@@ -454,8 +456,10 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .field input, .field textarea { min-width: 0; max-width: 100% }
 .field input[type='date'] { -webkit-appearance: none; appearance: none; min-height: 52px }
 
-/* headline marker: one clean highlighter stroke that follows the text across line breaks */
-.headline mark { padding: 0 0.12em; margin: 0 -0.04em; border-radius: 0.18em; background: linear-gradient(180deg, transparent 52%, var(--mark) 52%, var(--mark) 92%, transparent 92%); -webkit-box-decoration-break: clone; box-decoration-break: clone }
+/* headline marker: a highlighter stroke hugging the lower part of the letters, measured from the glyph box so it fits any script */
+.headline mark { color: inherit; padding: 0 0.1em; margin: 0 -0.04em; border-radius: 0.12em; background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 82% / 100% 0.34em; -webkit-box-decoration-break: clone; box-decoration-break: clone }
+:root[data-theme='dark'] .headline mark { background-image: linear-gradient(rgba(255, 201, 60, 0.5), rgba(255, 201, 60, 0.5)) }
+:lang(he) .headline, :lang(ar) .headline { line-height: 1.22 }
 
 
 /* ── right-to-left languages (Arabic, Hebrew) ── */
@@ -477,6 +481,8 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .lang-row[aria-current='true'] { border-color: var(--accent); background: var(--tint-coral) }
 .lang-row svg { width: 20px; height: 20px; color: var(--accent-text) }
 .auth-stack { display: grid; gap: 10px; margin-top: 22px }
+.auth-stack [hidden] { display: none !important }
+.g-btn { display: flex; justify-content: center; min-height: 44px; color-scheme: light }
 .solid.wide { width: 100% }
 .solid.dark { background: #000; color: #fff; box-shadow: none }
 .solid.danger { background: #d63f12; color: #fff; box-shadow: none }

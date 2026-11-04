@@ -306,11 +306,11 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
   // ── controls ─────────────────────────────────────────
   const controls = globe.controls()
   controls.autoRotate = !reduceMotion && prefs().spin
-  controls.autoRotateSpeed = 0.45
+  controls.autoRotateSpeed = 0.3
   controls.minDistance = 104 // close enough to read a city outline
   controls.maxDistance = 560
   controls.enableDamping = true
-  controls.dampingFactor = 0.12
+  controls.dampingFactor = 0.09
   controls.zoomSpeed = 1.1
 
   // the globe drifts for a few seconds after load, then rests so it costs nothing
@@ -323,7 +323,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const p = globe.pointOfView()
     altitude = p.altitude
     // finer drag the closer you are, otherwise a street-level swipe flings you across a continent
-    controls.rotateSpeed = Math.min(1, Math.max(0.03, altitude * 0.7))
+    controls.rotateSpeed = Math.min(0.4, Math.max(0.03, altitude * 0.22))
     clearTimeout(labelTimer)
     const closeUp = altitude < 0.9
     if (closeUp !== polysOn) setPolys(closeUp)

@@ -351,15 +351,9 @@ async function boot() {
     })
   }
 
-  const themeBtn = $('theme')
-  const paintThemeBtn = (t: Theme) => {
-    document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#101b33' : '#fff8ec')
-    themeBtn.innerHTML = t === 'dark' ? icons.sun : icons.moon
-    themeBtn.setAttribute('aria-label', t === 'dark' ? L('map.toLight') : L('map.toDark'))
-  }
-  paintThemeBtn(theme0)
-  themeBtn.onclick = () => setTheme(currentTheme() === 'dark' ? 'light' : 'dark')
-  onTheme(t => { paintThemeBtn(t); globe.setTheme(t); view() })
+  const paintTheme = (t: Theme) => document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#101b33' : '#fff8ec')
+  paintTheme(theme0)
+  onTheme(t => { paintTheme(t); globe.setTheme(t); view() })
 
   document.querySelectorAll<HTMLElement>('[data-icon]').forEach(el => { el.innerHTML = icons[el.dataset.icon as keyof typeof icons] })
   document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { b.innerHTML = icons.play })
@@ -546,7 +540,6 @@ async function boot() {
   onChange(refresh)
   onPrefs(() => view())
   onLocale(() => {
-    paintThemeBtn(currentTheme())
     setReplayLabel(replaying ? 'x' : null)
     document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { if (!replaying) b.setAttribute('aria-label', L('map.replay')) })
     view()

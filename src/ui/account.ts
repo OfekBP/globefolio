@@ -1,4 +1,4 @@
-import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, handleAvailable, handleOk, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -23,7 +23,8 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
         <h2 class="title">${t('acct.title')}</h2>
         <p class="lede">${t('acct.lede')}</p>
         <div class="auth-stack">
-          <button class="solid wide" data-ax="google">${t('acct.google')}</button>
+          ${googleButtonEnabled ? '<div class="g-btn" id="g-btn"></div>' : ''}
+          <button class="solid wide" data-ax="google"${googleButtonEnabled ? ' hidden' : ''}>${t('acct.google')}</button>
           ${appleEnabled ? `<button class="solid wide dark" data-ax="apple">${t('acct.apple')}</button>` : ''}
         </div>
         <p class="or"><span>${t('acct.or')}</span></p>
@@ -38,6 +39,10 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
     const status = root.querySelector<HTMLElement>('#a-status')!
     const say = (m: string, bad = false) => { status.textContent = m; status.classList.toggle('error', bad) }
     const oauth = (p: 'google' | 'apple') => signInWithProvider(p).catch(() => say(t('acct.error'), true))
+    if (googleButtonEnabled) {
+      const fallback = () => { root.querySelector<HTMLElement>('#g-btn')?.remove(); root.querySelector<HTMLElement>('[data-ax=google]')?.removeAttribute('hidden') }
+      renderGoogleButton(root.querySelector<HTMLElement>('#g-btn')!, () => say(t('acct.error'), true)).catch(fallback)
+    }
     root.onclick = e => {
       const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
       if (k === 'google') void oauth('google')

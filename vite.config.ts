@@ -13,6 +13,7 @@ function csp(env: Record<string, string>): Plugin {
     apply: 'build',
     // runs on the finished files, so the script hashes match exactly what the browser will read
     closeBundle() {
+      const google = env.VITE_GOOGLE_CLIENT_ID ? 'https://accounts.google.com/gsi/' : ''
       let backend = ''
       try { const u = new URL(env.VITE_SUPABASE_URL); backend = `${u.origin} ${u.origin.replace(/^http/, 'ws')}` } catch { /* no backend configured */ }
       for (const f of readdirSync('dist').filter(n => n.endsWith('.html'))) {
@@ -23,11 +24,12 @@ function csp(env: Record<string, string>): Plugin {
           .map(m => `'sha256-${createHash('sha256').update(m[1].replace(/\r\n?/g, '\n')).digest('base64')}'`)
         const policy = [
           `default-src 'self'`,
-          `script-src 'self' ${hashes.join(' ')}`.trim(),
-          `style-src 'self' 'unsafe-inline'`,
+          `script-src 'self' ${hashes.join(' ')} ${google ? 'https://accounts.google.com/gsi/client' : ''}`.trim(),
+          `style-src 'self' 'unsafe-inline' ${google ? 'https://accounts.google.com/gsi/style' : ''}`.trim(),
           `img-src 'self' data: blob:`,
           `font-src 'self' data:`,
-          `connect-src 'self' ${backend}`.trim(),
+          `connect-src 'self' ${backend} ${google}`.trim(),
+          ...(google ? [`frame-src ${google}`] : []),
           `worker-src 'self' blob:`,
           `manifest-src 'self'`,
           `object-src 'none'`,
