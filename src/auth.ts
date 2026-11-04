@@ -31,9 +31,9 @@ export const reloadProfile = async () => { await loadProfile(); emit() }
 
 export async function initAuth() {
   if (!supabase) { return }
-  const { data } = await supabase.auth.getSession()
-  session = data.session
-  await loadProfile()
+  try { session = (await supabase.auth.getSession()).data.session } catch { session = null } // offline with an expired token must not block the app
+  // wait for the profile, but only briefly: offline, the app opens anyway and the profile fills in when the network answers
+  await Promise.race([loadProfile().then(emit), new Promise(r => setTimeout(r, 2500))])
   emit()
   supabase.auth.onAuthStateChange(async (event, s) => {
     const changed = s?.user.id !== session?.user.id
@@ -85,8 +85,10 @@ export async function renderGoogleButton(el: HTMLElement, onError: () => void) {
     nonce: hashed,
     use_fedcm_for_prompt: true,
     callback: async r => {
-      const { error } = await supabase!.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: raw })
-      if (error) onError()
+      try {
+        const { error } = await supabase!.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: raw })
+        if (error) onError()
+      } catch { onError() } // offline
     },
   })
   gid.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'center', width: Math.min(400, Math.max(200, Math.floor((el.clientWidth || 280) / 1.25))), locale: document.documentElement.lang || 'en' })

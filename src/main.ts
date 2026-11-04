@@ -621,4 +621,14 @@ async function boot() {
   setTimeout(() => splash?.remove(), 500)
 }
 
-boot()
+boot().catch(err => {
+  // the splash must never hang: say what happened and offer another try
+  console.error(err)
+  const splash = document.getElementById('splash')
+  if (!splash) return
+  splash.removeAttribute('aria-hidden')
+  splash.classList.remove('gone')
+  splash.querySelector('.dots')?.remove()
+  splash.insertAdjacentHTML('beforeend', `<p class="boot-err" role="alert">${esc(L('acct.error'))}</p><button class="solid" type="button" id="boot-retry">${esc(L('retry'))}</button>`)
+  document.getElementById('boot-retry')!.onclick = () => location.reload()
+})

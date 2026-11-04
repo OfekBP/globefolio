@@ -571,3 +571,5 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 @media (max-width: 700px) {
   body:has(#drawer.open) .map-top { pointer-events: none; opacity: 0.55; transition: opacity 0.2s }
 }
+
+.splash .boot-err { font: 600 15px/1.4 var(--body); max-width: 28ch; text-align: center; color: var(--dim) }

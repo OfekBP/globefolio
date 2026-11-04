@@ -43,10 +43,22 @@ function csp(env: Record<string, string>): Plugin {
   }
 }
 
+/** Stamps the service worker's app cache with this build, so a release never leaves the previous one's files behind. */
+function swVersion(): Plugin {
+  return {
+    name: 'globefolio-sw',
+    apply: 'build',
+    closeBundle() {
+      const path = join('dist', 'sw.js')
+      writeFileSync(path, readFileSync(path, 'utf8').replace('__BUILD__', Date.now().toString(36)))
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => ({
   define: { __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync('package.json', 'utf8')).version) },
   base: './', // relative URLs, so it works at a domain root or under a sub-path like github.io/repo/
-  plugins: [csp(loadEnv(mode, process.cwd(), 'VITE_'))],
+  plugins: [csp(loadEnv(mode, process.cwd(), 'VITE_')), swVersion()],
   build: {
     rollupOptions: {
       output: { manualChunks: { supabase: ['@supabase/supabase-js'] } }, // its own file, so app updates do not re-download it
