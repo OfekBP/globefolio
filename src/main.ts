@@ -2,7 +2,7 @@ import '@fontsource-variable/nunito'
 import '@fontsource-variable/noto-sans-arabic'
 import '@fontsource-variable/noto-sans-hebrew'
 import './styles.css'
-import { anchorOf, distanceKm, loadGeo, placeKey, type City, type Country } from './data/geo'
+import { anchorOf, distanceKm, loadAltNames, loadGeo, placeKey, type City, type Country } from './data/geo'
 import type { LitCity } from './globe'
 import { allTrips, allWishes, deleteTrip, deleteWish, getHome, onChange, replaceAll, saveTrip, saveWish, setHome, type Trip, type Wish } from './store'
 import { initTheme, onTheme, setTheme, currentTheme, type Theme } from './theme'
@@ -551,7 +551,9 @@ async function boot() {
 
   onChange(refresh)
   onPrefs(() => view())
+  void loadAltNames(geo)
   onLocale(() => {
+    void loadAltNames(geo)
     setReplayLabel(replaying ? 'x' : null)
     document.querySelectorAll<HTMLElement>('[data-do=replay]').forEach(b => { if (!replaying) b.setAttribute('aria-label', L('map.replay')) })
     view()

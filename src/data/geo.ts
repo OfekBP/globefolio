@@ -1,4 +1,4 @@
-import { cname } from '../i18n'
+import { cname, getLocale } from '../i18n'
 import type { Place } from '../store'
 
 export interface Country {
@@ -17,6 +17,7 @@ export interface City {
   cap: boolean
   fold: string
   region?: string // only where another city in the country shares the name
+  alts?: string[] // the name in the reader's own script (Hebrew, Arabic, Russian, Chinese, Japanese), folded for matching
 }
 
 export interface Geo {
@@ -31,7 +32,7 @@ export interface Anchor { lat: number; lng: number; span: number }
 
 export const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania']
 
-const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const fold = (s: string) => s.normalize('NFD').replace(/[̀-֑ͯ-ׇً-ٟ]/g, '').toLowerCase()
 
 /** A city is identified by country + name + rounded latitude, so trips can find it again from the saved place. */
 export const placeKey = (iso: string, p: Pick<Place, 'name' | 'lat'>) => `${iso}|${p.name}|${p.lat.toFixed(1)}`
@@ -56,6 +57,24 @@ export async function loadGeo(): Promise<Geo> {
     else citiesByIso.set(iso, [city])
   }
   return { countries, byIso, cities, citiesByIso, cityByKey }
+}
+
+const ALT_LANGS = ['he', 'ar', 'ru', 'zh', 'ja']
+let altFor = ''
+
+/** Lets people find a city by typing it in their own language. Only the current language's file is fetched, and only for scripts we have names for. */
+export async function loadAltNames(geo: Geo, lang = getLocale()) {
+  if (altFor === lang) return
+  if (!ALT_LANGS.includes(lang)) {
+    if (altFor) for (const c of geo.cities) c.alts = undefined
+    altFor = lang
+    return
+  }
+  try {
+    const names = (await fetch(`${import.meta.env.BASE_URL}geo/names-${lang}.json`).then(r => r.json())) as Record<string, string>
+    for (const c of geo.cities) { const n = names[c.key]; c.alts = n ? n.split('|').map(fold) : undefined }
+    altFor = lang
+  } catch { /* offline and not cached yet: English names still work */ }
 }
 
 const anchors = new WeakMap<Country, Anchor>()
@@ -110,11 +129,11 @@ export function search(geo: Geo, q: string, opts: { iso?: string; citiesOnly?: b
   }
   const pool = opts.iso ? geo.citiesByIso.get(opts.iso) ?? [] : geo.cities
   for (const city of pool) {
-    if (city.fold.startsWith(needle)) cityStarts.push({ kind: 'city', city })
-    else if (within.length < 200 && city.fold.includes(needle)) within.push({ kind: 'city', city })
+    if (city.fold.startsWith(needle) || city.alts?.some(a => a.startsWith(needle))) cityStarts.push({ kind: 'city', city })
+    else if (within.length < 200 && (city.fold.includes(needle) || city.alts?.some(a => a.includes(needle)))) within.push({ kind: 'city', city })
   }
   // Big cities lead, but a matching country is never buried under a pile of small towns.
-  const exact = (h: Hit) => (h.kind === 'city' ? h.city.fold === needle : [fold(h.country.properties.n), fold(cname(h.country))].includes(needle))
+  const exact = (h: Hit) => (h.kind === 'city' ? h.city.fold === needle || !!h.city.alts?.includes(needle) : [fold(h.country.properties.n), fold(cname(h.country))].includes(needle))
   const lead = [...countryStarts, ...cityStarts].filter(exact)
   const rest = [...cityStarts.slice(0, 3), ...countryStarts, ...cityStarts.slice(3)].filter(h => !lead.includes(h))
   const starts = [...lead, ...rest]
