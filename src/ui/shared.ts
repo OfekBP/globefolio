@@ -118,7 +118,7 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
         const hits = search(ctx.geo, q.value, { limit: 6 })
         out.innerHTML = hits.map((h, i) => {
           const c = h.kind === 'city' ? ctx.geo.byIso.get(h.city.iso) : h.country
-          return `<li role="option" data-i="${i}">${c ? flag(ctx.geo, c.properties.i) : ''}<span class="r-name">${esc(h.kind === 'city' ? h.city.name : cname(h.country))}</span><span class="r-sub">${h.kind === 'city' && c ? esc(cname(c)) : t('place.whole')}</span></li>`
+          return `<li role="option" data-i="${i}">${c ? flag(ctx.geo, c.properties.i) : ''}<span class="r-name">${esc(h.kind === 'city' ? h.city.name : cname(h.country))}</span><span class="r-sub">${h.kind === 'city' && c ? esc([h.city.region, cname(c)].filter(Boolean).join(', ')) : t('place.whole')}</span></li>`
         }).join('')
         out.onclick = async ev => {
           const li = (ev.target as HTMLElement).closest<HTMLElement>('li[data-i]')

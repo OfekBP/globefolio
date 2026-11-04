@@ -191,7 +191,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     const b = document.createElement('button')
     b.type = 'button'
     b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}${d.dream ? ' pin-dream' : ''}${d.friend ? ' pin-friend' : ''}`
-    const label = d.kind === 'country' ? d.city.name : `${d.city.name}, ${country ? cname(country) : ''}`
+    const label = d.kind === 'country' ? d.city.name : `${d.city.name}, ${[d.city.region, country ? cname(country) : ''].filter(Boolean).join(', ')}`
     b.setAttribute('aria-label', d.dream && !d.friend ? t('map.dream', { name: label }) : label)
     b.innerHTML = `<span class="pin-glow"></span><span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(d.city.name)}</span>`
     b.addEventListener('click', e => {

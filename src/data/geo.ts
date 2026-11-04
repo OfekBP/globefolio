@@ -16,6 +16,7 @@ export interface City {
   pop: number // thousands
   cap: boolean
   fold: string
+  region?: string // only where another city in the country shares the name
 }
 
 export interface Geo {
@@ -38,15 +39,15 @@ export const placeKey = (iso: string, p: Pick<Place, 'name' | 'lat'>) => `${iso}
 export async function loadGeo(): Promise<Geo> {
   const [cj, rows] = await Promise.all([
     fetch(`${import.meta.env.BASE_URL}geo/countries.json`).then(r => r.json()),
-    fetch(`${import.meta.env.BASE_URL}geo/cities.json`).then(r => r.json()) as Promise<[string, string, number, number, number, number][]>,
+    fetch(`${import.meta.env.BASE_URL}geo/cities.json`).then(r => r.json()) as Promise<[string, string, number, number, number, number, string?][]>,
   ])
   const countries: Country[] = cj.features
   const byIso = new Map(countries.map(c => [c.properties.i, c]))
   const cities: City[] = []
   const citiesByIso = new Map<string, City[]>()
   const cityByKey = new Map<string, City>()
-  for (const [name, iso, lat, lng, pop, cap] of rows) {
-    const city: City = { key: placeKey(iso, { name, lat }), name, iso, lat, lng, pop, cap: !!cap, fold: fold(name) }
+  for (const [name, iso, lat, lng, pop, cap, region] of rows) {
+    const city: City = { key: placeKey(iso, { name, lat }), name, iso, lat, lng, pop, cap: !!cap, fold: fold(name), region }
     if (cityByKey.has(city.key)) continue
     cities.push(city)
     cityByKey.set(city.key, city)

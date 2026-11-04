@@ -27,6 +27,8 @@ export function countryStamp(c: Country, since: string | undefined, uid: string)
   const date = stampDate(since)
   const img = (x: number, y: number, w: number, h: number, clip = '') =>
     flag ? `<image href="${flag}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"${clip ? ` clip-path="url(#${clip})"` : ''}/>` : ''
+  /** A flag that fills a round frame edge to edge. Flags are about 3:2, so the box is 3r wide and 2r tall; browsers letterbox an SVG inside <image> when the box is square. */
+  const disc = (cx: number, cy: number, r: number, clip: string) => img(cx - 1.5 * r, cy - r, 3 * r, 2 * r, clip)
   const txt = 'font-family="Nunito Variable, Noto Sans Arabic Variable, Noto Sans Hebrew Variable, system-ui, sans-serif" font-weight="800" fill="currentColor"'
 
   let body = ''
@@ -35,14 +37,14 @@ export function countryStamp(c: Country, since: string | undefined, uid: string)
       <defs>
         <path id="${uid}t" d="M22 60A38 38 0 0 1 98 60"/>
         <path id="${uid}b" d="M15 60A45 45 0 0 0 105 60"/>
-        <clipPath id="${uid}c"><circle cx="60" cy="60" r="25"/></clipPath>
+        <clipPath id="${uid}c"><circle cx="60" cy="60" r="31"/></clipPath>
       </defs>
       <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="3.2"/>
       <circle cx="60" cy="60" r="50" fill="none" stroke="currentColor" stroke-width="1.2"/>
       <circle cx="60" cy="60" r="31" fill="none" stroke="currentColor" stroke-width="2"/>
       <text ${txt} font-size="11.5" letter-spacing="${sp(1.6)}" text-anchor="middle"><textPath href="#${uid}t" startOffset="50%">${name}</textPath></text>
       <text ${txt} font-size="9.5" letter-spacing="${sp(1.4)}" text-anchor="middle"><textPath href="#${uid}b" startOffset="50%">${date}</textPath></text>
-      ${img(35, 35, 50, 50, `${uid}c`)}
+      ${disc(60, 60, 31, `${uid}c`)}
       <circle cx="12" cy="60" r="2.2" fill="currentColor" opacity="0"/>`
   } else if (shape === 1) {
     body = `
@@ -60,7 +62,7 @@ export function countryStamp(c: Country, since: string | undefined, uid: string)
       <ellipse cx="60" cy="60" rx="57" ry="44" fill="none" stroke="currentColor" stroke-width="3.2"/>
       <ellipse cx="60" cy="60" rx="51" ry="38" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.4 3"/>
       <text ${txt} x="60" y="38" font-size="10" letter-spacing="${sp(1.2)}" text-anchor="middle">${name}</text>
-      ${img(43, 48, 34, 34, `${uid}c`)}
+      ${disc(60, 65, 17, `${uid}c`)}
       <circle cx="60" cy="65" r="17" fill="none" stroke="currentColor" stroke-width="1.6"/>
       <text ${txt} x="60" y="94" font-size="9" letter-spacing="${sp(1.2)}" text-anchor="middle">${date}</text>`
   }
@@ -76,7 +78,7 @@ export function cityStamp(city: City, country: Country | undefined, since: strin
     <defs><clipPath id="${uid}c"><circle cx="34" cy="42" r="19"/></clipPath></defs>
     <rect x="3" y="3" width="154" height="78" rx="14" fill="none" stroke="currentColor" stroke-width="3"/>
     <rect x="8.5" y="8.5" width="143" height="67" rx="10" fill="none" stroke="currentColor" stroke-width="1.1"/>
-    ${flag ? `<image href="${flag}" x="15" y="23" width="38" height="38" preserveAspectRatio="xMidYMid slice" clip-path="url(#${uid}c)"/>` : ''}
+    ${flag ? `<image href="${flag}" x="5.5" y="23" width="57" height="38" preserveAspectRatio="xMidYMid slice" clip-path="url(#${uid}c)"/>` : ''}
     <circle cx="34" cy="42" r="19" fill="none" stroke="currentColor" stroke-width="1.6"/>
     <text ${txt} x="62" y="36" font-size="14" letter-spacing="${sp(0.4)}">${esc(short(city.name.toUpperCase(), 11))}</text>
     <text ${txt} x="62" y="50" font-size="7.5" letter-spacing="${sp(1.5)}">${esc(short(upper(country ? cname(country) : ''), 20))}</text>

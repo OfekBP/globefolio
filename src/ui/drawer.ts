@@ -115,7 +115,7 @@ export function createDrawer(d: Deps) {
     const rowOf = (h: Hit, i: number) => {
       const c = h.kind === 'city' ? countryOf(h.city.iso) : h.country
       const name = h.kind === 'city' ? h.city.name : cname(h.country)
-      const sub = h.kind === 'city' ? (c ? cname(c) : '') : t('place.whole')
+      const sub = h.kind === 'city' ? [h.city.region, c ? cname(c) : ''].filter(Boolean).join(', ') : t('place.whole')
       return `<li role="option" id="opt-${i}" aria-selected="${i === active}" data-i="${i}">
         ${flag(c)}<span class="r-name">${esc(name)}</span><span class="r-sub">${esc(sub)}</span></li>`
     }
@@ -218,7 +218,7 @@ export function createDrawer(d: Deps) {
       <form class="sheet" id="trip-form" novalidate>
         ${closeBtn}
         <h2 class="title">${trip ? t('form.edit') : t('form.log')}</h2>
-        <p class="where">${flag(c)}<span>${city ? `<b>${esc(city.name)}</b>, ${esc(cname(c))}` : t('form.wholeCountry', { country: `<b>${esc(cname(c))}</b>` })}</span></p>
+        <p class="where">${flag(c)}<span>${city ? `<b>${esc(city.name)}</b>, ${esc([city.region, cname(c)].filter(Boolean).join(', '))}` : t('form.wholeCountry', { country: `<b>${esc(cname(c))}</b>` })}</span></p>
         ${city ? '' : `<p class="note-box">${t('form.noCity', { link: `<button type="button" class="link" data-act="search-in">${t('form.pickCity')}</button>` })}</p>`}
         <div class="two">
           <div class="field"><label for="f-start">${t('form.from')}</label><input id="f-start" type="date" value="${trip?.startDate ?? ''}" /></div>
