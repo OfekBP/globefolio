@@ -95,8 +95,8 @@ const en: Dict = {
   'set.import': 'Import backup',
   'set.importNote': 'Restore from a file',
   'set.language': 'Language',
-  'set.fine': 'Your trips live on this phone. Cities and borders from Natural Earth, flags by country-flag-icons.',
-  'set.fineCloud': 'Your trips live on this phone and, if you sign in, in your private account. Cities and borders from Natural Earth, flags by country-flag-icons.',
+  'set.fine': 'Your trips live on this phone. Cities and borders from Natural Earth and GeoNames, flags by country-flag-icons.',
+  'set.fineCloud': 'Your trips live on this phone and, if you sign in, in your private account. Cities and borders from Natural Earth and GeoNames, flags by country-flag-icons.',
 
   // drawer
   'search.homeTitle': 'Where do you call home?',
@@ -188,6 +188,10 @@ const en: Dict = {
   'acct.consent': 'By continuing you agree to the {terms} and the {privacy}. You must be 13 or older.',
   'acct.guest': 'Keep using it without an account',
   'acct.error': 'Something went wrong. Please try again.',
+  'wel.tag': 'Your travels, on a globe.',
+  'wel.lede': "Mark the places you've been, watch your world fill in, and keep it all in one keepsake.",
+  'wel.skip': 'Start without an account',
+  'wel.skipNote': 'Your trips stay on this phone. You can sign in any time later from Settings.',
   'retry': 'Try again',
   'acct.signOutAgain': 'Tap sign out again to leave anyway and discard them.',
   'sh.joinOffline': "You're offline. Open the invite link again once you're connected.",

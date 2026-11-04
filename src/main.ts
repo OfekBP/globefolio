@@ -10,6 +10,7 @@ import { confetti } from './ui/confetti'
 import { toast } from './ui/toast'
 import { createDrawer, type Focus } from './ui/drawer'
 import { renderAccount } from './ui/account'
+import { markWelcomed, showWelcome, welcomeSeen } from './ui/welcome'
 import { renderLanguage } from './ui/language'
 import { renderSettings } from './ui/settings'
 import { onPrefs, prefs } from './prefs'
@@ -577,10 +578,12 @@ async function boot() {
       if (n) { const s = document.createElement('span'); s.className = 'badge'; s.textContent = fmtNum(n); document.querySelector('.tab[data-do=friends]')?.append(s) }
     }
     // supabase-js re-announces the session when the tab regains focus; only react to a real change, so a half-typed form survives
+    let closeWelcome: (() => void) | null = null
     let lastUid: string | undefined = '?'
     let lastKey = ''
     onAuth(() => {
       const s = getSession()
+      if (s) { closeWelcome?.(); closeWelcome = null }
       if (s?.user.id !== lastUid) {
         lastUid = s?.user.id
         unwatch(); unwatch = () => {}
@@ -599,6 +602,11 @@ async function boot() {
     await initAuth()
     addEventListener('hashchange', () => void route())
     void route()
+    // first launch with no account and no trips yet: offer sign-up or sign-in, with a clear way to carry on without
+    if (!getSession() && !welcomeSeen() && !location.hash.slice(1)) {
+      if ((await allTrips()).length) markWelcomed()
+      else closeWelcome = showWelcome(() => { closeWelcome = null })
+    }
   }
 
   const home = homeCity()
