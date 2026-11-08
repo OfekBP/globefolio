@@ -2,6 +2,8 @@ import '@fontsource-variable/nunito'
 import '@fontsource-variable/noto-sans-arabic'
 import '@fontsource-variable/noto-sans-hebrew'
 import './styles.css'
+import { initErrorReporting } from './errors'
+initErrorReporting()
 import { anchorOf, cityName, distanceKm, loadAltNames, loadGeo, placeKey, placeName, type City, type Country } from './data/geo'
 import type { LitCity } from './globe'
 import { allTrips, allWishes, deleteTrip, deleteWish, getHome, onChange, replaceAll, saveTrip, saveWish, setHome, type Trip, type Wish } from './store'
