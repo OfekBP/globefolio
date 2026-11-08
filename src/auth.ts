@@ -4,6 +4,8 @@ import { appUrl, cloudEnabled, supabase } from './supabase'
 export type Visibility = 'private' | 'friends' | 'public'
 export interface Profile { id: string; handle: string; display_name: string | null; visibility: Visibility; home_city_key: string | null }
 
+/** Email sign-in links need a real SMTP sender on the Supabase project; the flag stays off until that is set up. */
+export const emailEnabled = import.meta.env.VITE_EMAIL_SIGNIN === '1'
 export const appleEnabled = import.meta.env.VITE_APPLE_SIGNIN === '1'
 export const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'privacy@globefolio.example'
 

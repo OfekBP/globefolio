@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_CLIENT_ID?: string
   /** '1' once the Apple developer account is set up in Supabase. */
   readonly VITE_APPLE_SIGNIN?: string
+  readonly VITE_EMAIL_SIGNIN?: string
   /** Where people write to you; shown on the legal pages and in the account screen. */
   readonly VITE_CONTACT_EMAIL?: string
 }

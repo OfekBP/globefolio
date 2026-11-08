@@ -1,4 +1,4 @@
-import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -16,11 +16,11 @@ export function signInHtml() {
   <button class="solid wide" data-ax="google"${googleButtonEnabled ? ' hidden' : ''}>${t('acct.google')}</button>
   ${appleEnabled ? `<button class="solid wide dark" data-ax="apple">${t('acct.apple')}</button>` : ''}
 </div>
-<p class="or"><span>${t('acct.or')}</span></p>
+${emailEnabled ? `<p class="or"><span>${t('acct.or')}</span></p>
 <form id="email-form" novalidate>
   <div class="field"><label for="a-email">${t('acct.email')}</label><input id="a-email" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="${t('acct.emailPh')}" /></div>
   <button class="solid wide" type="submit">${t('acct.emailBtn')}</button>
-</form>
+</form>` : ''}
 <p class="status" id="a-status" role="status"></p>
 <p class="fine">${t('acct.consent', { terms: link('./terms.html', t('acct.terms')), privacy: link('./privacy.html', t('acct.privacy')) })}</p>
   `
@@ -45,7 +45,8 @@ export function wireSignIn(root: HTMLElement, onBack: () => void) {
     else if (k === 'apple') void oauth('apple', el)
     else if (k === 'back') onBack()
   }
-  root.querySelector<HTMLFormElement>('#email-form')!.onsubmit = async e => {
+  const emailForm = root.querySelector<HTMLFormElement>('#email-form')
+  if (emailForm) emailForm.onsubmit = async e => {
     e.preventDefault()
     const email = root.querySelector<HTMLInputElement>('#a-email')!.value.trim()
     if (!/^\S+@\S+\.\S+$/.test(email)) { say(t('acct.error'), true); return }
