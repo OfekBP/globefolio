@@ -1,4 +1,4 @@
-import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -84,6 +84,12 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
       const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
       if (k === 'retry') void reloadProfile(); else if (k === 'back') ctx.back()
     }
+    return
+  }
+
+  if (!profile && profileLoading()) {
+    root.innerHTML = `<div class="sheet">${head}<h2 class="title">${t('acct.title')}</h2><p class="status" role="status">${t('acct.loading')}</p></div>`
+    root.onclick = e => { if ((e.target as HTMLElement).closest('[data-act=close]')) ctx.back() }
     return
   }
 

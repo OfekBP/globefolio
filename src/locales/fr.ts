@@ -190,6 +190,7 @@ const fr: Dict = {
   'acct.handleTitle': 'Choisissez votre identifiant',
   'acct.handleLede': 'Vos amis vous trouvent grâce à lui. Utilisez des minuscules, chiffres et tirets bas, de 3 à 20 caractères.',
   'acct.handle': 'Identifiant',
+  'acct.loading': 'Chargement de votre compte…',
   'acct.name': 'Nom affiché (facultatif)',
   'acct.handleTaken': 'Cet identifiant est déjà pris.',
   'acct.handleBad': 'Utilisez 3 à 20 minuscules, chiffres ou tirets bas.',

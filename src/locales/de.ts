@@ -190,6 +190,7 @@ const de: Dict = {
   'acct.handleTitle': 'Wähle deinen Benutzernamen',
   'acct.handleLede': 'Freunde finden dich darüber. Verwende Kleinbuchstaben, Zahlen und Unterstriche, 3 bis 20 Zeichen.',
   'acct.handle': 'Benutzername',
+  'acct.loading': 'Dein Konto wird geladen …',
   'acct.name': 'Anzeigename (optional)',
   'acct.handleTaken': 'Dieser Benutzername ist vergeben.',
   'acct.handleBad': 'Verwende 3 bis 20 Kleinbuchstaben, Zahlen oder Unterstriche.',

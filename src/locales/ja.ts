@@ -190,6 +190,7 @@ const ja: Dict = {
   'acct.handleTitle': 'ユーザー名を決めましょう',
   'acct.handleLede': '友だちはこの名前であなたを見つけます。小文字、数字、アンダースコアで3〜20文字。',
   'acct.handle': 'ユーザー名',
+  'acct.loading': 'アカウントを読み込み中…',
   'acct.name': '表示名（任意）',
   'acct.handleTaken': 'このユーザー名はすでに使われています。',
   'acct.handleBad': '小文字、数字、アンダースコアで3〜20文字にしてください。',

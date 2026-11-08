@@ -190,6 +190,7 @@ const zh: Dict = {
   'acct.handleTitle': '设置你的用户名',
   'acct.handleLede': '好友会通过它找到你。使用小写字母、数字和下划线，长度 3 到 20。',
   'acct.handle': '用户名',
+  'acct.loading': '正在加载你的账户…',
   'acct.name': '显示名称（可选）',
   'acct.handleTaken': '这个用户名已被占用。',
   'acct.handleBad': '请使用 3 到 20 个小写字母、数字或下划线。',

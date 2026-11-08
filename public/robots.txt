@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ofekbp.github.io/globefolio/sitemap.xml

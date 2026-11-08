@@ -199,6 +199,7 @@ const en: Dict = {
   'acct.handleTitle': 'Pick your handle',
   'acct.handleLede': 'Friends find you by it. Use lowercase letters, numbers and underscores, 3 to 20 long.',
   'acct.handle': 'Handle',
+  'acct.loading': 'Loading your account…',
   'acct.name': 'Display name (optional)',
   'acct.handleTaken': 'That handle is taken.',
   'acct.handleBad': 'Use 3 to 20 lowercase letters, numbers or underscores.',

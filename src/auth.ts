@@ -10,6 +10,7 @@ export const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'privacy@globe
 let session: Session | null = null
 let profile: Profile | null = null
 let profileFailed = false
+let profilePending = false
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach(fn => fn())
 
@@ -19,6 +20,8 @@ export const getProfile = () => profile
 /** true when the profile could not be loaded (offline, say), as opposed to not existing yet */
 export const profileLoadFailed = () => profileFailed
 export const signedIn = () => !!session
+/** true while the first profile fetch is still in flight, so the UI shows loading rather than offering to create a handle */
+export const profileLoading = () => profilePending
 
 async function loadProfile() {
   if (!supabase || !session) { profile = null; profileFailed = false; return }
@@ -34,7 +37,10 @@ export async function initAuth() {
   try { session = (await supabase.auth.getSession()).data.session } catch { session = null } // offline with an expired token must not block the app
   // The session is read from storage, so it is known at once and initAuth returns. The profile needs the network:
   // it is fetched in the background (the first screen never waits for it) and announced when it arrives or after 2.5 s.
-  void Promise.race([loadProfile(), new Promise(r => setTimeout(r, 2500))]).then(() => {
+  profilePending = !!session
+  const first = loadProfile().finally(() => { profilePending = false })
+  void first.then(emit)
+  void Promise.race([first, new Promise(r => setTimeout(r, 2500))]).then(() => {
     emit()
     // listening starts after the first announcement, so the initial-session event cannot announce a session with no profile yet
     supabase!.auth.onAuthStateChange(async (event, s) => {

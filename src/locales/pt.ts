@@ -190,6 +190,7 @@ const pt: Dict = {
   'acct.handleTitle': 'Escolha seu nome de usuário',
   'acct.handleLede': 'Seus amigos encontram você por ele. Use letras minúsculas, números e sublinhados, de 3 a 20 caracteres.',
   'acct.handle': 'Nome de usuário',
+  'acct.loading': 'Carregando sua conta…',
   'acct.name': 'Nome de exibição (opcional)',
   'acct.handleTaken': 'Esse nome de usuário já está em uso.',
   'acct.handleBad': 'Use de 3 a 20 letras minúsculas, números ou sublinhados.',

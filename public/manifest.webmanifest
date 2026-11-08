@@ -10,6 +10,11 @@
   "background_color": "#fff8ec",
   "theme_color": "#0e7490",
   "categories": ["travel", "lifestyle"],
+  "screenshots": [
+    { "src": "landing/map-en.webp", "sizes": "390x844", "type": "image/webp", "form_factor": "narrow", "label": "Your globe" },
+    { "src": "landing/stamps-en.webp", "sizes": "390x844", "type": "image/webp", "form_factor": "narrow", "label": "Passport stamps" },
+    { "src": "landing/journal-en.webp", "sizes": "390x844", "type": "image/webp", "form_factor": "narrow", "label": "Travel journal" }
+  ],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

@@ -190,6 +190,7 @@ const es: Dict = {
   'acct.handleTitle': 'Elige tu nombre de usuario',
   'acct.handleLede': 'Tus amigos te encontrarán con él. Usa minúsculas, números y guiones bajos, de 3 a 20 caracteres.',
   'acct.handle': 'Nombre de usuario',
+  'acct.loading': 'Cargando tu cuenta…',
   'acct.name': 'Nombre visible (opcional)',
   'acct.handleTaken': 'Ese nombre de usuario ya está en uso.',
   'acct.handleBad': 'Usa de 3 a 20 minúsculas, números o guiones bajos.',
