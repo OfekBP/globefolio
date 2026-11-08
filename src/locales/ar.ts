@@ -152,7 +152,7 @@ const ar: Dict = {
   'pp.empty': 'افتحه لتختم رحلتك الأولى',
   'pp.visas': 'التأشيرات',
   'pp.cities': 'المدن',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'سجّل رحلة وسيحط ختمك الأول هنا.',
   'pp.next': 'هدف الختم التالي: {label}، تبقّى {n}.',
   'pp.m1': 'الختم الأول',

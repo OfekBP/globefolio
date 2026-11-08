@@ -152,7 +152,7 @@ const zh: Dict = {
   'pp.empty': '打开它，盖下你的第一枚印章',
   'pp.visas': '签证',
   'pp.cities': '城市',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': '记录一次旅行，你的第一枚印章就会落在这里。',
   'pp.next': '下一个印章目标：{label}，还差 {n}。',
   'pp.m1': '第一枚印章',

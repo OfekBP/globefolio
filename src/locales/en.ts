@@ -160,7 +160,7 @@ const en: Dict = {
   'pp.empty': 'Open to stamp your first trip',
   'pp.visas': 'VISAS',
   'pp.cities': 'CITIES',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'Log a trip and your first stamp lands right here.',
   'pp.next': 'Next stamp goal: {label}, {n} to go.',
   'pp.m1': 'First stamp',

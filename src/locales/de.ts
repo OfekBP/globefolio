@@ -152,7 +152,7 @@ const de: Dict = {
   'pp.empty': 'Öffnen, um deine erste Reise zu stempeln',
   'pp.visas': 'VISA',
   'pp.cities': 'STÄDTE',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'Trage eine Reise ein, und dein erster Stempel landet genau hier.',
   'pp.next': 'Nächstes Stempelziel: {label}, noch {n}.',
   'pp.m1': 'Erster Stempel',

@@ -152,7 +152,7 @@ const ja: Dict = {
   'pp.empty': '開いて最初の旅にスタンプを押そう',
   'pp.visas': 'ビザ',
   'pp.cities': '都市',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': '旅を記録すると、最初のスタンプがここに押されます。',
   'pp.next': '次のスタンプ目標：{label}、あと{n}。',
   'pp.m1': '最初のスタンプ',

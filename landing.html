@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#fff8ec" />
+  <meta name="color-scheme" content="light dark" />
+  <title>GlobeFolio: your world, lit up</title>
+  <meta name="description" content="Track every trip on a 3D globe, collect passport stamps and keep a travel journal. Private, works offline, free." />
+  <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="GlobeFolio" />
+  <meta property="og:title" content="GlobeFolio: your world, lit up" />
+  <meta property="og:description" content="Track every trip on a 3D globe, collect passport stamps and keep a travel journal. Private, works offline, free." />
+  <meta property="og:url" content="%VITE_SITE_URL%landing.html" />
+  <meta property="og:image" content="%VITE_SITE_URL%landing/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="%VITE_SITE_URL%landing/og.png" />
+  <link rel="stylesheet" href="/src/landing/landing.css" />
+  <script>
+    // Same rule as the app: the saved theme, else the phone's, applied before first paint.
+    try {
+      var t = localStorage.getItem('triptrack:theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./landing.html" aria-label="GlobeFolio">
+      <img src="/brand/logo-mark.svg" alt="" width="40" height="40" />
+      <span>GlobeFolio</span>
+    </a>
+    <div class="top-r">
+      <label class="lang-pick">
+        <span class="sr" data-t="lang">Language</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.9 5.6 3.9 9S14.600 18.400 12 21c-2.600-2.600-3.900-5.600-3.900-9S9.400 5.600 12 3z"/></svg>
+        <select id="lang" aria-label="Language"></select>
+      </label>
+      <a class="btn small" href="./" data-t="open">Open the app</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="h1">
+      <div class="hero-copy">
+        <h1 id="h1"><span data-t="h1a">Your world,</span> <mark data-t="h1b">lit up.</mark></h1>
+        <p class="lede" data-t="lede">Drop a pin on every city you have been to and watch the globe fill with color. Passport stamps, a journal that does the counting, and nothing leaves your phone unless you say so.</p>
+        <div class="cta-row">
+          <a class="btn" href="./" data-t="cta">Open GlobeFolio</a>
+          <a class="btn ghost" href="#how" data-t="how">See how it works</a>
+        </div>
+        <ul class="chips" aria-label="GlobeFolio">
+          <li class="chip coral" data-t="chip1">58,000+ cities</li>
+          <li class="chip sun" data-t="chip2">10 languages</li>
+          <li class="chip teal" data-t="chip3">Works offline</li>
+        </ul>
+      </div>
+
+      <div class="hero-art" aria-hidden="false">
+        <svg class="globe" viewBox="4 4 54 56" aria-hidden="true">
+          <defs><clipPath id="gc"><circle cx="30" cy="36" r="22.5"/></clipPath></defs>
+          <circle cx="30" cy="36" r="22.5" class="g-sea"/>
+          <g clip-path="url(#gc)">
+            <g class="g-spin">
+              <path class="g-land" d="M12 27c4-4 10-5 13-2s0 6-2 8-1 6-4 9-8 0-9-6-1-6 2-9z"/>
+              <path class="g-land" d="M34 24c4-3 9-2 12 1s0 7-3 9-1 8-5 10-7-3-6-8 0-8 2-12z"/>
+              <circle cx="37" cy="49" r="3.400" class="g-sun"/>
+              <ellipse cx="30" cy="35" rx="9" ry="20" class="g-line"/>
+              <path d="M7 35h46" class="g-line"/>
+            </g>
+          </g>
+          <path class="g-pin" d="M45 7c-4.600 0-8.400 3.500-8.400 7.900C36.600 21.500 45 30 45 30s8.400-8.500 8.400-15.100C53.400 10.500 49.600 7 45 7z"/>
+          <circle cx="45" cy="14.600" r="3" class="g-dot"/>
+        </svg>
+        <figure class="phone back"><img data-shot="pass" data-alt="aPass" src="landing/pass-en.webp" width="390" height="844" alt="" decoding="async" /></figure>
+        <figure class="phone front"><img data-shot="map" data-alt="aMap" src="landing/map-en.webp" width="390" height="844" alt="" fetchpriority="high" /></figure>
+      </div>
+    </section>
+
+    <div id="how"></div>
+
+    <section class="row sun" aria-labelledby="s1h">
+      <div class="row-copy">
+        <h2 id="s1h" data-t="s1h">Spin the globe. Light up a city.</h2>
+        <p data-t="s1p">Search any of more than 58,000 cities, tap, and it glows. Countries fill in with the color of their continent, and the years slider replays how your world grew.</p>
+      </div>
+      <figure class="phone"><img data-shot="map" data-alt="aMap" src="landing/map-en.webp" width="390" height="844" alt="" loading="lazy" decoding="async" /></figure>
+    </section>
+
+    <section class="row coral flip" aria-labelledby="s2h">
+      <div class="row-copy">
+        <h2 id="s2h" data-t="s2h">A stamp for every country.</h2>
+        <p data-t="s2p">Every place you log earns a hand-inked passport stamp with its real flag and the day you arrived. Fill the pages, collect badges, chase the next goal.</p>
+      </div>
+      <figure class="phone"><img data-shot="stamps" data-alt="aPass" src="landing/stamps-en.webp" width="390" height="844" alt="" loading="lazy" decoding="async" /></figure>
+    </section>
+
+    <section class="row sky" aria-labelledby="s3h">
+      <div class="row-copy">
+        <h2 id="s3h" data-t="s3h">A journal that does the counting.</h2>
+        <p data-t="s3p">See how much of the world you have explored, which continents you have covered and how far you have traveled. Keep notes on every trip.</p>
+      </div>
+      <figure class="phone"><img data-shot="journal" data-alt="aJour" src="landing/journal-en.webp" width="390" height="844" alt="" loading="lazy" decoding="async" /></figure>
+    </section>
+
+    <section class="trust" aria-labelledby="fh">
+      <h2 id="fh" data-t="fh">Built to be trusted.</h2>
+      <dl>
+        <div><dt data-t="f1h">Private by default</dt><dd data-t="f1p">Your trips live on your phone. An account is optional, and nothing is shared until you choose.</dd></div>
+        <div><dt data-t="f2h">Works offline</dt><dd data-t="f2p">Add it to your home screen and log a trip from the plane.</dd></div>
+        <div><dt data-t="f3h">Free, no ads</dt><dd data-t="f3p">No ads and no trackers. Your travels are not our product.</dd></div>
+        <div><dt data-t="f4h">Friends and shared trips</dt><dd data-t="f4p">Sign in to sync your devices, compare globes with friends and plan a trip together.</dd></div>
+      </dl>
+    </section>
+
+    <section class="langs" aria-labelledby="lh">
+      <h2 id="lh" data-t="lh">Speaks your language.</h2>
+      <p data-t="lp">GlobeFolio is fully translated into ten languages, with city names in yours, and flips to right-to-left for Arabic and Hebrew.</p>
+      <ul id="lang-pills" class="pills" aria-label="Language"></ul>
+    </section>
+
+    <section class="close" aria-labelledby="ch">
+      <img src="/brand/logo-mark.svg" alt="" width="72" height="72" />
+      <h2 id="ch" data-t="ch">Where did you go last?</h2>
+      <p data-t="cp">Light up your first city in under a minute. No sign-up needed.</p>
+      <a class="btn sunny" href="./" data-t="cta">Open GlobeFolio</a>
+      <p class="hint" data-t="hint">On a phone? Open your browser menu and choose Add to Home Screen. A Google Play version is on the way.</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span class="foot-brand"><b>GlobeFolio</b> <span data-t="tag">Your world, lit up.</span></span>
+    <nav>
+      <a href="./privacy.html" data-t="privacy">Privacy</a>
+      <a href="./terms.html" data-t="terms">Terms</a>
+    </nav>
+    <small data-t="credit">City data from GeoNames (CC BY 4.0).</small>
+  </footer>
+
+  <script type="module" src="/src/landing/landing.ts"></script>
+</body>
+</html>

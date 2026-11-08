@@ -152,7 +152,7 @@ const fr: Dict = {
   'pp.empty': 'Ouvrez-le pour tamponner votre premier voyage',
   'pp.visas': 'VISAS',
   'pp.cities': 'VILLES',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'Ajoutez un voyage et votre premier tampon atterrira ici.',
   'pp.next': 'Prochain objectif : {label}, encore {n}.',
   'pp.m1': 'Premier tampon',

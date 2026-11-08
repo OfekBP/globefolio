@@ -152,7 +152,7 @@ const he: Dict = {
   'pp.empty': 'פתחו כדי להטביע את החותמת הראשונה',
   'pp.visas': 'אשרות',
   'pp.cities': 'ערים',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'הוסיפו טיול והחותמת הראשונה שלכם תנחת כאן.',
   'pp.next': 'יעד החותמות הבא: {label}, נותרו {n}.',
   'pp.m1': 'חותמת ראשונה',

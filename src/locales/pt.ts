@@ -152,7 +152,7 @@ const pt: Dict = {
   'pp.empty': 'Abra para carimbar sua primeira viagem',
   'pp.visas': 'VISTOS',
   'pp.cities': 'CIDADES',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'Registre uma viagem e seu primeiro carimbo vai parar aqui.',
   'pp.next': 'Próxima meta de carimbos: {label}, faltam {n}.',
   'pp.m1': 'Primeiro carimbo',

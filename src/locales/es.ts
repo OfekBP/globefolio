@@ -152,7 +152,7 @@ const es: Dict = {
   'pp.empty': 'Ábrelo para sellar tu primer viaje',
   'pp.visas': 'VISADOS',
   'pp.cities': 'CIUDADES',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'Registra un viaje y tu primer sello aterrizará aquí.',
   'pp.next': 'Próxima meta de sellos: {label}, te faltan {n}.',
   'pp.m1': 'Primer sello',

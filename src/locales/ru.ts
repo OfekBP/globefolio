@@ -152,7 +152,7 @@ const ru: Dict = {
   'pp.empty': 'Откройте, чтобы поставить первый штамп',
   'pp.visas': 'ВИЗЫ',
   'pp.cities': 'ГОРОДА',
-  'pp.brand': 'TRIPGLOBE',
+  'pp.brand': 'GLOBEFOLIO',
   'pp.emptyPage': 'Добавьте поездку, и первый штамп появится прямо здесь.',
   'pp.next': 'Следующая цель: {label}, осталось {n}.',
   'pp.m1': 'Первый штамп',
