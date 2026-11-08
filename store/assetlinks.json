@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.ofekbp.globefolio",
+    "sha256_cert_fingerprints": [
+      "08:38:E9:EC:FA:99:69:EC:7E:D7:2B:CC:D3:AB:3D:42:7C:EB:5C:86:96:E4:5F:99:88:C4:5F:E2:C8:08:CE:E9"
+    ]
+  }
+}]

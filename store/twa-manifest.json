@@ -18,6 +18,20 @@
   "enableNotifications": false,
   "enableSiteSettingsShortcut": false,
   "fallbackType": "customtabs",
-  "minSdkVersion": 21,
-  "signingKey": { "path": "./globefolio-upload.keystore", "alias": "upload" }
+  "minSdkVersion": 24,
+  "signingKey": {
+    "path": "./globefolio-upload.keystore",
+    "alias": "upload"
+  },
+  "splashScreenFadeOutDuration": 300,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
 }
