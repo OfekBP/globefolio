@@ -29,6 +29,12 @@ import { countryStamp } from './ui/stamps'
 import { createTimeline } from './ui/timeline'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
+
+// Everything the first screen needs starts downloading right now, in parallel, rather than one step after another:
+// the 3D engine, the country shapes and (in the background) the city list. index.html has already started the data requests.
+const globeCode = import('./globe')
+const geoData = loadGeo()
+globeCode.catch(() => {}); geoData.catch(() => {})
 const WORLD_TOTAL = 195
 const CONTINENT_VIEW: Record<string, [number, number, number]> = {
   Africa: [3, 20, 1.5], Asia: [35, 90, 1.7], Europe: [52, 15, 1], 'North America': [45, -100, 1.6], 'South America': [-15, -60, 1.5], Oceania: [-25, 140, 1.3],
@@ -36,9 +42,7 @@ const CONTINENT_VIEW: Record<string, [number, number, number]> = {
 
 async function boot() {
   const theme0 = initTheme()
-  await initLocale()
-  // the 3D engine is the heavy part, so it downloads alongside the data while the splash shows
-  const [geo, { createGlobe }] = await Promise.all([loadGeo(), import('./globe')])
+  const [, geo, { createGlobe }] = await Promise.all([initLocale(), geoData, globeCode])
   let trips: Trip[] = []
   let wishes: Wish[] = []
   let homeKey: string | undefined

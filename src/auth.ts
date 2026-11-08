@@ -32,16 +32,19 @@ export const reloadProfile = async () => { await loadProfile(); emit() }
 export async function initAuth() {
   if (!supabase) { return }
   try { session = (await supabase.auth.getSession()).data.session } catch { session = null } // offline with an expired token must not block the app
-  // wait for the profile, but only briefly: offline, the app opens anyway and the profile fills in when the network answers
-  await Promise.race([loadProfile().then(emit), new Promise(r => setTimeout(r, 2500))])
-  emit()
-  supabase.auth.onAuthStateChange(async (event, s) => {
-    const changed = s?.user.id !== session?.user.id
-    session = s
-    if (event === 'SIGNED_OUT') profile = null
-    // the callback must not await Supabase calls itself, or it can deadlock the client
-    if (changed || event === 'USER_UPDATED') setTimeout(async () => { await loadProfile(); emit() }, 0)
-    else emit()
+  // The session is read from storage, so it is known at once and initAuth returns. The profile needs the network:
+  // it is fetched in the background (the first screen never waits for it) and announced when it arrives or after 2.5 s.
+  void Promise.race([loadProfile(), new Promise(r => setTimeout(r, 2500))]).then(() => {
+    emit()
+    // listening starts after the first announcement, so the initial-session event cannot announce a session with no profile yet
+    supabase!.auth.onAuthStateChange(async (event, s) => {
+      const changed = s?.user.id !== session?.user.id
+      session = s
+      if (event === 'SIGNED_OUT') profile = null
+      // the callback must not await Supabase calls itself, or it can deadlock the client
+      if (changed || event === 'USER_UPDATED') setTimeout(async () => { await loadProfile(); emit() }, 0)
+      else emit()
+    })
   })
 }
 

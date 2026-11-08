@@ -1,22 +1,37 @@
-// Offline cache for the app itself: scripts, map data and flags are served from cache first and refreshed in the background; pages go to the network first.
-// Only same-origin files are cached. Anything else (the cloud API, sign-in, other sites) goes straight to the network and is never stored.
-// Two caches: the app's code is named after the build, so every release drops the old files; map data, flags and brand files rarely change and stay.
+// Offline cache for the app itself. Only same-origin files are cached; anything else (the cloud API, sign-in, other sites) goes straight to the network and is never stored.
+// - The build lists every code file in PRECACHE, and they are all stored when the service worker installs, so the app opens instantly and works offline from the second visit on.
+// - Pages are served from the cache at once and refreshed in the background (the next open shows a new release); files named by a content hash never change, so they are not re-fetched.
+// - Two caches: the app's code is named after the build, so every release drops the old files; map data, flags and brand files rarely change and stay.
 const APP = 'globefolio-app-__BUILD__'
 const DATA = 'globefolio-data-v1'
+const PRECACHE = __PRECACHE__
+const DATA_PRECACHE = ['geo/countries.json', 'geo/cities.json']
 const STABLE = /\/(geo|flags|brand)\//
-self.addEventListener('install', () => { self.skipWaiting() })
+const HASHED = /\/assets\/.+-[\w-]{8}\.\w+$/
+
+self.addEventListener('install', e => {
+  e.waitUntil((async () => {
+    const quiet = (c, urls) => Promise.allSettled(urls.map(u => c.add(new Request(u, { cache: 'reload' }))))
+    await quiet(await caches.open(APP), PRECACHE)
+    await quiet(await caches.open(DATA), DATA_PRECACHE)
+    await self.skipWaiting()
+  })())
+})
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== APP && k !== DATA).map(k => caches.delete(k)))).then(() => self.clients.claim())))
+
 self.addEventListener('fetch', e => {
   const r = e.request
   if (r.method !== 'GET') return
   const url = new URL(r.url)
   if (url.origin !== self.location.origin) return
   e.respondWith(caches.open(STABLE.test(url.pathname) ? DATA : APP).then(async c => {
-    const hit = await c.match(r)
-    const store = res => { if (res.ok && res.status === 200) c.put(r, res.clone()).catch(() => {}); return res }
-    // pages are fetched fresh first, so a new release shows on the next open; the cache is the offline fallback
-    if (r.mode === 'navigate') return fetch(r).then(store).catch(() => hit ?? Response.error())
-    const net = fetch(r).then(store).catch(() => hit ?? Response.error())
-    return hit || net
+    const nav = r.mode === 'navigate'
+    const hit = await c.match(r, { ignoreSearch: nav })
+    const net = () => fetch(r).then(res => { if (res.ok && res.status === 200) c.put(nav ? new Request(r.url.split(/[?#]/)[0]) : r, res.clone()).catch(() => {}); return res })
+    if (hit) {
+      if (!HASHED.test(url.pathname)) e.waitUntil(net().catch(() => {})) // refresh quietly for next time
+      return hit
+    }
+    return net().catch(() => Response.error())
   }))
 })

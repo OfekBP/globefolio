@@ -43,14 +43,34 @@ function csp(env: Record<string, string>): Plugin {
   }
 }
 
-/** Stamps the service worker's app cache with this build, so a release never leaves the previous one's files behind. */
+/**
+ * After the build: stamps the service worker with this build and the list of every file it should keep for offline use,
+ * and adds early-download hints to the main page for the 3D engine and the main font (both would otherwise be found late).
+ */
 function swVersion(): Plugin {
   return {
     name: 'globefolio-sw',
     apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle || !/index\.html$/.test(ctx.filename)) return html
+        const files = Object.keys(ctx.bundle)
+        const globe = files.find(f => /^assets\/globe-.*\.js$/.test(f))
+        const font = files.find(f => /^assets\/nunito-latin-wght-normal-.*\.woff2$/.test(f))
+        const tags = [
+          globe && `<link rel="modulepreload" crossorigin href="./${globe}" />`,
+          font && `<link rel="preload" as="font" type="font/woff2" crossorigin href="./${font}" />`,
+        ].filter(Boolean).join('\n  ')
+        return tags ? html.replace('</head>', `  ${tags}\n</head>`) : html
+      },
+    },
     closeBundle() {
       const path = join('dist', 'sw.js')
-      writeFileSync(path, readFileSync(path, 'utf8').replace('__BUILD__', Date.now().toString(36)))
+      // code and the Latin/Cyrillic fonts every visitor needs; the big Arabic, Hebrew and CJK data files load only when chosen
+      const assets = readdirSync(join('dist', 'assets')).filter(f => /\.(js|css)$/.test(f) || /^nunito-(latin|cyrillic)(-ext)?-wght/.test(f))
+      const list = ['./', 'manifest.webmanifest', 'brand/logo-mark.svg', ...assets.map(f => `assets/${f}`)]
+      writeFileSync(path, readFileSync(path, 'utf8').replace('__BUILD__', Date.now().toString(36)).replace('__PRECACHE__', JSON.stringify(list)))
     },
   }
 }

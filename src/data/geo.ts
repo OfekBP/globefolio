@@ -27,6 +27,8 @@ export interface Geo {
   cities: City[]
   citiesByIso: Map<string, City[]>
   cityByKey: Map<string, City>
+  /** The 58,000 cities arrive after the globe is up (they are the biggest download); until then the lists above fill up from the biggest city down. */
+  citiesReady: Promise<void>
 }
 
 export interface Anchor { lat: number; lng: number; span: number }
@@ -38,26 +40,41 @@ const fold = (s: string) => s.normalize('NFD').replace(/[̀-֑ͯ-ׇً-ٟ]/g, '')
 /** A city is identified by country + name + rounded latitude, so trips can find it again from the saved place. */
 export const placeKey = (iso: string, p: Pick<Place, 'name' | 'lat'>) => `${iso}|${p.name}|${p.lat.toFixed(1)}`
 
+/** index.html starts these two downloads before any script has loaded; use that head start when it is there. */
+type Early = Partial<Record<'countries' | 'cities', Promise<Response>>>
+function geoJson<T>(name: 'countries' | 'cities'): Promise<T> {
+  const fresh = () => fetch(`${import.meta.env.BASE_URL}geo/${name}.json`).then(r => r.json() as Promise<T>)
+  const early = (window as unknown as { __early?: Early }).__early?.[name]
+  return early ? early.then(r => { if (!r.ok) throw new Error(name); return r.json() as Promise<T> }).catch(fresh) : fresh()
+}
+
+type Row = [string, string, number, number, number, number, string?]
+const tick = () => new Promise<void>(r => setTimeout(r))
+
 export async function loadGeo(): Promise<Geo> {
-  const [cj, rows] = await Promise.all([
-    fetch(`${import.meta.env.BASE_URL}geo/countries.json`).then(r => r.json()),
-    fetch(`${import.meta.env.BASE_URL}geo/cities.json`).then(r => r.json()) as Promise<[string, string, number, number, number, number, string?][]>,
-  ])
-  const countries: Country[] = cj.features
-  const byIso = new Map(countries.map(c => [c.properties.i, c]))
   const cities: City[] = []
   const citiesByIso = new Map<string, City[]>()
   const cityByKey = new Map<string, City>()
-  for (const [name, iso, lat, lng, pop, cap, region] of rows) {
-    const city: City = { key: placeKey(iso, { name, lat }), name, iso, lat, lng, pop, cap: !!cap, fold: fold(name), region }
-    if (cityByKey.has(city.key)) continue
-    cities.push(city)
-    cityByKey.set(city.key, city)
-    const list = citiesByIso.get(iso)
-    if (list) list.push(city)
-    else citiesByIso.set(iso, [city])
-  }
-  return { countries, byIso, cities, citiesByIso, cityByKey }
+  const cj = await geoJson<{ features: Country[] }>('countries')
+  const countries: Country[] = cj.features
+  const byIso = new Map(countries.map(c => [c.properties.i, c]))
+  const geo: Geo = { countries, byIso, cities, citiesByIso, cityByKey, citiesReady: Promise.resolve() }
+  // the cities are turned into objects in slices, so the globe keeps animating while they arrive
+  geo.citiesReady = geoJson<Row[]>('cities').then(async rows => {
+    for (let i = 0; i < rows.length; i++) {
+      const [name, iso, lat, lng, pop, cap, region] = rows[i]
+      const city: City = { key: placeKey(iso, { name, lat }), name, iso, lat, lng, pop, cap: !!cap, fold: fold(name), region }
+      if (!cityByKey.has(city.key)) {
+        cities.push(city)
+        cityByKey.set(city.key, city)
+        const list = citiesByIso.get(iso)
+        if (list) list.push(city)
+        else citiesByIso.set(iso, [city])
+      }
+      if (i % 6000 === 5999) await tick()
+    }
+  }).catch(err => { console.warn('cities did not load', err) })
+  return geo
 }
 
 const ALT_LANGS = ['es', 'fr', 'de', 'pt', 'ru', 'ar', 'he', 'zh', 'ja']
@@ -72,11 +89,15 @@ export const placeName = (iso: string, p: Pick<Place, 'name' | 'lat'>) => localB
 /** Fetches this language's city names (one small file per language, only the one in use). The first name is shown; all of them are searchable. */
 export async function loadAltNames(geo: Geo, lang = getLocale()) {
   if (altFor === lang) return
+  // the file downloads while the city list is still being built; the names are applied once both are in
+  const file = ALT_LANGS.includes(lang) ? fetch(`${import.meta.env.BASE_URL}geo/names-${lang}.json`).then(r => r.json() as Promise<Record<string, string>>) : null
+  file?.catch(() => {})
+  await geo.citiesReady
   localByKey.clear()
   for (const c of geo.cities) { c.local = undefined; c.alts = undefined }
-  if (!ALT_LANGS.includes(lang)) { altFor = lang; return }
+  if (!file) { altFor = lang; return }
   try {
-    const names = (await fetch(`${import.meta.env.BASE_URL}geo/names-${lang}.json`).then(r => r.json())) as Record<string, string>
+    const names = await file
     for (const [key, n] of Object.entries(names)) {
       const parts = n.split('|')
       localByKey.set(key, parts[0])

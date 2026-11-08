@@ -28,6 +28,13 @@
       document.documentElement.dataset.theme = t;
     } catch (e) { document.documentElement.dataset.theme = 'light'; }
   </script>
+  <script>
+    // Start the two big map downloads now, before any of the app's code has arrived; the app picks them up from here.
+    try {
+      var early = window.__early = { countries: fetch('geo/countries.json'), cities: fetch('geo/cities.json') };
+      early.countries.catch(function () {}); early.cities.catch(function () {});
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <noscript><p style="padding:24px;font-family:system-ui">GlobeFolio needs JavaScript to draw your globe.</p></noscript>
@@ -35,6 +42,8 @@
     <filter id="ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter>
   </svg>
   <div id="splash" class="splash" role="status" aria-label="GlobeFolio">
+    <div class="sk-top" aria-hidden="true"><i class="sk sk-pill"></i><i class="sk sk-dot"></i></div>
+    <div class="sk-bottom" aria-hidden="true"><i class="sk sk-card"></i><div class="sk-tabs"><i class="sk"></i><i class="sk"></i><i class="sk sk-add"></i><i class="sk"></i><i class="sk"></i></div></div>
     <svg class="splash-globe" viewBox="0 0 160 160" aria-hidden="true">
       <defs>
         <clipPath id="sg-clip"><circle cx="80" cy="84" r="54"/></clipPath>
