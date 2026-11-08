@@ -15,18 +15,17 @@ Everything that can be prepared without the developer account is in this folder:
 - Play Console developer account as an organization (D&B number). Organizations are normally exempt from the "12 testers for 14 days" rule that personal accounts face; confirm in the console once it opens.
 - Identity and contact verification, then the one-time registration fee ($25), which is the only unavoidable cost.
 
-## 2. Build the Android app (Trusted Web Activity)
-The app is a PWA, so Play gets a thin wrapper that opens it full screen.
-1. JDK 17 and the Android SDK are already on this machine.
-2. `npx @bubblewrap/cli init --manifest https://ofekbp.github.io/globefolio/manifest.webmanifest` (it reads `twa-manifest.json` values; package id `io.github.ofekbp.globefolio`).
-3. Create the upload keystore when asked. **You hold it**, back it up (password manager plus a second copy), never commit it. Losing it means a painful key reset.
-4. `npx @bubblewrap/cli build` produces `app-release-bundle.aab` (upload this) and an apk for a test install.
-5. Use "Play App Signing" (default) so Google keeps the final signing key.
+## 2. The Android app (built)
+The web app is wrapped as a Trusted Web Activity with Bubblewrap. Built 8 Nov 2026, version 1, package `io.github.ofekbp.globefolio`, Android 7+ (API 24), target API 36.
+- Files (git-ignored, on this PC): `android/release/GlobeFolio.aab` (upload to Play) and `android/release/GlobeFolio-test.apk` (install on a phone to try it).
+- Upload key: `_secrets/globefolio-upload.keystore`, password in `_secrets/keystore-password.txt` (folder `C:\Users\User\Documents\Wayfarer\_secrets`). **Back both up now** (password manager plus a second copy); never commit or share them. Play App Signing keeps the real release key; if the upload key is ever lost, Play support can reset it.
+- New store version: raise `appVersion` and `appVersionCode` in `android/twa-manifest.json`, run `npx @bubblewrap/cli update --skipVersionUpgrade` and `gradlew bundleRelease` in `android/`, then sign the bundle with `jarsigner` using the upload key. The web content itself updates instantly for everyone without a new store version.
+- `twa-manifest.json` in this folder is the config source of truth (the copy in `android/` points at the local keystore path).
 
 ## 3. Digital Asset Links (removes the browser bar)
 A TWA only hides the address bar if the site proves it belongs to the app, via `https://<host>/.well-known/assetlinks.json`.
 The site lives at `ofekbp.github.io/globefolio/`, but that file must be at the **root** of `ofekbp.github.io`. Two options:
-- **Free:** create a GitHub repo named `OfekBP.github.io` and put `.well-known/assetlinks.json` in it, with the SHA-256 fingerprint from Play Console (Setup, App signing, App signing key certificate).
+- **Free:** create a GitHub repo named `OfekBP.github.io`, enable Pages on it, and put `store/assetlinks.json` at `.well-known/assetlinks.json` in it. It holds the upload-key fingerprint (good for the test APK). After the first upload, Play Console shows the **App signing key** fingerprint (Setup, App signing): add it to the same file, because real users' installs are signed with that key.
 - **Cleaner:** buy a domain, point it at the site, and change `host` and `startUrl` in `twa-manifest.json`. The landing page could then become the home page.
 Without it the app still works but shows a small browser bar at the top.
 
@@ -42,7 +41,9 @@ Internal testing first (instant, up to 100 testers), then production. Review usu
 
 ## Before you submit
 - [ ] Real phone test of sign-in, sync, friends, shared trips
-- [ ] Operator name and postal address filled in on the privacy page
+- [x] Operator name (Ofek Ben Porat) filled in
+- [ ] Postal address and registration number on the privacy page (the bracketed line)
+- [ ] Back up `_secrets/`
 - [ ] Legal pages reviewed by someone qualified
 - [ ] Magic-link email sender (SMTP) set up
 - [ ] Native-speaker pass on the translations
