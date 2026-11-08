@@ -1,0 +1,23 @@
+{
+  "packageId": "io.github.ofekbp.globefolio",
+  "host": "ofekbp.github.io",
+  "name": "GlobeFolio",
+  "launcherName": "GlobeFolio",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#0E7490",
+  "navigationColor": "#0E7490",
+  "backgroundColor": "#FFF8EC",
+  "startUrl": "/globefolio/",
+  "iconUrl": "https://ofekbp.github.io/globefolio/icons/icon-512.png",
+  "maskableIconUrl": "https://ofekbp.github.io/globefolio/icons/maskable-512.png",
+  "webManifestUrl": "https://ofekbp.github.io/globefolio/manifest.webmanifest",
+  "fullScopeUrl": "https://ofekbp.github.io/globefolio/",
+  "appVersion": "1",
+  "appVersionCode": 1,
+  "enableNotifications": false,
+  "enableSiteSettingsShortcut": false,
+  "fallbackType": "customtabs",
+  "minSdkVersion": 21,
+  "signingKey": { "path": "./globefolio-upload.keystore", "alias": "upload" }
+}

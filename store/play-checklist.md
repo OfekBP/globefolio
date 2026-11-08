@@ -1,0 +1,48 @@
+# Publishing GlobeFolio on Google Play
+
+Everything that can be prepared without the developer account is in this folder:
+
+| File | What it is |
+|---|---|
+| `listing.md` | Title, short and full description in 10 languages |
+| `graphics/<lang>/` | Per language: 4 phone screenshots (1080x1920) and the feature graphic (1024x500). Regenerate with `node store/render-graphics.mjs` after re-shooting the app. Git-ignored. |
+| `data-safety.md` | Draft answers for Data safety, content rating, target audience |
+| `twa-manifest.json` | Bubblewrap config that wraps the web app as an Android app |
+| `../public/icons/icon-512.png` | The 512x512 store icon |
+| `../delete-account.html` | The public account-deletion page Play requires (live at /globefolio/delete-account.html) |
+
+## 1. Account (you, in progress)
+- Play Console developer account as an organization (D&B number). Organizations are normally exempt from the "12 testers for 14 days" rule that personal accounts face; confirm in the console once it opens.
+- Identity and contact verification, then the one-time registration fee ($25), which is the only unavoidable cost.
+
+## 2. Build the Android app (Trusted Web Activity)
+The app is a PWA, so Play gets a thin wrapper that opens it full screen.
+1. JDK 17 and the Android SDK are already on this machine.
+2. `npx @bubblewrap/cli init --manifest https://ofekbp.github.io/globefolio/manifest.webmanifest` (it reads `twa-manifest.json` values; package id `io.github.ofekbp.globefolio`).
+3. Create the upload keystore when asked. **You hold it**, back it up (password manager plus a second copy), never commit it. Losing it means a painful key reset.
+4. `npx @bubblewrap/cli build` produces `app-release-bundle.aab` (upload this) and an apk for a test install.
+5. Use "Play App Signing" (default) so Google keeps the final signing key.
+
+## 3. Digital Asset Links (removes the browser bar)
+A TWA only hides the address bar if the site proves it belongs to the app, via `https://<host>/.well-known/assetlinks.json`.
+The site lives at `ofekbp.github.io/globefolio/`, but that file must be at the **root** of `ofekbp.github.io`. Two options:
+- **Free:** create a GitHub repo named `OfekBP.github.io` and put `.well-known/assetlinks.json` in it, with the SHA-256 fingerprint from Play Console (Setup, App signing, App signing key certificate).
+- **Cleaner:** buy a domain, point it at the site, and change `host` and `startUrl` in `twa-manifest.json`. The landing page could then become the home page.
+Without it the app still works but shows a small browser bar at the top.
+
+## 4. Store listing
+Main store listing: copy from `listing.md`, upload the 512 icon, `graphics/en/feature-graphic.png` and `graphics/en/phone-*.png`. For each extra language, add a translation and upload that language's folder.
+Privacy policy URL: https://ofekbp.github.io/globefolio/privacy.html (replace the placeholder operator name and address in it first).
+
+## 5. App content
+Follow `data-safety.md`. Account deletion URL: https://ofekbp.github.io/globefolio/delete-account.html
+
+## 6. Release
+Internal testing first (instant, up to 100 testers), then production. Review usually takes a few days for a new account.
+
+## Before you submit
+- [ ] Real phone test of sign-in, sync, friends, shared trips
+- [ ] Operator name and postal address filled in on the privacy page
+- [ ] Legal pages reviewed by someone qualified
+- [ ] Magic-link email sender (SMTP) set up
+- [ ] Native-speaker pass on the translations

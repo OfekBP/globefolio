@@ -9,3 +9,5 @@ dist
 .env.local
 .env*.local
 supabase/.temp
+
+store/graphics/

@@ -67,6 +67,7 @@ export default defineConfig(({ mode }) => ({
         privacy: resolve(__dirname, 'privacy.html'),
         terms: resolve(__dirname, 'terms.html'),
         landing: resolve(__dirname, 'landing.html'),
+        deleteAccount: resolve(__dirname, 'delete-account.html'),
       },
     },
   },
