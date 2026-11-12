@@ -170,5 +170,4 @@ h2 { margin: 0 0 16px; font-weight: 900; font-size: clamp(1.9rem, 5vw + 0.4rem, 
 .row.teal { background: var(--tint-teal) }
 .chars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 2vw, 16px); justify-self: stretch; max-width: 460px; width: 100% }
 .chars li { aspect-ratio: 1; border-radius: 50%; overflow: hidden; box-shadow: 0 10px 22px -12px rgba(31, 42, 68, 0.45) }
-.chars li:nth-child(3n + 2) { transform: translateY(10px) }
 .chars svg { width: 100%; height: 100%; display: block }
