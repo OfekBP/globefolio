@@ -1,4 +1,4 @@
-import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithPassword, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -21,6 +21,12 @@ ${emailEnabled ? `<p class="or"><span>${t('acct.or')}</span></p>
   <div class="field"><label for="a-email">${t('acct.email')}</label><input id="a-email" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="${t('acct.emailPh')}" /></div>
   <button class="solid wide" type="submit">${t('acct.emailBtn')}</button>
 </form>` : ''}
+<details class="reviewer"><summary>App reviewer sign-in</summary>
+<form id="pw-form" novalidate>
+  <div class="field"><label for="a-pwemail">Email</label><input id="a-pwemail" type="email" autocomplete="username" dir="ltr" /></div>
+  <div class="field"><label for="a-pw">Password</label><input id="a-pw" type="password" autocomplete="current-password" dir="ltr" /></div>
+  <button class="solid wide" type="submit">Sign in</button>
+</form></details>
 <p class="status" id="a-status" role="status"></p>
 <p class="fine">${t('acct.consent', { terms: link('./terms.html', t('acct.terms')), privacy: link('./privacy.html', t('acct.privacy')) })}</p>
   `
@@ -44,6 +50,14 @@ export function wireSignIn(root: HTMLElement, onBack: () => void) {
     if (k === 'google') void oauth('google', el)
     else if (k === 'apple') void oauth('apple', el)
     else if (k === 'back') onBack()
+  }
+  const pwForm = root.querySelector<HTMLFormElement>('#pw-form')
+  if (pwForm) pwForm.onsubmit = async e => {
+    e.preventDefault()
+    const email = root.querySelector<HTMLInputElement>('#a-pwemail')!.value.trim()
+    const pw = root.querySelector<HTMLInputElement>('#a-pw')!.value
+    if (!email || !pw) { say(t('acct.error'), true); return }
+    try { await signInWithPassword(email, pw) } catch { say(t('acct.error'), true) }
   }
   const emailForm = root.querySelector<HTMLFormElement>('#email-form')
   if (emailForm) emailForm.onsubmit = async e => {
