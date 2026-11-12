@@ -180,7 +180,7 @@ describe('shared trips', () => {
 
 describe('friend warmth', () => {
   it('only accepted friends can cheer, and only the two people see the cheer', async () => {
-    await as(B, () => q(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'takeme')`, [B, A]))
+    await as(B, () => q(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FRA', 'takeme')`, [B, A]))
     expect(await as(C, () => fails(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'wow')`, [C, A]))).toBe(true)
     expect(await as(D, () => fails(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'wow')`, [D, A]))).toBe(true)
     expect(await as(B, () => fails(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'nope')`, [B, A]))).toBe(true)

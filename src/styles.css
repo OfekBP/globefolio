@@ -682,8 +682,12 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 /* friend warmth: cheers, lately, welcome steps */
 button.flagchip { cursor: pointer; font: inherit; color: inherit }
 button.flagchip.on { border-color: var(--accent); background: var(--surface) }
-.cheer-badge { margin-inline-start: 2px; font-size: 14px; line-height: 1 }
-.cheer-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+button.flagchip { position: relative }
+.cheer-badge { position: absolute; top: -8px; inset-inline-end: -4px; font-size: 13px; line-height: 1; padding: 3px 4px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow) }
+.cheer-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px }
+.cheer-opt { min-height: 44px; padding: 0 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--surface-2); color: var(--ink); font: 800 14px/1 var(--body); white-space: nowrap; cursor: pointer }
+.cheer-opt.on { border-color: var(--accent); background: var(--surface) }
+.cheer-opt:active { transform: scale(0.95) }
 .cheer-list, .lately { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px }
 .cheer-row, .lately li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--surface-2); font-size: 14px; line-height: 1.35 }
 .cheer-row.new { background: var(--tint-sun); box-shadow: inset 3px 0 0 var(--mark) }
@@ -691,3 +695,7 @@ button.flagchip.on { border-color: var(--accent); background: var(--surface) }
 .cheer-row small .flag { width: 16px; height: 12px }
 .steps { margin: 6px 0 0; padding-inline-start: 22px; text-align: start; display: grid; gap: 6px }
 .empty-card.welcome p { margin-bottom: 6px }
+.setting .swatches .swatch, .swatches .swatch { display: block; width: 40px; height: 40px; min-height: 0; padding: 0; flex: none; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--line); grid-template-columns: none }
+.setting .swatches .swatch[aria-pressed='true'], .swatches .swatch[aria-pressed='true'] { box-shadow: 0 0 0 3px var(--ink) }
+.setting .swatches .swatch-default, .swatches .swatch-default { background: conic-gradient(#0e7490 0 50%, #ffc93c 50% 100%) }
+.setting li.ctl.ctl-col { display: grid; gap: 10px; align-items: start }
