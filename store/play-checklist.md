@@ -47,3 +47,10 @@ Internal testing first (instant, up to 100 testers), then production. Review usu
 - [ ] Legal pages reviewed by someone qualified
 - [ ] Magic-link email sender (SMTP) set up
 - [ ] Native-speaker pass on the translations
+
+## Added 13 Nov 2026 (profiles, friends, cheers)
+- [ ] Data safety form: declare **Photos** (optional profile picture the user uploads: collected, shared with other users, optional, deletable). See the update note at the end of `data-safety.md`.
+- [ ] App content, App access: choose "All or some functionality is restricted" and add instructions: open Friends, choose Sign in, enter the reviewer email and password you created (you type them in the console, never in the repo). Everything else works without an account.
+- [ ] User-generated content: Play asks about it. Answer that users can report and block (Friends, Report and Block), and moderation is described in `docs/MODERATION.md`. Review reports at least every 48 hours.
+- [ ] Supabase migrations are all applied (`supabase/migrations/`, latest is `20261113000001_reactions_iso.sql`).
+- [ ] The web app updates instantly; the existing `GlobeFolio.aab` (version 1) does not need rebuilding for these changes.

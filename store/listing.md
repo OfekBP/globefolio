@@ -21,6 +21,7 @@ GlobeFolio is a private travel diary built around a 3D globe. Drop a pin on ever
 • A journal that does the counting: how much of the world you have explored, which continents you have covered, how far you have traveled.
 • Replay your journey and slide through the years to see how your world grew.
 • Keep a wish list of places you dream of going.
+• Make it yours: choose a traveler character and an accent color, add a bio, then add friends, see their maps next to yours and send cheers.
 • Works offline, so you can log a trip from the plane.
 • Ten languages, with city names in yours, including right-to-left Arabic and Hebrew.
 • Light and dark themes.
@@ -43,6 +44,7 @@ GlobeFolio es un diario de viajes privado construido alrededor de un globo 3D. M
 • Un diario que lleva la cuenta: cuánto del mundo has explorado, qué continentes has cubierto y cuánto has recorrido.
 • Repite tu viaje y desliza por los años para ver cómo creció tu mundo.
 • Guarda una lista de deseos con los lugares que sueñas visitar.
+• Hazlo tuyo: elige un viajero y un color, añade tu bio, suma amigos, mira sus mapas junto al tuyo y envía ánimos.
 • Funciona sin conexión: registra un viaje desde el avión.
 • Diez idiomas, con los nombres de las ciudades en el tuyo, incluidos árabe y hebreo de derecha a izquierda.
 • Temas claro y oscuro.
@@ -65,6 +67,7 @@ GlobeFolio est un journal de voyage privé construit autour d'un globe 3D. Épin
 • Un journal qui fait les comptes : la part du monde explorée, les continents couverts, la distance parcourue.
 • Rejouez votre parcours et faites défiler les années pour voir grandir votre monde.
 • Gardez une liste d'envies des lieux dont vous rêvez.
+• Faites-en votre monde : choisissez un voyageur et une couleur, ajoutez une bio, puis des amis, voyez leurs cartes à côté de la vôtre et envoyez des encouragements.
 • Fonctionne hors ligne : notez un voyage depuis l'avion.
 • Dix langues, avec les noms de villes dans la vôtre, dont l'arabe et l'hébreu de droite à gauche.
 • Thèmes clair et sombre.
@@ -87,6 +90,7 @@ GlobeFolio ist ein privates Reisetagebuch rund um einen 3D-Globus. Setze eine St
 • Ein Tagebuch, das mitzählt: wie viel der Welt du erkundet hast, welche Kontinente du bereist hast, wie weit du gekommen bist.
 • Spiele deine Reise ab und schiebe durch die Jahre, um zu sehen, wie deine Welt gewachsen ist.
 • Führe eine Wunschliste mit Orten, von denen du träumst.
+• Mach es zu deinem: wähle eine Reisefigur und eine Farbe, ergänze eine Bio, füge Freunde hinzu, sieh ihre Karten neben deiner und sende Jubel.
 • Funktioniert offline, du kannst also im Flugzeug eine Reise eintragen.
 • Zehn Sprachen, mit Städtenamen in deiner, auch Arabisch und Hebräisch von rechts nach links.
 • Heller und dunkler Modus.
@@ -109,6 +113,7 @@ O GlobeFolio é um diário de viagem privado construído em torno de um globo 3D
 • Um diário que faz as contas: quanto do mundo já explorou, que continentes cobriu e quanto viajou.
 • Reveja a sua jornada e deslize pelos anos para ver como o seu mundo cresceu.
 • Guarde uma lista de desejos com os lugares que sonha visitar.
+• Faça seu: escolha um viajante e uma cor, adicione uma bio, junte amigos, veja os mapas deles ao lado do seu e envie vivas.
 • Funciona offline: registe uma viagem a bordo do avião.
 • Dez idiomas, com os nomes das cidades no seu, incluindo árabe e hebraico da direita para a esquerda.
 • Temas claro e escuro.
@@ -131,6 +136,7 @@ GlobeFolio — личный дневник путешествий вокруг 3
 • Дневник, который сам всё считает: какую часть мира вы исследовали, какие континенты охватили, сколько проехали.
 • Воспроизведите свой путь и пролистайте годы, чтобы увидеть, как рос ваш мир.
 • Ведите список мест, куда мечтаете попасть.
+• Сделайте всё своим: выберите путешественника и цвет, добавьте описание, найдите друзей, смотрите их карты рядом со своей и отправляйте реакции.
 • Работает офлайн: записывайте поездку прямо в самолёте.
 • Десять языков, названия городов на вашем, включая арабский и иврит с письмом справа налево.
 • Светлая и тёмная темы.
@@ -153,6 +159,7 @@ GlobeFolio مذكرات سفر خاصة مبنية حول كرة أرضية ثل
 • مذكرات تحسب لك: كم من العالم استكشفت، وأي القارات زرت، وكم قطعت من مسافة.
 • أعد عرض رحلتك وحرّك شريط السنوات لترى كيف نما عالمك.
 • احتفظ بقائمة أمنيات للأماكن التي تحلم بزيارتها.
+• اجعله لك: اختر شخصية مسافر ولونًا، وأضف نبذة، ثم أضف أصدقاء وشاهد خرائطهم بجانب خريطتك وأرسل التشجيع.
 • يعمل دون اتصال، فيمكنك تسجيل رحلة من الطائرة.
 • عشر لغات، مع أسماء المدن بلغتك، بما في ذلك العربية والعبرية من اليمين إلى اليسار.
 • مظهر فاتح ومظهر داكن.
@@ -175,6 +182,7 @@ GlobeFolio הוא יומן מסע פרטי שבנוי סביב גלובוס תל
 • יומן שסופר בשבילכם: כמה מהעולם גיליתם, אילו יבשות כיסיתם וכמה רחוק נסעתם.
 • נגנו מחדש את המסע והחליקו בין השנים כדי לראות איך העולם שלכם גדל.
 • שמרו רשימת משאלות של מקומות שאתם חולמים עליהם.
+• הפכו אותה לשלכם: בחרו דמות מטייל וצבע, הוסיפו תיאור, ואז הוסיפו חברים, ראו את המפות שלהם לצד שלכם ושלחו עידוד.
 • עובד גם בלי חיבור, כך שאפשר לרשום טיול כבר במטוס.
 • עשר שפות, עם שמות ערים בשפה שלכם, כולל ערבית ועברית מימין לשמאל.
 • מצב בהיר ומצב כהה.
@@ -197,6 +205,7 @@ GlobeFolio 是围绕3D地球打造的私密旅行日记。给去过的每座城�
 • 自动帮你数的日记：你探索了世界的多少部分，走遍了哪些大洲，一共走了多远。
 • 重放你的旅程，拖动年份滑块，看你的世界如何一步步变大。
 • 建立心愿清单，记下你梦想前往的地方。
+• 打造专属于你：选择旅行者形象和主题色，写一句简介，添加好友，在你的地图旁查看他们的地图并送出鼓励。
 • 离线可用，在飞机上也能记录行程。
 • 支持十种语言，城市名称也使用你的语言，包括从右向左排版的阿拉伯语和希伯来语。
 • 浅色和深色主题。
@@ -219,6 +228,7 @@ GlobeFolioは、3Dの地球儀を中心にしたプライベートな旅行日�
 • 数えてくれる旅行日記：世界のどれだけを探検したか、どの大陸を巡ったか、どれだけ旅したか。
 • 旅を再生したり、年のスライダーで世界が広がる様子を見たりできます。
 • 行ってみたい場所のウィッシュリストも作れます。
+• 自分らしく：旅人キャラと色を選び、自己紹介を書いて、友だちを追加。友だちの地図を並べて見たり、応援を送ったりできます。
 • オフラインでも使えるので、機内でも旅を記録できます。
 • 10言語に対応し、都市名もあなたの言語で表示。右から左のアラビア語とヘブライ語にも対応。
 • ライトテーマとダークテーマ。

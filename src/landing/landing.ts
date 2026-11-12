@@ -2,6 +2,7 @@ import '@fontsource-variable/nunito'
 import '@fontsource-variable/noto-sans-arabic'
 import '@fontsource-variable/noto-sans-hebrew'
 import { COPY, type Copy } from './copy'
+import { PRESETS } from '../ui/chars'
 
 /** The same ten languages as the app, each with how it writes Tokyo: a taste of the city names the app translates. */
 const LANGS = [
@@ -67,3 +68,8 @@ pills.addEventListener('click', e => {
 })
 
 apply(initial(), false)
+
+// a row of the app's own travelers, each on its own color
+const TONES = ['#ffc93c', '#2bb5a0', '#ff6f8e', '#6eafff', '#a58bff', '#ff9a3c']
+const strip = $<HTMLUListElement>('#chars')
+if (strip) strip.innerHTML = PRESETS.slice(0, 12).map((p, i) => `<li style="background:${TONES[i % TONES.length]}">${p.svg}</li>`).join('')
