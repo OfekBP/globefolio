@@ -31,7 +31,7 @@
   <script>
     // Start the two big map downloads now, before any of the app's code has arrived; the app picks them up from here.
     try {
-      var early = window.__early = { countries: fetch('geo/countries.json'), cities: fetch('geo/cities.json') };
+      var early = window.__early = { countries: fetch('geo/countries.json'), cities: fetch('geo/cities.json', { priority: 'low' }) };
       early.countries.catch(function () {}); early.cities.catch(function () {});
     } catch (e) {}
   </script>
