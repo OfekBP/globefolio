@@ -191,6 +191,7 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
           <p class="status" id="a-status" role="status"></p>
           <button class="solid wide" type="submit">${t('acct.create')}</button>
         </form>
+        <div class="foot-actions"><button class="text" data-ax="signout">${t('acct.signOut')}</button><button class="text danger" data-ax="delete">${t('acct.delete')}</button></div>
         ${legal}
       </div>`
     const status = root.querySelector<HTMLElement>('#a-status')!
@@ -208,7 +209,14 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
         if (go) go.disabled = false
       }
     }
-    root.onclick = e => { if ((e.target as HTMLElement).closest('[data-ax=back]')) ctx.back() }
+    root.onclick = async e => {
+      const k = (e.target as HTMLElement).closest<HTMLElement>('[data-ax]')?.dataset.ax
+      if (k === 'back') ctx.back()
+      else if (k === 'signout') { try { await signOutRemote(); await stopSync({ wipe: true }); ctx.close() } catch { status.classList.add('error'); status.textContent = t('acct.error') } }
+      else if (k === 'delete' && window.confirm(t('acct.deleteWarn'))) {
+        try { await deleteAccount(); await stopSync({ wipe: false, forget: true }); await signOutRemote(); ctx.close(); toast(t('acct.deleted')) } catch { status.classList.add('error'); status.textContent = t('acct.error') }
+      }
+    }
     return
   }
 
