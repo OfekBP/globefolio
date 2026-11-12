@@ -19,8 +19,8 @@ import { onPrefs, prefs } from './prefs'
 import { cloudEnabled } from './supabase'
 import { getProfile, getSession, initAuth, isRecovering, onAuth } from './auth'
 import { startSync, stopSync } from './sync'
-import { watchFriendships, listLinks, type MapRow } from './friends'
-import { renderFriends, renderPublic } from './ui/friends'
+import { watchFriendships, listLinks, friendMap, type MapRow } from './friends'
+import { FRIENDS_CHANGED, renderFriends, renderPublic } from './ui/friends'
 import { joinFromLink, renderShared } from './ui/shared'
 import { esc, fmtRange, localToday, yearOf } from './ui/format'
 import { cname, initLocale, num as fmtNum, onLocale, t as L } from './i18n'
@@ -53,6 +53,7 @@ async function boot() {
   const info = new Map<string, { cities: number; whole: boolean }>()
   let friendRows: MapRow[] | null = null // a friend's places painted over my map
   let friendHandle: string | undefined
+  let friendId: string | undefined
 
   // ── globe ──────────────────────────────────────────────
   const globe = createGlobe($('globe'), geo, theme0, {
@@ -186,9 +187,10 @@ async function boot() {
     }
     // a friend's places, in their own colour, when I have chosen to compare
     const seenF = new Set<string>()
-    for (const r of friendRows ?? []) {
+    for (const r of replayN !== null ? [] : friendRows ?? []) {
       const c = geo.byIso.get(r.iso)
       if (!c) continue
+      if (year !== null) { const fy = yearOf(r.start_date ?? undefined); if (fy !== undefined && fy > year) continue } // the years slider moves their map too
       if (r.place) {
         const key = placeKey(r.iso, r.place)
         if (seenF.has(key)) continue
@@ -384,14 +386,38 @@ async function boot() {
     eraseAll: async () => { await replaceAll([], []); toast(L('set.erased')) },
   }) })
 
-  const overlay = (rows: MapRow[] | null, handle?: string) => {
-    friendRows = rows; friendHandle = rows ? handle : undefined
+  const chip = $('friend-chip')
+  const paintChip = () => {
+    chip.hidden = !friendHandle
+    if (!friendHandle) return
+    chip.querySelector<HTMLElement>('.fc-main')!.innerHTML = `<span class="avatar" aria-hidden="true">${friendHandle.slice(0, 1).toUpperCase()}</span><span class="fc-text">${L('fr.chip', { name: `@${friendHandle}` })}</span>`
+    chip.querySelector<HTMLElement>('.fc-main')!.setAttribute('aria-label', L('fr.chipOpen', { name: `@${friendHandle}` }))
+    chip.querySelector<HTMLElement>('.fc-x')!.setAttribute('aria-label', L('fr.chipHide', { name: `@${friendHandle}` }))
+  }
+  const overlay = (rows: MapRow[] | null, handle?: string, id?: string) => {
+    const was = friendHandle
+    friendRows = rows; friendHandle = rows ? handle : undefined; friendId = rows ? id : undefined
+    paintChip()
     view()
     if (rows && handle) toast(L('fr.overlayOn', { handle }))
+    else if (was) toast(L('fr.overlayOff'))
   }
+  // keep a friend's map on mine fresh: when they add places, or stop sharing, it follows
+  const refreshOverlay = async () => {
+    if (!friendId || !getSession()) return
+    const id = friendId
+    try {
+      const rows = await friendMap(id)
+      if (id !== friendId) return
+      if (!rows.length) overlay(null); else { friendRows = rows; view() }
+    } catch { /* offline: keep what is showing */ }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) void refreshOverlay() })
+  chip.querySelector('.fc-x')!.addEventListener('click', () => overlay(null))
+  chip.querySelector('.fc-main')!.addEventListener('click', () => openFriends())
   const openFriends = () => { showTab('map'); drawer.open({ k: 'extra', render: (root, back) => renderFriends(root, {
     geo, back, close: () => drawer.close(), openAccount,
-    myIsos: () => new Set(trips.map(t => t.iso)), // every trip, not just what the timeline filter currently shows
+    myIsos: () => { const today = localToday(); return new Set(trips.filter(t => !t.startDate || t.startDate <= today).map(t => t.iso)) }, // every past trip, not just what the timeline filter shows; plans do not count
     overlay, overlayOf: () => friendHandle,
   }) }) }
   const openShared = (id?: string) => drawer.open({ k: 'extra', render: (root, back) => renderShared(root, {
@@ -417,7 +443,7 @@ async function boot() {
     history.replaceState(null, '', location.pathname + location.search)
     if (m[1] === 'u') {
       showTab('map')
-      drawer.open({ k: 'extra', render: (root, back) => { void renderPublic(root, arg, { geo, close: () => drawer.close(), overlay }) } })
+      drawer.open({ k: 'extra', render: (root, back) => { void renderPublic(root, arg, { geo, close: () => drawer.close(), overlay, overlayOf: () => friendHandle, openAccount }) } })
     } else {
       // keep the invite until it has been used, so signing in first (or a dropped connection) does not lose it
       try { sessionStorage.setItem(INVITE, arg) } catch { /* private mode */ }
@@ -585,7 +611,9 @@ async function boot() {
       let n = 0
       try { n = getSession() ? (await listLinks()).filter(l => l.state === 'incoming').length : 0 } catch { /* offline */ }
       document.querySelector('.tab[data-do=friends] .badge')?.remove()
-      if (n) { const s = document.createElement('span'); s.className = 'badge'; s.textContent = fmtNum(n); document.querySelector('.tab[data-do=friends]')?.append(s) }
+      const tab = document.querySelector<HTMLElement>('.tab[data-do=friends]')
+      if (n) { const s = document.createElement('span'); s.className = 'badge'; s.setAttribute('aria-hidden', 'true'); s.textContent = fmtNum(n); tab?.append(s); tab?.setAttribute('aria-label', `${L('tab.friends')}, ${L('fr.badge', { n })}`) }
+      else tab?.removeAttribute('aria-label')
     }
     // supabase-js re-announces the session when the tab regains focus; only react to a real change, so a half-typed form survives
     let closeWelcome: (() => void) | null = null
@@ -600,7 +628,7 @@ async function boot() {
       if (s?.user.id !== lastUid) {
         lastUid = s?.user.id
         unwatch(); unwatch = () => {}
-        if (s) { void startSync(s.user.id); unwatch = watchFriendships(() => void paintBadge()); void paintBadge() }
+        if (s) { void startSync(s.user.id); unwatch = watchFriendships(() => { void paintBadge(); void refreshOverlay(); document.dispatchEvent(new Event(FRIENDS_CHANGED)) }); void paintBadge() }
         else { void stopSync({ wipe: false }); overlay(null); void paintBadge() }
       }
       const p = getProfile()

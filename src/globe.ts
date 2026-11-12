@@ -217,7 +217,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
     b.type = 'button'
     b.className = `pin ${d.kind === 'country' ? 'pin-country' : 'pin-city'}${d.dream ? ' pin-dream' : ''}${d.friend ? ' pin-friend' : ''}`
     const label = d.kind === 'country' ? cityName(d.city) : `${cityName(d.city)}, ${[d.city.region, country ? cname(country) : ''].filter(Boolean).join(', ')}`
-    b.setAttribute('aria-label', d.dream && !d.friend ? t('map.dream', { name: label }) : label)
+    b.setAttribute('aria-label', d.friend ? t('fr.pin', { name: label }) : d.dream ? t('map.dream', { name: label }) : label)
     b.innerHTML = `<span class="pin-glow"></span><span class="pin-body">${f ? `<img src="${f}" alt="" draggable="false" />` : '<i></i>'}</span><span class="pin-name">${esc(cityName(d.city))}</span>`
     b.addEventListener('click', e => {
       e.stopPropagation()
@@ -287,7 +287,7 @@ export function createGlobe(el: HTMLElement, geo: Geo, initial: Theme, h: Handle
       const sc = globe.getScreenCoords(d.city.lat, d.city.lng, 0.002)
       if (!sc) continue
       const far = p.altitude >= 1.2
-      const rank = (d.dream ? 0 : 1000) + (d.kind === 'country' ? (far ? 500 : 0) : far ? 0 : 500) + Math.min(d.trips, 99)
+      const rank = (d.friend ? 400 : d.dream ? 0 : 1000) + (d.kind === 'country' ? (far ? 500 : 0) : far ? 0 : 500) + Math.min(d.trips, 99)
       items.push({ key, el: pe, d, x: sc.x, y: sc.y, rank })
     }
     // up close, a country's banner just repeats its city pins, so it steps aside

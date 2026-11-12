@@ -7,6 +7,7 @@
 }
 
 :root[data-theme='light'] {
+  --friend: #6d4adf;
   color-scheme: light;
   --bg: #fff8ec;
   --surface: #ffffff;
@@ -33,6 +34,7 @@
 }
 
 :root[data-theme='dark'] {
+  --friend: #a58bff;
   color-scheme: dark;
   --bg: #101b33;
   --surface: #17264a;
@@ -424,9 +426,9 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .pin-dream.pin-city .pin-body::after { border-top-color: var(--ink); opacity: 0.6 }
 
 /* a friend's places: the same flags in a second colour, solid so they read as visited, not wished */
-.pin-friend .pin-body img { filter: none; opacity: 1; border-style: solid; border-color: #7b5cf0 }
-.pin-friend.pin-city .pin-body::after { border-top-color: #7b5cf0; opacity: 1 }
-.pin-friend .pin-glow { background: radial-gradient(circle, rgba(123, 92, 240, 0.45) 0%, rgba(123, 92, 240, 0) 62%) }
+.pin-friend .pin-body img { filter: none; opacity: 1; border-style: solid; border-color: var(--friend) }
+.pin-friend.pin-city .pin-body::after { border-top-color: var(--friend); opacity: 1 }
+.pin-friend .pin-glow { background: radial-gradient(circle, color-mix(in srgb, var(--friend) 45%, transparent) 0%, transparent 62%) }
 .surprise { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px }
 .surprise svg { width: 16px; height: 16px }
 .tab .badge { position: absolute; top: 4px; inset-inline-end: calc(50% - 20px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 99px; background: #e5484d; color: #fff; font: 900 10px/16px var(--body); text-align: center }
@@ -613,3 +615,39 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
   .wel-skip { margin-top: 10px; padding: 10px 0 8px }
   .wel-skip .fine { display: none }
 }
+
+/* friends: overlay chip, cards, dialog */
+.friend-chip { position: absolute; z-index: 4; top: calc(70px + env(safe-area-inset-top)); inset-inline-start: 12px; display: flex; align-items: center; max-width: calc(100% - 24px); border-radius: 999px; background: var(--surface); border: 2px solid var(--friend); box-shadow: var(--shadow) }
+.friend-chip[hidden] { display: none }
+.fc-main { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 6px 0 6px; border: 0; background: none; color: var(--ink); font: 800 14px/1 var(--body); min-width: 0 }
+.fc-main .avatar { width: 30px; height: 30px; font-size: 13px; background: var(--friend); color: #fff; flex: none }
+.fc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.fc-x { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: var(--dim); border-radius: 50% }
+.fc-x:hover { color: var(--ink) }
+.fc-x svg { width: 18px; height: 18px }
+.avatar-lg { width: 52px; height: 52px; font-size: 22px; flex: none }
+.me-card { display: flex; align-items: center; gap: 12px; margin: 18px 0 8px; padding: 12px 14px; border-radius: 20px; background: var(--surface-2) }
+.me-card .who { flex: 1; min-width: 0; display: grid; gap: 1px }
+.me-card small { color: var(--dim); font-weight: 600 }
+.me-card b { font-size: 17px; overflow: hidden; text-overflow: ellipsis }
+.person.req { flex-wrap: wrap }
+.person-actions { flex-basis: 100%; display: flex; align-items: center; gap: 8px; padding-inline-start: 48px; flex-wrap: wrap }
+.text.tiny { font-size: 13px; margin-inline-start: auto; color: #c23412; font-weight: 700 }
+:root[data-theme='dark'] .text.tiny { color: #ff9d8a }
+.text.danger { color: #c23412 }
+:root[data-theme='dark'] .text.danger { color: #ff9d8a }
+.friend-head { display: flex; align-items: center; gap: 14px; margin-top: 44px }
+.friend-head .title { margin: 0; font-size: clamp(26px, 5vw, 34px) }
+.empty-card { display: grid; justify-items: center; gap: 12px; text-align: center; margin: 12px 0; padding: 22px 18px; border-radius: 22px; background: var(--surface-2); color: var(--dim) }
+.empty-card p { margin: 0 }
+.empty-art { font-size: 40px; line-height: 1 }
+.person .none, .people .none { color: var(--dim); list-style: none; padding: 8px 4px }
+.tab .badge { min-width: 18px; height: 18px; font-size: 12px; line-height: 18px }
+.dialog-back { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 20px; background: rgba(8, 12, 24, 0.55) }
+.dialog { width: 100%; max-width: 380px; max-height: 90dvh; overflow: auto; padding: 24px; border-radius: 26px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg) }
+.dialog-title { margin: 0 0 8px; font: 800 20px/1.2 var(--body) }
+.dialog-title:focus { outline: none }
+.dialog-body { margin: 0 0 16px; color: var(--dim) }
+.dialog-reasons { border: 0; margin: 0 0 12px; padding: 0; display: grid; gap: 8px }
+.dialog-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px }
+.dialog-actions .solid { min-height: 46px }
