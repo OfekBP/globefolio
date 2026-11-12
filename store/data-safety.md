@@ -15,9 +15,12 @@ Use these when filling Policy, App content. They match the privacy policy and th
 | User IDs (handle) | Yes | No | Yes | App functionality, account management |
 | Other user-generated content (trips, wishes, notes) | Yes, only for signed-in users | No | Yes | App functionality (sync, friends, shared trips) |
 | Precise or approximate location | **No**. The app never reads the phone's location; places are picked by the user from a list | - | - | - |
-| Photos, contacts, files, calendar, financial, health, device IDs, ads data, crash logs, analytics | **No** | - | - | - |
+| App info and performance: Crash logs (error message, short stack trace, page path, app version, language, browser string; no user id) | **Yes**, sent automatically when the app hits an unexpected error, to our own database, deleted after 30 days | No | No (automatic) | Analytics (diagnostics) |
+| Photos, contacts, files, calendar, financial, health, device IDs, ads data, other analytics | **No** | - | - | - |
 
 "Shared" means transferred to a third party. Supabase (database host) and Google (sign-in) act as service providers on our behalf, which Play does not count as sharing. Friends see data only when the user sets their profile to friends or public.
+
+Added 12 Nov 2026: crash reporting (src/errors.ts) is the one automatic collection; declare it, and keep the privacy policy row in sync.
 
 Security practices to tick: data is encrypted in transit; users can request deletion.
 Not independently security-reviewed: leave that box unticked.
