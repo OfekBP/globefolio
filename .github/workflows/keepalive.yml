@@ -1,0 +1,24 @@
+name: Keep database awake
+
+# Supabase's free plan pauses a project that sees almost no database activity for a week.
+# This makes one tiny, harmless request twice a week so GlobeFolio is never paused.
+on:
+  schedule:
+    - cron: '23 6 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Query the database once
+        run: |
+          url=$(grep '^VITE_SUPABASE_URL=' .env | cut -d= -f2- | tr -d '\r')
+          key=$(grep '^VITE_SUPABASE_ANON_KEY=' .env | cut -d= -f2- | tr -d '\r')
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$url/rest/v1/profiles?select=id&limit=1" -H "apikey: $key" -H "Authorization: Bearer $key")
+          echo "Database answered HTTP $code"
+          test "$code" -lt 500

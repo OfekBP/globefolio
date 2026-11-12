@@ -1,0 +1,46 @@
+name: Database backup
+
+# Weekly encrypted export of the Supabase database (the free plan has no automatic backups).
+# Needs two repository secrets (Settings > Secrets and variables > Actions):
+#   SUPABASE_DB_URL      the "Session pooler" connection string from Supabase > Connect
+#   BACKUP_PASSPHRASE    any long random phrase; keep it somewhere safe, it is needed to open a backup
+# Without both secrets this job does nothing. The artifact is encrypted because this repository is public.
+on:
+  schedule:
+    - cron: '41 2 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    env:
+      DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        id: cfg
+        run: |
+          if [ -z "$DB_URL" ] || [ -z "$PASS" ]; then echo "ready=no" >> "$GITHUB_OUTPUT"; echo "::notice::Backup skipped: add SUPABASE_DB_URL and BACKUP_PASSPHRASE secrets."; else echo "ready=yes" >> "$GITHUB_OUTPUT"; fi
+      - name: Install PostgreSQL 17 client
+        if: steps.cfg.outputs.ready == 'yes'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+      - name: Dump and encrypt
+        if: steps.cfg.outputs.ready == 'yes'
+        run: |
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --no-owner --no-acl --schema=public --schema=auth --format=custom --file=backup.dump
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:PASS -in backup.dump -out "globefolio-$(date +%F).dump.enc"
+          rm backup.dump
+          ls -l *.enc
+      - uses: actions/upload-artifact@v4
+        if: steps.cfg.outputs.ready == 'yes'
+        with:
+          name: database-backup
+          path: '*.enc'
+          retention-days: 30
