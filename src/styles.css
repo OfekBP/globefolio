@@ -593,5 +593,3 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 @keyframes sg-orbit { to { transform: rotate(360deg) } }
 @keyframes sg-drop { 0% { transform: translateY(-14px) scale(0.9); opacity: 0 } 18% { transform: translateY(0) scale(1.08); opacity: 1 } 28%, 100% { transform: translateY(0) scale(1); opacity: 1 } }
 @media (prefers-reduced-motion: reduce) { .sk { animation: none } .sg-land, .sg-m, .sg-orbit, .sg-pin { animation: none } .sg-m2 { display: none } }
-.reviewer { margin: 18px 0 4px; color: var(--dim); font-size: 13px }
-.reviewer summary { cursor: pointer; font-weight: 700; padding: 10px 0 }

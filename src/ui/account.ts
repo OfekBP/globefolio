@@ -1,4 +1,4 @@
-import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithPassword, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithPassword, signUpWithPassword, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -19,14 +19,11 @@ export function signInHtml() {
 ${emailEnabled ? `<p class="or"><span>${t('acct.or')}</span></p>
 <form id="email-form" novalidate>
   <div class="field"><label for="a-email">${t('acct.email')}</label><input id="a-email" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="${t('acct.emailPh')}" /></div>
-  <button class="solid wide" type="submit">${t('acct.emailBtn')}</button>
+  <div class="field"><label for="a-pw">${t('acct.password')}</label><input id="a-pw" type="password" autocomplete="current-password" dir="ltr" minlength="8" /></div>
+  <button class="solid wide" type="submit">${t('acct.signIn')}</button>
+  <button class="wide" type="button" data-ax="signup">${t('acct.signUp')}</button>
+  <button class="text wide" type="button" data-ax="link">${t('acct.emailBtn')}</button>
 </form>` : ''}
-<details class="reviewer"><summary>App reviewer sign-in</summary>
-<form id="pw-form" novalidate>
-  <div class="field"><label for="a-pwemail">Email</label><input id="a-pwemail" type="email" autocomplete="username" dir="ltr" /></div>
-  <div class="field"><label for="a-pw">Password</label><input id="a-pw" type="password" autocomplete="current-password" dir="ltr" /></div>
-  <button class="solid wide" type="submit">Sign in</button>
-</form></details>
 <p class="status" id="a-status" role="status"></p>
 <p class="fine">${t('acct.consent', { terms: link('./terms.html', t('acct.terms')), privacy: link('./privacy.html', t('acct.privacy')) })}</p>
   `
@@ -51,23 +48,21 @@ export function wireSignIn(root: HTMLElement, onBack: () => void) {
     else if (k === 'apple') void oauth('apple', el)
     else if (k === 'back') onBack()
   }
-  const pwForm = root.querySelector<HTMLFormElement>('#pw-form')
-  if (pwForm) pwForm.onsubmit = async e => {
-    e.preventDefault()
-    const email = root.querySelector<HTMLInputElement>('#a-pwemail')!.value.trim()
-    const pw = root.querySelector<HTMLInputElement>('#a-pw')!.value
-    if (!email || !pw) { say(t('acct.error'), true); return }
-    try { await signInWithPassword(email, pw) } catch { say(t('acct.error'), true) }
-  }
   const emailForm = root.querySelector<HTMLFormElement>('#email-form')
-  if (emailForm) emailForm.onsubmit = async e => {
-    e.preventDefault()
-    const email = root.querySelector<HTMLInputElement>('#a-email')!.value.trim()
-    if (!/^\S+@\S+\.\S+$/.test(email)) { say(t('acct.error'), true); return }
-    const go = root.querySelector<HTMLButtonElement>('#email-form [type=submit]')
-    if (go) go.disabled = true // a second tap would only trip the email rate limit
-    try { await signInWithEmail(email); say(t('acct.sent', { email })) } catch { say(t('acct.error'), true) }
-    if (go) go.disabled = false
+  if (emailForm) {
+    const val = () => ({ email: root.querySelector<HTMLInputElement>('#a-email')!.value.trim(), pw: root.querySelector<HTMLInputElement>('#a-pw')!.value })
+    const busy = (on: boolean) => emailForm.querySelectorAll('button').forEach(b => { b.disabled = on }) // a second tap would only trip the email rate limit
+    const run = async (needPw: boolean, job: (email: string, pw: string) => Promise<void>) => {
+      const { email, pw } = val()
+      if (!/^\S+@\S+\.\S+$/.test(email)) { say(t('acct.error'), true); return }
+      if (needPw && pw.length < 8) { say(t('acct.pwShort'), true); return }
+      busy(true)
+      try { await job(email, pw) } catch { say(needPw ? t('acct.wrongPw') : t('acct.error'), true) }
+      busy(false)
+    }
+    emailForm.onsubmit = e => { e.preventDefault(); void run(true, (m, p) => signInWithPassword(m, p)) }
+    emailForm.querySelector<HTMLElement>('[data-ax=signup]')!.onclick = () => void run(true, async (m, p) => { say((await signUpWithPassword(m, p)) ? '' : t('acct.confirmSent', { email: m })) })
+    emailForm.querySelector<HTMLElement>('[data-ax=link]')!.onclick = () => void run(false, async m => { await signInWithEmail(m); say(t('acct.sent', { email: m })) })
   }
 }
 

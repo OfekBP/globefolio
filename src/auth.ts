@@ -110,10 +110,17 @@ export async function signInWithEmail(email: string) {
   fail((await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: appUrl(), shouldCreateUser: true } })).error)
 }
 
-/** Password sign-in, only for the store reviewer's demo account (created by hand in Supabase). Everyone else uses Google or the email link. */
 export async function signInWithPassword(email: string, password: string) {
   if (!supabase) throw new Error('Accounts are not set up yet')
   fail((await supabase.auth.signInWithPassword({ email: email.trim(), password })).error)
+}
+
+/** Returns true when the account is ready to use at once, false when the person must first confirm their email. */
+export async function signUpWithPassword(email: string, password: string): Promise<boolean> {
+  if (!supabase) throw new Error('Accounts are not set up yet')
+  const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: appUrl() } })
+  fail(error)
+  return !!data.session
 }
 
 export const handleOk = (h: string) => /^[a-z0-9_]{3,20}$/.test(h) && !['admin', 'support', 'tripglobe', 'globefolio', 'help', 'root', 'staff', 'official'].includes(h)
