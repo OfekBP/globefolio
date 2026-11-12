@@ -209,7 +209,7 @@ const es: Dict = {
   'acct.save': "Guardar",
   'acct.saved': "Guardado.",
   'acct.accent': "Tu color",
-  'acct.accentNote': "Colorea los botones y los detalles de toda la app.",
+  'acct.accentNote': "Colorea tu imagen y tu página de cuenta. El resto de la app mantiene su aspecto.",
   'acct.accentDefault': "Colores clásicos",
   'acct.colorN': "Color {n}",
   'char.explorer': "Explorador",

@@ -209,7 +209,7 @@ const ja: Dict = {
   'acct.save': "保存",
   'acct.saved': "保存しました。",
   'acct.accent': "あなたの色",
-  'acct.accentNote': "アプリ全体のボタンや強調色に反映されます。",
+  'acct.accentNote': "画像とアカウントページに色をつけます。アプリのほかの部分はそのままです。",
   'acct.accentDefault': "クラシックカラー",
   'acct.colorN': "カラー {n}",
   'char.explorer': "冒険家",

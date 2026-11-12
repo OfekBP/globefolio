@@ -209,7 +209,7 @@ const he: Dict = {
   'acct.save': "שמירה",
   'acct.saved': "נשמר.",
   'acct.accent': "הצבע שלכם",
-  'acct.accentNote': "צובע את הכפתורים וההדגשות בכל האפליקציה.",
+  'acct.accentNote': "צובע את התמונה ואת עמוד החשבון שלכם. שאר האפליקציה נשארת כפי שהיא.",
   'acct.accentDefault': "צבעים קלאסיים",
   'acct.colorN': "צבע {n}",
   'char.explorer': "חוקר",

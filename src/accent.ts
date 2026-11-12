@@ -22,7 +22,7 @@ function reach(base: string, target: string, against: string, min: number) {
 /** Readable text color (dark or white) for something painted in `bg`. */
 export const onColor = (bg: string) => (contrast(bg, '#1f2a44') >= contrast(bg, '#ffffff') ? '#1f2a44' : '#ffffff')
 
-const VARS = ['--accent', '--accent-text', '--btn', '--btn-hover', '--btn-text']
+const VARS = ['--me', '--me-text', '--me-on']
 
 /** The button and link colors for an accent, readable on the given theme. */
 export function derive(hex: string, theme: 'light' | 'dark') {
@@ -34,11 +34,13 @@ export function derive(hex: string, theme: 'light' | 'dark') {
   return { '--btn': btn, '--btn-hover': mix(btn, '#000000', 0.15), '--btn-text': '#ffffff', '--accent': btn, '--accent-text': reach(hex, '#000000', '#fff8ec', 4.5) }
 }
 
-/** Paints the app's buttons and highlights in the chosen color, for the current theme. null goes back to the built-in colors. */
+/** Sets the person's own color. It only tints their picture and their account page (--me, --me-text, --me-on); the app's own design and colors never change. null clears it. */
 export function applyAccent(hex: string | null) {
   const s = document.documentElement.style
   if (!hex || !accentOk(hex)) { VARS.forEach(v => s.removeProperty(v)); return }
-  for (const [k, v] of Object.entries(derive(hex, currentTheme()))) s.setProperty(k, v)
+  s.setProperty('--me', hex)
+  s.setProperty('--me-on', onColor(hex))
+  s.setProperty('--me-text', derive(hex, currentTheme())['--accent-text'])
 }
 
 export const currentAccent = () => (accentOk(prefs().accent) ? prefs().accent : null)

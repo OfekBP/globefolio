@@ -209,7 +209,7 @@ const de: Dict = {
   'acct.save': "Speichern",
   'acct.saved': "Gespeichert.",
   'acct.accent': "Deine Farbe",
-  'acct.accentNote': "Färbt Schaltflächen und Akzente in der ganzen App.",
+  'acct.accentNote': "Färbt dein Bild und deine Kontoseite. Der Rest der App behält sein Aussehen.",
   'acct.accentDefault': "Klassische Farben",
   'acct.colorN': "Farbe {n}",
   'char.explorer': "Entdecker",

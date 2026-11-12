@@ -209,7 +209,7 @@ const zh: Dict = {
   'acct.save': "保存",
   'acct.saved': "已保存。",
   'acct.accent': "你的颜色",
-  'acct.accentNote': "为整个应用的按钮和高亮着色。",
+  'acct.accentNote': "为你的头像和账户页面着色。应用的其余部分保持原样。",
   'acct.accentDefault': "经典配色",
   'acct.colorN': "颜色 {n}",
   'char.explorer': "探险家",

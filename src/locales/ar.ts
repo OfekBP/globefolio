@@ -209,7 +209,7 @@ const ar: Dict = {
   'acct.save': "حفظ",
   'acct.saved': "تم الحفظ.",
   'acct.accent': "لونك",
-  'acct.accentNote': "يلوّن الأزرار والتمييزات في التطبيق كله.",
+  'acct.accentNote': "يلوّن صورتك وصفحة حسابك. يبقى باقي التطبيق بمظهره.",
   'acct.accentDefault': "الألوان الكلاسيكية",
   'acct.colorN': "اللون {n}",
   'char.explorer': "مستكشف",

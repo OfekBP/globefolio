@@ -209,7 +209,7 @@ const fr: Dict = {
   'acct.save': "Enregistrer",
   'acct.saved': "Enregistré.",
   'acct.accent': "Votre couleur",
-  'acct.accentNote': "Colore les boutons et les accents dans toute l'appli.",
+  'acct.accentNote': "Colore votre image et votre page de compte. Le reste de l'appli garde son apparence.",
   'acct.accentDefault': "Couleurs classiques",
   'acct.colorN': "Couleur {n}",
   'char.explorer': "Explorateur",
