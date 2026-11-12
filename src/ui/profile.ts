@@ -17,7 +17,7 @@ export function profileHtml(p: Profile, email: string) {
   </div>
   <div class="pic-panel" id="pic-panel"${picOpen ? '' : ' hidden'}>
     <h3 class="sub-title">${t('acct.picTitle')}</h3>
-    <div class="av-grid" role="group" aria-label="${t('acct.picTitle')}">${PRESETS.map((pr, i) => `<button type="button" class="av-opt" data-pe="preset" data-id="a:${pr.id}" aria-pressed="${preset === `a:${pr.id}`}" aria-label="${t('acct.picN', { n: i + 1 })}">${pr.e}</button>`).join('')}</div>
+    <div class="av-grid" role="group" aria-label="${t('acct.picTitle')}">${PRESETS.map((pr, i) => `<button type="button" class="av-opt" data-pe="preset" data-id="a:${pr.id}" aria-pressed="${preset === `a:${pr.id}`}" aria-label="${t(`char.${pr.id}` as never)}">${pr.svg}</button>`).join('')}</div>
     <div class="foot-actions"><label class="mini upload">${t('acct.picUpload')}<input id="pic-file" type="file" accept="image/*" hidden /></label>${p.avatar ? `<button type="button" class="text" data-pe="clearpic">${t('acct.picRemove')}</button>` : ''}</div>
     <p class="fine">${t('acct.picNote')}</p>
   </div>

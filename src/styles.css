@@ -655,12 +655,9 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 /* profile: picture, name, colors */
 .avatar-xl { width: 84px; height: 84px; font-size: 36px }
 .avatar-lg { font-size: 22px }
-.avatar-photo, .avatar-emoji { overflow: hidden }
+.avatar-photo, .avatar-art { overflow: hidden }
+.avatar-art svg { width: 100%; height: 100%; display: block }
 .avatar-photo img { width: 100%; height: 100%; object-fit: cover; display: block }
-.avatar-emoji { font-size: 0.5em; line-height: 1 }
-.avatar-emoji.avatar-xl { font-size: 42px }
-.avatar-emoji.avatar-lg { font-size: 26px }
-.avatar-emoji:not(.avatar-lg):not(.avatar-xl) { font-size: 20px }
 .prof { display: flex; align-items: center; gap: 16px; margin-top: 44px }
 .prof-av { position: relative; flex: none; padding: 0; border: 0; background: none; border-radius: 50% }
 .prof-edit { position: absolute; inset-block-end: -2px; inset-inline-end: -2px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line); color: var(--ink); font-size: 14px }
@@ -671,8 +668,9 @@ h1, h2, h3, .headline, .title, .t-big, .place, .section { font-weight: 900 }
 .pic-panel { margin-top: 8px }
 .pic-panel[hidden] { display: none }
 .av-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px }
-.av-opt { aspect-ratio: 1; display: grid; place-items: center; font-size: 30px; border-radius: 18px; border: 2px solid transparent; background: var(--surface-2) }
+.av-opt { aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; padding: 4px; border-radius: 18px; border: 2px solid transparent; background: var(--surface-2) }
 .av-opt[aria-pressed='true'] { border-color: var(--accent); background: var(--surface) }
+.av-opt svg { width: 100%; height: 100%; display: block; border-radius: 50%; background: var(--mark) }
 .upload { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; line-height: 1.1; text-align: center }
 .prof-form { margin-top: 22px }
 .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 }

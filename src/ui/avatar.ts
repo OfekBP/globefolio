@@ -3,16 +3,11 @@ import { esc } from './format'
 
 interface Who { handle: string; display_name?: string | null; avatar?: string | null; accent?: string | null }
 
-/** The friendly picture choices: a travel emoji on the person's own color. Stored as 'a:<id>'. */
-export const PRESETS: { id: string; e: string }[] = [
-  { id: 'explorer', e: '🧭' }, { id: 'backpacker', e: '🎒' }, { id: 'pilot', e: '✈️' }, { id: 'sailor', e: '⛵' },
-  { id: 'climber', e: '🏔️' }, { id: 'cyclist', e: '🚲' }, { id: 'foodie', e: '🍜' }, { id: 'camper', e: '⛺' },
-  { id: 'diver', e: '🤿' }, { id: 'surfer', e: '🏄' }, { id: 'photographer', e: '📸' }, { id: 'nomad', e: '🐪' },
-  { id: 'penguin', e: '🐧' }, { id: 'island', e: '🌴' }, { id: 'train', e: '🚆' }, { id: 'castle', e: '🏰' },
-]
+export { PRESETS } from './chars'
+import { PRESETS } from './chars'
 const preset = (id: string) => PRESETS.find(p => `a:${p.id}` === id)
 
-/** A person's round picture: their photo, their chosen emoji, or their initial, on their color. */
+/** A person's round picture: their photo, their chosen character, or their initial, on their color. */
 export function avatarHtml(p: Who, size: 'sm' | 'lg' | 'xl' = 'sm') {
   const cls = `avatar${size === 'sm' ? '' : ` avatar-${size}`}`
   const bg = accentOk(p.accent) ? p.accent : ''
@@ -20,7 +15,7 @@ export function avatarHtml(p: Who, size: 'sm' | 'lg' | 'xl' = 'sm') {
   const a = p.avatar ?? ''
   if (/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(a)) return `<span class="${cls} avatar-photo"${style} aria-hidden="true"><img src="${a}" alt="" draggable="false" /></span>`
   const pr = preset(a)
-  if (pr) return `<span class="${cls} avatar-emoji"${style} aria-hidden="true">${pr.e}</span>`
+  if (pr) return `<span class="${cls} avatar-art"${style} aria-hidden="true">${pr.svg}</span>`
   return `<span class="${cls}"${style} aria-hidden="true">${esc((p.display_name || p.handle || '?').trim().slice(0, 1).toUpperCase())}</span>`
 }
 
