@@ -4,7 +4,7 @@ Use these when filling Policy, App content. They match the privacy policy and th
 
 ## Data safety form
 
-**Does the app collect or share required user data types?** Yes, but only when a person chooses to create an account. Without an account nothing leaves the phone.
+**Does the app collect or share required user data types?** Yes, but only when a person chooses to create an account. Without an account, trips stay on the phone; only anonymous crash reports are sent (see the crash logs row).
 **Is all collected data encrypted in transit?** Yes (HTTPS only, enforced by the app's Content-Security-Policy).
 **Do you provide a way for users to request that data is deleted?** Yes. In the app: Settings, account, Delete my account (instant). Web link: https://ofekbp.github.io/globefolio/delete-account.html
 
