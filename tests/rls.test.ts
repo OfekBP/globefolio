@@ -213,6 +213,9 @@ describe('profile personalisation', () => {
     const rows = await as(B, () => q(`select * from public.find_profiles('zed')`))
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ handle: 'dave', avatar: 'a:pilot', accent: '#d94f8a' })
+    // % and _ are plain characters in a name search, not wildcards
+    expect(await as(B, () => q(`select * from public.find_profiles('z%')`))).toHaveLength(0)
+    expect(await as(B, () => q(`select * from public.find_profiles('ze_')`))).toHaveLength(0)
   })
   it('the public link carries the picture, color and bio of public profiles only', async () => {
     await db.query(`update public.profiles set avatar = 'a:sailor', accent = '#2f9e6f', bio = 'Hi there' where id = $1`, [C])

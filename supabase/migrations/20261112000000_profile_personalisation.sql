@@ -25,7 +25,7 @@ create function public.find_profiles(q text) returns table (id uuid, handle text
 language sql stable security definer set search_path = public as $$
   with s as (
     select lower(regexp_replace(trim(q), '[^a-zA-Z0-9_]', '', 'g')) as h,
-           lower(regexp_replace(trim(q), '([\%_])', '\\1', 'g')) as n
+           replace(replace(replace(lower(trim(q)), '\', '\\'), '%', '\%'), '_', '\_') as n
   )
   select p.id, p.handle, p.display_name, p.avatar, p.accent from public.profiles p, s
   where auth.uid() is not null
