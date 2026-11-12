@@ -74,11 +74,48 @@ export async function publicProfile(handle: string): Promise<(Person & { trips: 
   return data as Person & { trips: MapRow[] }
 }
 
+export type CheerKind = 'wow' | 'takeme' | 'beenthere'
+export const CHEERS: { kind: CheerKind; e: string }[] = [{ kind: 'wow', e: '🤩' }, { kind: 'takeme', e: '✈️' }, { kind: 'beenthere', e: '✅' }]
+export interface Cheer { sender: string; iso: string; kind: CheerKind; created_at: string; seen_at: string | null }
+export interface Summary { friend: string; countries: number; cities: number }
+export interface FeedItem { friend: string; iso: string; place: Place | null; start_date: string }
+
+/** A small cheer on a friend's country. One per country per friend; sending again changes it. */
+export const sendCheer = async (to: string, iso: string, kind: CheerKind) =>
+  fail((await need().from('reactions').upsert({ sender: me(), recipient: to, iso, kind, seen_at: null, created_at: new Date().toISOString() }, { onConflict: 'sender,recipient,iso' })).error)
+export async function cheersForMe(): Promise<Cheer[]> {
+  const { data, error } = await need().from('reactions').select('sender, iso, kind, created_at, seen_at').eq('recipient', me()).order('created_at', { ascending: false }).limit(20)
+  fail(error)
+  return (data ?? []) as Cheer[]
+}
+export async function cheersTo(friend: string): Promise<Map<string, CheerKind>> {
+  const { data, error } = await need().from('reactions').select('iso, kind').eq('sender', me()).eq('recipient', friend)
+  fail(error)
+  return new Map((data ?? []).map(r => [r.iso as string, r.kind as CheerKind]))
+}
+export async function unseenCheers(): Promise<number> {
+  const { count, error } = await need().from('reactions').select('sender', { count: 'exact', head: true }).eq('recipient', me()).is('seen_at', null)
+  fail(error)
+  return count ?? 0
+}
+export const markCheersSeen = async () => fail((await need().rpc('mark_cheers_seen')).error)
+export async function friendSummaries(): Promise<Summary[]> {
+  const { data, error } = await need().rpc('friend_summaries')
+  fail(error)
+  return (data ?? []) as Summary[]
+}
+export async function friendFeed(): Promise<FeedItem[]> {
+  const { data, error } = await need().rpc('friend_feed')
+  fail(error)
+  return (data ?? []) as FeedItem[]
+}
+
 /** Tells the app when friend requests change, so a badge and a toast can appear while it is open. */
 export function watchFriendships(onChange: () => void): () => void {
   if (!supabase || !getSession()) return () => {}
   const ch: RealtimeChannel = supabase.channel(`friends:${me()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, onChange)
     .subscribe()
   return () => { void supabase!.removeChannel(ch) }
 }

@@ -19,7 +19,7 @@ import { onPrefs, prefs } from './prefs'
 import { cloudEnabled } from './supabase'
 import { getProfile, getSession, initAuth, isRecovering, onAuth } from './auth'
 import { startSync, stopSync } from './sync'
-import { watchFriendships, listLinks, friendMap, type MapRow, type Person } from './friends'
+import { watchFriendships, listLinks, friendMap, unseenCheers, type MapRow, type Person } from './friends'
 import { avatarHtml } from './ui/avatar'
 import { FRIENDS_CHANGED, renderFriends, renderPublic } from './ui/friends'
 import { joinFromLink, renderShared } from './ui/shared'
@@ -613,10 +613,10 @@ async function boot() {
     let unwatch = () => {}
     const paintBadge = async () => {
       let n = 0
-      try { n = getSession() ? (await listLinks()).filter(l => l.state === 'incoming').length : 0 } catch { /* offline */ }
+      try { n = getSession() ? (await listLinks()).filter(l => l.state === 'incoming').length + (await unseenCheers().catch(() => 0)) : 0 } catch { /* offline */ }
       document.querySelector('.tab[data-do=friends] .badge')?.remove()
       const tab = document.querySelector<HTMLElement>('.tab[data-do=friends]')
-      if (n) { const s = document.createElement('span'); s.className = 'badge'; s.setAttribute('aria-hidden', 'true'); s.textContent = fmtNum(n); tab?.append(s); tab?.setAttribute('aria-label', `${L('tab.friends')}, ${L('fr.badge', { n })}`) }
+      if (n) { const s = document.createElement('span'); s.className = 'badge'; s.setAttribute('aria-hidden', 'true'); s.textContent = fmtNum(n); tab?.append(s); tab?.setAttribute('aria-label', `${L('tab.friends')}, ${L('fr.badgeAny', { n })}`) }
       else tab?.removeAttribute('aria-label')
     }
     // supabase-js re-announces the session when the tab regains focus; only react to a real change, so a half-typed form survives

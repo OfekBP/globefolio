@@ -178,6 +178,33 @@ describe('shared trips', () => {
   })
 })
 
+describe('friend warmth', () => {
+  it('only accepted friends can cheer, and only the two people see the cheer', async () => {
+    await as(B, () => q(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'takeme')`, [B, A]))
+    expect(await as(C, () => fails(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'wow')`, [C, A]))).toBe(true)
+    expect(await as(D, () => fails(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'wow')`, [D, A]))).toBe(true)
+    expect(await as(B, () => fails(`insert into public.reactions (sender, recipient, iso, kind) values ($1, $2, 'FR', 'nope')`, [B, A]))).toBe(true)
+    expect(await as(A, () => q('select kind from public.reactions'))).toHaveLength(1)
+    expect(await as(C, () => q('select kind from public.reactions'))).toHaveLength(0)
+  })
+  it('the recipient can mark cheers seen but cannot edit or delete them', async () => {
+    await as(A, async () => {
+      await q(`update public.reactions set kind = 'wow'`)
+      await q('delete from public.reactions')
+      await q('select public.mark_cheers_seen()')
+    })
+    const r = await q('select kind, seen_at from public.reactions')
+    expect(r).toHaveLength(1)
+    expect(r[0].kind).toBe('takeme')
+    expect(r[0].seen_at).not.toBeNull()
+  })
+  it('summaries cover friends only, and the feed leaves out old trips', async () => {
+    expect((await as(B, () => q('select * from public.friend_summaries()'))).map(r => r.friend)).toEqual([A])
+    expect(await as(C, () => q('select * from public.friend_summaries()'))).toHaveLength(0)
+    expect(await as(B, () => q('select * from public.friend_feed()'))).toHaveLength(0)
+  })
+})
+
 describe('account lifecycle', () => {
   it('export returns the user\'s own data only', async () => {
     const out = (await as(A, () => q('select public.export_my_data() as d')))[0].d

@@ -1,11 +1,11 @@
 import { appUrl } from '../supabase'
 import { getProfile, getSession } from '../auth'
 import { flagUrl, type Geo } from '../data/geo'
-import { acceptRequest, blockPerson, findPeople, friendMap, listBlocked, listLinks, publicProfile, removeLink, reportPerson, sendRequest, unblockPerson, type Link, type MapRow, type Person } from '../friends'
+import { acceptRequest, blockPerson, cheersForMe, cheersTo, CHEERS, findPeople, friendFeed, friendMap, friendSummaries, listBlocked, listLinks, markCheersSeen, publicProfile, removeLink, reportPerson, sendCheer, sendRequest, unblockPerson, type Cheer, type CheerKind, type FeedItem, type Link, type MapRow, type Person, type Summary } from '../friends'
 import { cname, t } from '../i18n'
 import { avatarHtml } from './avatar'
 import { ask } from './dialog'
-import { count, esc } from './format'
+import { count, esc, fmtRange } from './format'
 import { icons } from './icons'
 import { claim } from './sheet'
 import { toast } from './toast'
@@ -54,15 +54,29 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
   let cache: MapRow[] | null = null // the open friend's places
   let expanded = new Set<string>()
   let loadFailed = false
+  let sums = new Map<string, Summary>()
+  let feed: FeedItem[] = []
+  let cheers: Cheer[] = []
+  const fresh = new Set<string>() // cheers that were new when this sheet opened
+  let sent = new Map<string, CheerKind>() // my cheers to the open friend
+  let picking = ''
   let seq = 0 // newest search / friend-map request; older answers are dropped
 
-  const row = (p: Person, actions: string, cls = '') => `
+  const row = (p: Person, actions: string, cls = '', sub = '') => `
     <li class="person${cls}">${avatarHtml(p)}
-      <span class="who"><b>${esc(p.display_name || '@' + p.handle)}</b>${p.display_name ? `<small>@${esc(p.handle)}</small>` : ''}</span>${actions}</li>`
+      <span class="who"><b>${esc(p.display_name || '@' + p.handle)}</b>${sub ? `<small>${sub}</small>` : p.display_name ? `<small>@${esc(p.handle)}</small>` : ''}</span>${actions}</li>`
+  const cheerE = (k: CheerKind) => CHEERS.find(c => c.kind === k)?.e ?? ''
+  const cname2 = (iso: string) => { const c = ctx.geo.byIso.get(iso); return c ? cname(c) : iso }
+  const byId = (id: string) => links.find(l => l.id === id)
   const btn = (p: Person, ax: string, label: string, aria: string, cls = 'mini') => `<button class="${cls}" data-ax="${ax}" data-id="${p.id}" aria-label="${esc(t(aria, { name: name(p) }))}">${label}</button>`
 
   async function load() {
     try { [links, blocked] = await Promise.all([listLinks(), listBlocked()]); loadFailed = false } catch { loadFailed = true }
+    // the warm extras are optional: if they cannot load, the sheet still works
+    const [s, fd, ch] = await Promise.all([friendSummaries().catch(() => []), friendFeed().catch(() => []), cheersForMe().catch(() => [])])
+    sums = new Map(s.map(x => [x.friend, x])); feed = fd; cheers = ch
+    for (const c of ch) if (!c.seen_at) fresh.add(`${c.sender}|${c.iso}`)
+    if (ch.some(c => !c.seen_at) && !open) void markCheersSeen().catch(() => {})
     if (alive()) draw()
   }
   const onChanged = () => { if (!alive()) return document.removeEventListener(FRIENDS_CHANGED, onChanged); if (!open) void load() }
@@ -84,6 +98,10 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
     } catch { if (my === seq && out.isConnected) out.innerHTML = `<li class="none">${t('acct.error')}</li>` }
   }
 
+  /** Shown while you have no friends yet: three small steps that make the space feel like yours. */
+  const welcome = (me: ReturnType<typeof getProfile>) => `<div class="empty-card welcome"><div class="empty-art" aria-hidden="true">🌍</div><p><b>${t('fr.welcomeTitle')}</b></p>
+      <ol class="steps"><li><button class="text" data-ax="look">${t('fr.step.look')}</button></li><li><button class="text" data-ax="look">${t('fr.step.privacy')}</button></li><li>${me ? `<button class="text" data-ax="share">${t('fr.step.invite')}</button>` : t('fr.step.invite')}</li></ol></div>`
+
   function draw(moveFocus = false) {
     if (open) return drawFriend(open, moveFocus)
     if (loadFailed && !links.length) {
@@ -104,8 +122,10 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
         <div class="search-field">${icons.search}<input id="fr-q" dir="auto" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${t('fr.search')}" aria-label="${t('fr.search')}" /></div>
         <ul class="people" id="fr-results" aria-live="polite"></ul>
         ${incoming.length ? `<h3 class="sub-title">${t('fr.requests')} · ${incoming.length}</h3><ul class="people">${incoming.map(p => row(p, `<div class="person-actions">${btn(p, 'accept', t('fr.accept'), 'fr.ariaAccept', 'mini')}${btn(p, 'decline', t('fr.notNow'), 'fr.ariaDecline', 'mini ghost')}${btn(p, 'blockreq', t('fr.block'), 'fr.ariaBlock', 'text danger tiny')}</div>`, ' req')).join('')}</ul>` : ''}
+        ${cheers.length ? `<h3 class="sub-title">${t('fr.cheers')}</h3><ul class="cheer-list">${cheers.slice(0, 6).map(c => { const p = byId(c.sender); if (!p) return ''; return `<li class="cheer-row${fresh.has(`${c.sender}|${c.iso}`) ? ' new' : ''}">${avatarHtml(p)}<span><b>${esc(name(p))}</b> ${cheerE(c.kind)} ${t(`fr.cheer.${c.kind}`)} <small>${flag(ctx.geo, c.iso)}${esc(cname2(c.iso))}</small></span></li>` }).join('')}</ul>` : ''}
+        ${feed.length ? `<h3 class="sub-title">${t('fr.lately')}</h3><ul class="lately">${feed.slice(0, 4).map(i => { const p = byId(i.friend); if (!p) return ''; return `<li>${avatarHtml(p)}<span>${t('fr.latelyLine', { name: `<b>${esc(name(p))}</b>`, place: esc(i.place?.name ? String(i.place.name) : cname2(i.iso)) })} <small>${fmtRange(i.start_date)}</small></span></li>` }).join('')}</ul>` : ''}
         <h3 class="sub-title">${t('fr.yours')}</h3>
-        ${friends.length ? `<ul class="people">${friends.map(p => row(p, btn(p, 'open', t('fr.view'), 'fr.ariaOpen'))).join('')}</ul>` : `<div class="empty-card"><div class="empty-art" aria-hidden="true">🌍</div><p>${t('fr.none')}</p>${me ? `<button class="solid" data-ax="share">${t('fr.share')}</button>` : ''}</div>`}
+        ${friends.length ? `<ul class="people">${friends.map(p => { const s = sums.get(p.id); return row(p, btn(p, 'open', t('fr.view'), 'fr.ariaOpen'), '', p.status ? `“${esc(p.status)}”` : s ? `${count('country', s.countries)}` : '') }).join('')}</ul>` : welcome(me)}
         ${outgoing.length ? `<h3 class="sub-title">${t('fr.sent')}</h3><ul class="people">${outgoing.map(p => row(p, btn(p, 'decline', t('fr.cancelReq'), 'fr.ariaCancel', 'mini ghost'))).join('')}</ul>` : ''}
         ${blocked.length ? `<h3 class="sub-title">${t('fr.blocked')}</h3><ul class="people">${blocked.map(p => row(p, btn(p, 'unblock', t('fr.unblock'), 'fr.ariaUnblock', 'mini ghost'))).join('')}</ul>` : ''}
       </div>`
@@ -126,15 +146,16 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
     const list = (isos: string[], key: string) => {
       const all = expanded.has(key)
       const shownIsos = all ? isos : isos.slice(0, PAGE)
-      return `<ul class="flags">${shownIsos.map(i => `<li><span class="flagchip">${flag(ctx.geo, i)}<span class="fc-name">${esc(ctx.geo.byIso.get(i) ? cname(ctx.geo.byIso.get(i)!) : i)}</span></span></li>`).join('')}${!all && isos.length > PAGE ? `<li class="more"><button class="text" data-ax="more" data-key="${key}">${t('fr.showAll', { n: isos.length })}</button></li>` : ''}</ul>`
+      return `<ul class="flags">${shownIsos.map(i => `<li><button class="flagchip${picking === i ? ' on' : ''}" data-ax="chip" data-iso="${i}" aria-pressed="${picking === i}" aria-label="${esc(t('fr.cheerPick', { country: cname2(i) }))}">${flag(ctx.geo, i)}<span class="fc-name">${esc(cname2(i))}</span>${sent.has(i) ? `<small class="cheer-badge">${cheerE(sent.get(i)!)}</small>` : ''}</button></li>`).join('')}${!all && isos.length > PAGE ? `<li class="more"><button class="text" data-ax="more" data-key="${key}">${t('fr.showAll', { n: isos.length })}</button></li>` : ''}</ul>`
     }
     const shown = ctx.overlayOf() === p.handle
+    const bar = picking ? `<div class="cheer-bar" role="group" aria-label="${esc(t('fr.cheerPick', { country: cname2(picking) }))}">${CHEERS.map(c => `<button class="mini${sent.get(picking) === c.kind ? ' solid' : ' ghost'}" data-ax="cheer" data-kind="${c.kind}">${c.e} ${t(`fr.cheer.${c.kind}`)}</button>`).join('')}</div>` : `<p class="t-note">${t('fr.tapHint')}</p>`
     root.querySelector('#fr-sub')!.textContent = rows.length ? `${count('country', theirs.size)} · ${count('city', cities)}` : t('fr.empty', { name: name(p) })
     root.querySelector('#fr-body')!.innerHTML = `
       ${rows.length ? `<button class="solid wide" data-ax="overlay">${shown ? t('fr.hideOverlay') : t('fr.showOverlay')}</button>
         ${common.length ? `<h3 class="sub-title">${t('fr.common')} · ${common.length}</h3>${list(common, 'c')}` : `<p class="t-note">${t('fr.noOverlap')}</p>`}
         ${onlyTheirs.length ? `<h3 class="sub-title">${t('fr.theirsOnly')} · ${onlyTheirs.length}</h3>${list(onlyTheirs, 't')}` : ''}
-        ${onlyMine.length ? `<p class="t-note">${t('fr.mineOnly', { n: onlyMine.length })}</p>` : ''}`
+        ${onlyMine.length ? `<p class="t-note">${t('fr.mineOnly', { n: onlyMine.length })}</p>` : ''}${bar}`
       : `<div class="empty-card"><div class="empty-art" aria-hidden="true">🔒</div><p>${t('fr.emptyHint', { name: name(p) })}</p><button class="solid" data-ax="ask">${t('fr.ask', { name: name(p) })}</button></div>`}
       <div class="foot-actions"><button class="text" data-ax="remove">${t('fr.remove')}</button><button class="text danger" data-ax="block">${t('fr.block')}</button><button class="text danger" data-ax="report">${t('fr.report')}</button></div>
       <p class="status" id="fr-status" role="status"></p>`
@@ -145,7 +166,8 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
       <div class="friend-head">${avatarHtml(p, 'lg')}<h2 class="title">${esc(name(p))}</h2></div>${p.status ? `<p class="prof-status">${esc(p.status)}</p>` : ''}${p.bio ? `<p class="t-note">${esc(p.bio)}</p>` : ''}<p class="lede" id="fr-sub">…</p><div id="fr-body"></div></div>`
     if (moveFocus) focusTitle()
     const my = ++seq
-    cache = null; expanded = new Set()
+    cache = null; expanded = new Set(); picking = ''; sent = new Map()
+    void cheersTo(p.id).then(m => { sent = m; if (cache && open?.id === p.id) paintFriend(p) }).catch(() => {})
     void friendMap(p.id).then(rows => {
       if (my !== seq || !alive() || open?.id !== p.id) return
       cache = rows
@@ -188,6 +210,12 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
           if (why) { await reportPerson(open.id, why); toast(t('fr.reported')) }
         } break
         case 'ask': if (open) await share(t('fr.askText')); break
+        case 'chip': picking = picking === el.dataset.iso ? '' : el.dataset.iso!; if (open) paintFriend(open); break
+        case 'cheer': if (open && picking) {
+          const k = el.dataset.kind as CheerKind
+          await sendCheer(open.id, picking, k); sent.set(picking, k); toast(t('fr.cheerSent', { name: name(open) })); picking = ''; paintFriend(open)
+        } break
+        case 'look': ctx.openAccount(); break
         case 'share': { const me = getProfile(); if (me) { const link = `${appUrl()}#/u/${me.handle}`; await share(t('fr.shareText', { handle: me.handle }), link) } break }
       }
     } catch { toast(t('acct.error')) }

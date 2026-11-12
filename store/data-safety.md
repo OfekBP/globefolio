@@ -40,3 +40,5 @@ Not independently security-reviewed: leave that box unticked.
 
 
 **Update 12 Nov 2026:** profiles can now carry an optional picture, accent color, bio and status. In the Play Console declare **Photos**: collected, shared with other users (visible to people who find the profile), optional, for app functionality, and user-removable. The picture is a tiny image stored in the profile row (no separate file storage). No camera or photo-library permission is requested: the browser's file picker is used.
+
+**Update 13 Nov 2026:** friends can send each other cheers (a three-way reaction on a country). This is user-generated content visible only to the two people, with no free text, so no change to the answers above.

@@ -36,3 +36,5 @@ In-app: Journal > Your account > Download my data / Delete my account. By email:
 - Is an EU representative (GDPR Art. 27) needed given we do not target the EU specifically?
 - Does any Israeli registration or notification duty apply at our size (post Amendment 13)? Is a DPO needed?
 - Review of Privacy Policy and Terms wording; whether 327741815 should be public.
+
+Added 13 Nov 2026: `reactions` table (sender, recipient, country code, kind Wow/Take me there/Been there). Visible only to sender and recipient, limited to accepted unblocked friends, 200 per day per person, deleted by cascade with either account, no push notifications.
