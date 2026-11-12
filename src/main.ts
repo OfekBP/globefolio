@@ -17,7 +17,7 @@ import { renderLanguage } from './ui/language'
 import { renderSettings } from './ui/settings'
 import { onPrefs, prefs } from './prefs'
 import { cloudEnabled } from './supabase'
-import { getProfile, getSession, initAuth, onAuth } from './auth'
+import { getProfile, getSession, initAuth, isRecovering, onAuth } from './auth'
 import { startSync, stopSync } from './sync'
 import { watchFriendships, listLinks, type MapRow } from './friends'
 import { renderFriends, renderPublic } from './ui/friends'
@@ -591,8 +591,11 @@ async function boot() {
     let closeWelcome: (() => void) | null = null
     let lastUid: string | undefined = '?'
     let lastKey = ''
+    let recoveryShown = false
     onAuth(() => {
       const s = getSession()
+      if (s && isRecovering() && !recoveryShown) { recoveryShown = true; closeWelcome?.(); closeWelcome = null; openAccount() }
+      if (!isRecovering()) recoveryShown = false
       if (s) { closeWelcome?.(); closeWelcome = null }
       if (s?.user.id !== lastUid) {
         lastUid = s?.user.id

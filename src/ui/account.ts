@@ -1,4 +1,4 @@
-import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithPassword, signUpWithPassword, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
+import { emailEnabled, appleEnabled, contactEmail, createProfile, deleteAccount, exportCloudData, getProfile, getSession, googleButtonEnabled, profileLoadFailed, profileLoading, reloadProfile, handleAvailable, handleOk, renderGoogleButton, signInWithEmail, signInWithPassword, signUpWithPassword, sendPasswordReset, setNewPassword, isRecovering, signInWithProvider, signOutRemote, updateProfile, type Visibility } from '../auth'
 import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
@@ -16,17 +16,106 @@ export function signInHtml() {
   <button class="solid wide" data-ax="google"${googleButtonEnabled ? ' hidden' : ''}>${t('acct.google')}</button>
   ${appleEnabled ? `<button class="solid wide dark" data-ax="apple">${t('acct.apple')}</button>` : ''}
 </div>
-${emailEnabled ? `<p class="or"><span>${t('acct.or')}</span></p>
-<form id="email-form" novalidate>
-  <div class="field"><label for="a-email">${t('acct.email')}</label><input id="a-email" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="${t('acct.emailPh')}" /></div>
-  <div class="field"><label for="a-pw">${t('acct.password')}</label><input id="a-pw" type="password" autocomplete="current-password" dir="ltr" minlength="8" /></div>
-  <button class="solid wide" type="submit">${t('acct.signIn')}</button>
-  <button class="wide" type="button" data-ax="signup">${t('acct.signUp')}</button>
-  <button class="text wide" type="button" data-ax="link">${t('acct.emailBtn')}</button>
-</form>` : ''}
+${emailEnabled ? `<p class="or"><span>${t('acct.or')}</span></p><div id="pw-area"></div>` : ''}
 <p class="status" id="a-status" role="status"></p>
 <p class="fine">${t('acct.consent', { terms: link('./terms.html', t('acct.terms')), privacy: link('./privacy.html', t('acct.privacy')) })}</p>
   `
+}
+
+type Mode = 'in' | 'up' | 'forgot'
+const eyeOn = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
+const eyeOff = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 6.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.5 6.8C3.7 8.6 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>'
+
+const passwordField = (id: string, label: string, auto: string) => `<div class="field"><label for="${id}">${label}</label>
+  <div class="pw"><input id="${id}" type="password" autocomplete="${auto}" dir="ltr" autocapitalize="none" spellcheck="false" /><button class="eye" type="button" data-eye="${id}" aria-label="${t('acct.show')}" aria-pressed="false">${eyeOn}</button></div></div>`
+
+function wireEyes(root: HTMLElement) {
+  root.querySelectorAll<HTMLButtonElement>('[data-eye]').forEach(b => {
+    b.onclick = () => {
+      const input = root.querySelector<HTMLInputElement>('#' + b.dataset.eye)!
+      const show = input.type === 'password'
+      input.type = show ? 'text' : 'password'
+      b.innerHTML = show ? eyeOff : eyeOn
+      b.setAttribute('aria-pressed', String(show))
+      b.setAttribute('aria-label', t(show ? 'acct.hide' : 'acct.show'))
+      input.focus()
+    }
+  })
+}
+
+/** Email + password: a Sign in / Create account switch, a forgot-password step, and the email-link fallback. */
+function wirePasswordArea(area: HTMLElement, say: (m: string, bad?: boolean) => void) {
+  const emailOk = (v: string) => /^\S+@\S+\.\S+$/.test(v)
+  let carry = ''
+  const paint = (mode: Mode) => {
+    say('')
+    const email = `<div class="field"><label for="a-email">${t('acct.email')}</label><input id="a-email" type="email" inputmode="email" autocomplete="email" dir="ltr" autocapitalize="none" spellcheck="false" placeholder="${t('acct.emailPh')}" value="${esc(carry)}" /></div>`
+    if (mode === 'forgot') {
+      area.innerHTML = `<h3 class="pw-title">${t('acct.resetTitle')}</h3><p class="pw-note">${t('acct.resetLede')}</p>
+        <form id="pw-form" novalidate>${email}<button class="solid wide" type="submit">${t('acct.resetBtn')}</button></form>
+        <button class="text center" type="button" data-mode="in">${t('acct.backToSignIn')}</button>`
+    } else {
+      const up = mode === 'up'
+      area.innerHTML = `<div class="seg" role="group">
+          <button type="button" data-mode="in" aria-pressed="${!up}">${t('acct.signIn')}</button>
+          <button type="button" data-mode="up" aria-pressed="${up}">${t('acct.signUp')}</button></div>
+        <form id="pw-form" novalidate>${email}${passwordField('a-pw', t('acct.password'), up ? 'new-password' : 'current-password')}
+          ${up ? `<p class="pw-note">${t('acct.pwHint')}</p>` : `<div class="forgot"><button class="text" type="button" data-mode="forgot">${t('acct.forgot')}</button></div>`}
+          <button class="solid wide" type="submit">${up ? t('acct.signUp') : t('acct.signIn')}</button></form>
+        ${up ? '' : `<button class="text center" type="button" data-mode="link">${t('acct.emailBtn')}</button>`}`
+    }
+    wireEyes(area)
+    area.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => {
+      b.onclick = () => {
+        carry = area.querySelector<HTMLInputElement>('#a-email')?.value.trim() ?? carry
+        const m = b.dataset.mode as Mode | 'link'
+        if (m === 'link') void emailLink(); else paint(m)
+      }
+    })
+    area.querySelector<HTMLFormElement>('#pw-form')!.onsubmit = e => { e.preventDefault(); void submit(mode) }
+  }
+  const lock = (on: boolean) => area.querySelectorAll('button').forEach(b => { b.disabled = on }) // a second tap would only trip the email rate limit
+  const emailLink = async () => {
+    const email = area.querySelector<HTMLInputElement>('#a-email')!.value.trim()
+    if (!emailOk(email)) { say(t('acct.emailBad'), true); return }
+    lock(true)
+    try { await signInWithEmail(email); say(t('acct.sent', { email })) } catch { say(t('acct.error'), true) }
+    lock(false)
+  }
+  const submit = async (mode: Mode) => {
+    const email = area.querySelector<HTMLInputElement>('#a-email')!.value.trim()
+    const pw = area.querySelector<HTMLInputElement>('#a-pw')?.value ?? ''
+    if (!emailOk(email)) { say(t('acct.emailBad'), true); return }
+    if (mode === 'up' && pw.length < 8) { say(t('acct.pwShort'), true); return }
+    if (mode === 'in' && !pw) { say(t('acct.wrongPw'), true); return }
+    lock(true)
+    try {
+      if (mode === 'in') await signInWithPassword(email, pw)
+      else if (mode === 'up') { if (!(await signUpWithPassword(email, pw))) say(t('acct.confirmSent', { email })) }
+      else { await sendPasswordReset(email); say(t('acct.resetSent', { email })) }
+    } catch { say(mode === 'in' ? t('acct.wrongPw') : t('acct.error'), true) }
+    lock(false)
+  }
+  paint('in')
+}
+
+/** Shown after the link in a reset email is opened: choose a new password. */
+function renderNewPassword(root: HTMLElement, ctx: Ctx) {
+  root.innerHTML = `<div class="sheet"><h2 class="title">${t('acct.newPwTitle')}</h2><p class="lede">${t('acct.newPwLede')}</p>
+    <form id="np-form" novalidate>${passwordField('a-np', t('acct.password'), 'new-password')}<p class="pw-note">${t('acct.pwHint')}</p>
+      <p class="status" id="a-status" role="status"></p>
+      <button class="solid wide" type="submit">${t('acct.newPwBtn')}</button></form></div>`
+  wireEyes(root)
+  const status = root.querySelector<HTMLElement>('#a-status')!
+  root.querySelector<HTMLFormElement>('#np-form')!.onsubmit = async e => {
+    e.preventDefault()
+    const pw = root.querySelector<HTMLInputElement>('#a-np')!.value
+    status.classList.add('error')
+    if (pw.length < 8) { status.textContent = t('acct.pwShort'); return }
+    const go = root.querySelector<HTMLButtonElement>('#np-form [type=submit]')!
+    go.disabled = true
+    try { await setNewPassword(pw); toast(t('acct.newPwDone')); ctx.back() } catch { status.textContent = t('acct.error'); go.disabled = false }
+  }
 }
 
 /** Hooks up the controls from signInHtml(). `[data-ax=back]` calls onBack. */
@@ -48,22 +137,8 @@ export function wireSignIn(root: HTMLElement, onBack: () => void) {
     else if (k === 'apple') void oauth('apple', el)
     else if (k === 'back') onBack()
   }
-  const emailForm = root.querySelector<HTMLFormElement>('#email-form')
-  if (emailForm) {
-    const val = () => ({ email: root.querySelector<HTMLInputElement>('#a-email')!.value.trim(), pw: root.querySelector<HTMLInputElement>('#a-pw')!.value })
-    const busy = (on: boolean) => emailForm.querySelectorAll('button').forEach(b => { b.disabled = on }) // a second tap would only trip the email rate limit
-    const run = async (needPw: boolean, job: (email: string, pw: string) => Promise<void>) => {
-      const { email, pw } = val()
-      if (!/^\S+@\S+\.\S+$/.test(email)) { say(t('acct.error'), true); return }
-      if (needPw && pw.length < 8) { say(t('acct.pwShort'), true); return }
-      busy(true)
-      try { await job(email, pw) } catch { say(needPw ? t('acct.wrongPw') : t('acct.error'), true) }
-      busy(false)
-    }
-    emailForm.onsubmit = e => { e.preventDefault(); void run(true, (m, p) => signInWithPassword(m, p)) }
-    emailForm.querySelector<HTMLElement>('[data-ax=signup]')!.onclick = () => void run(true, async (m, p) => { say((await signUpWithPassword(m, p)) ? '' : t('acct.confirmSent', { email: m })) })
-    emailForm.querySelector<HTMLElement>('[data-ax=link]')!.onclick = () => void run(false, async m => { await signInWithEmail(m); say(t('acct.sent', { email: m })) })
-  }
+  const area = root.querySelector<HTMLElement>('#pw-area')
+  if (area) wirePasswordArea(area, say)
 }
 
 /** The account sheet: sign in, pick a handle, and the privacy and data controls. It shows whichever step the person is on. */
@@ -71,6 +146,7 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
   const session = getSession()
   const profile = getProfile()
   const head = `<button class="x" data-act="close" aria-label="${t('close')}">${icons.close}</button>`
+  if (session && isRecovering()) { renderNewPassword(root, ctx); return }
   const legal = `<p class="fine">${link('./privacy.html', t('acct.privacy'))} · ${link('./terms.html', t('acct.terms'))}</p>`
 
   if (!session) {

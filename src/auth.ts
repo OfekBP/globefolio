@@ -13,6 +13,7 @@ let session: Session | null = null
 let profile: Profile | null = null
 let profileFailed = false
 let profilePending = false
+let recovering = false
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach(fn => fn())
 
@@ -24,6 +25,11 @@ export const profileLoadFailed = () => profileFailed
 export const signedIn = () => !!session
 /** true while the first profile fetch is still in flight, so the UI shows loading rather than offering to create a handle */
 export const profileLoading = () => profilePending
+/** true after someone opens the link in a password-reset email: the app then asks for a new password */
+export const isRecovering = () => recovering
+
+// registered at load, before the client finishes reading the reset link from the address bar, so the event is never missed
+supabase?.auth.onAuthStateChange(event => { if (event === 'PASSWORD_RECOVERY') { recovering = true; setTimeout(emit, 0) } })
 
 async function loadProfile() {
   if (!supabase || !session) { profile = null; profileFailed = false; return }
@@ -121,6 +127,18 @@ export async function signUpWithPassword(email: string, password: string): Promi
   const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: appUrl() } })
   fail(error)
   return !!data.session
+}
+
+export async function sendPasswordReset(email: string) {
+  if (!supabase) throw new Error('Accounts are not set up yet')
+  fail((await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: appUrl() })).error)
+}
+
+export async function setNewPassword(password: string) {
+  if (!supabase) throw new Error('Accounts are not set up yet')
+  fail((await supabase.auth.updateUser({ password })).error)
+  recovering = false
+  emit()
 }
 
 export const handleOk = (h: string) => /^[a-z0-9_]{3,20}$/.test(h) && !['admin', 'support', 'tripglobe', 'globefolio', 'help', 'root', 'staff', 'official'].includes(h)
