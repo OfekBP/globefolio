@@ -9,12 +9,13 @@ This is a working record, not legal advice: have a lawyer confirm what applies (
 |---|---|---|---|
 | Email, sign-in provider, user id | accounts | Supabase Auth (EU region) | until account deletion |
 | Handle, display name, home city, visibility | profile and friends | Supabase `profiles` | until deletion |
+| Profile picture (preset or a small photo, at most 9 KB, stored in the row), accent color, bio, status | profile; visible to anyone who can find the person | Supabase `profiles` | until deletion or until the person removes it |
 | Trips, dream list (city, dates, notes, hidden flag) | sync and sharing | Supabase `trips`, `wishes` | until deleted; tombstones purged after 30 days |
 | Friendships, blocks, reports, shared trips and stops | social features | Supabase tables | until deletion; reports as needed for safety |
 | Crash reports (message, short stack, page path, version, language, browser) | fix bugs | Supabase `error_reports` | 30 days (daily purge job) |
 | Local-only data (guest mode) | app function | user's own browser (IndexedDB) | until user clears it |
 
-No GPS or background location, no contacts, no photos, no advertising IDs, no third-party analytics.
+No GPS or background location, no contacts, no photo library access (a profile picture is chosen and uploaded by the person, shrunk on their phone), no advertising IDs, no third-party analytics.
 
 ## Processors
 Supabase (database, auth, realtime; EU region), Google (optional sign-in), Brevo (sign-in emails; free plan, sender obporat55@gmail.com), GitHub Pages (static hosting; sees IP), Google Play (distribution). Review each provider's DPA/terms is accepted in their dashboards.

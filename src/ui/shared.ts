@@ -3,6 +3,7 @@ import { cityName, flagUrl, placeName, search, type Geo, type Hit } from '../dat
 import { listLinks } from '../friends'
 import { cname, t } from '../i18n'
 import { acceptInvite, createInviteLink, createShared, deleteShared, getMembers, getStops, inviteFriend, listShared, removeMember, removeStop, saveStop, setRole, watchTrip, type Member, type SharedTrip, type Stop } from '../shared'
+import { avatarHtml } from './avatar'
 import { count, esc, fmtRange } from './format'
 import { icons } from './icons'
 import { claim } from './sheet'
@@ -100,7 +101,7 @@ export function renderShared(root: HTMLElement, ctx: SharedCtx, openId?: string)
         ${canEdit ? `<div class="search-field">${icons.search}<input id="sh-q" autocomplete="off" spellcheck="false" placeholder="${t('sh.addStop')}" value="${esc(keep)}" /></div><ul id="sh-results" class="results"></ul>` : ''}
         ${stops.length ? `<div class="foot-actions"><button class="solid" data-ax="import">${t('sh.addToMap')}</button></div>` : ''}
         <h3 class="sub-title">${t('sh.members')}</h3>
-        <ul class="people">${members.map(m => `<li class="person"><span class="avatar" aria-hidden="true">${esc((m.display_name || m.handle).slice(0, 1).toUpperCase())}</span><span class="who"><b>${esc(m.display_name || '@' + m.handle)}</b><small>${t(`sh.role.${m.role}`)}</small></span>
+        <ul class="people">${members.map(m => `<li class="person">${avatarHtml(m)}<span class="who"><b>${esc(m.display_name || '@' + m.handle)}</b><small>${t(`sh.role.${m.role}`)}</small></span>
           ${trip.role === 'owner' && m.id !== mine ? `<select data-ax="role" data-id="${m.id}" aria-label="${t('sh.members')}"><option value="editor" ${m.role === 'editor' ? 'selected' : ''}>${t('sh.role.editor')}</option><option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>${t('sh.role.viewer')}</option></select><button class="mini ghost" data-ax="rmmember" data-id="${m.id}" aria-label="${t('sh.remove')}">${icons.close}</button>` : ''}</li>`).join('')}</ul>
         ${trip.role === 'owner' ? `
           <h3 class="sub-title">${t('sh.invite')}</h3>

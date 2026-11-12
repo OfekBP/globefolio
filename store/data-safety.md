@@ -16,7 +16,8 @@ Use these when filling Policy, App content. They match the privacy policy and th
 | Other user-generated content (trips, wishes, notes) | Yes, only for signed-in users | No | Yes | App functionality (sync, friends, shared trips) |
 | Precise or approximate location | **No**. The app never reads the phone's location; places are picked by the user from a list | - | - | - |
 | App info and performance: Crash logs (error message, short stack trace, page path, app version, language, browser string; no user id) | **Yes**, sent automatically when the app hits an unexpected error, to our own database, deleted after 30 days | No | No (automatic) | Analytics (diagnostics) |
-| Photos, contacts, files, calendar, financial, health, device IDs, ads data, other analytics | **No** | - | - | - |
+| Photos (optional profile picture the user uploads) | Yes | Yes, visible to other users who find the profile | Yes (user can leave it empty or remove it) | App functionality |
+| Contacts, files, calendar, financial, health, device IDs, ads data, other analytics | **No** | - | - | - |
 
 "Shared" means transferred to a third party. Supabase (database host) and Google (sign-in) act as service providers on our behalf, which Play does not count as sharing. Friends see data only when the user sets their profile to friends or public.
 
@@ -36,3 +37,6 @@ Not independently security-reviewed: leave that box unticked.
 - **Advertising ID:** the app does not use it (declare "No").
 - **Permissions:** the wrapper asks for none beyond internet. No notifications, no location, no camera.
 - **App access for reviewers:** the core app needs no login. For the account features, create a test account (email magic link or a Google test user) and give those details in "App access".
+
+
+**Update 12 Nov 2026:** profiles can now carry an optional picture, accent color, bio and status. In the Play Console declare **Photos**: collected, shared with other users (visible to people who find the profile), optional, for app functionality, and user-removable. The picture is a tiny image stored in the profile row (no separate file storage). No camera or photo-library permission is requested: the browser's file picker is used.

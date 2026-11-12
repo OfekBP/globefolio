@@ -21,7 +21,7 @@ export interface StoryModel {
   homeName?: string
   theme: 'light' | 'dark'
   /** present only when the app is connected to a backend */
-  account?: { handle?: string; signedIn: boolean }
+  account?: { handle?: string; name?: string; signedIn: boolean }
 }
 
 const EARTH_KM = 40075
@@ -101,7 +101,7 @@ export function renderStory(m: StoryModel): string {
 
   return `
     <div class="hero-copy">
-      <p class="hello">${hello()}</p>
+      <p class="hello">${hello()}${m.account?.name ? `, ${esc(m.account.name.trim().split(/\s+/)[0])}` : ''}</p>
       <h2 class="headline">${headline}</h2>
       <p class="sub">${[around, m.farthest ? (mi() ? t('story.farthestMi', { name: esc(m.farthest.name), mi: num(inUnits(m.farthest.km)) }) : t('story.farthest', { name: esc(m.farthest.name), km: num(m.farthest.km) })) : ''].filter(Boolean).join(' ')}</p>
     </div>

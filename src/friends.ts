@@ -3,7 +3,7 @@ import { getSession } from './auth'
 import type { Place } from './store'
 import { supabase } from './supabase'
 
-export interface Person { id: string; handle: string; display_name: string | null }
+export interface Person { id: string; handle: string; display_name: string | null; avatar?: string | null; accent?: string | null; bio?: string | null; status?: string | null }
 /** `incoming`: they asked you; `outgoing`: you asked them; `friend`: accepted. */
 export interface Link extends Person { state: 'incoming' | 'outgoing' | 'friend' }
 export interface MapRow { iso: string; place: Place | null; start_date: string | null }
@@ -20,7 +20,7 @@ export async function listLinks(): Promise<Link[]> {
   const rows = data ?? []
   const ids = [...new Set(rows.map(r => (r.requester === me() ? r.addressee : r.requester)))]
   if (!ids.length) return []
-  const { data: people, error: e2 } = await db.from('profiles').select('id, handle, display_name').in('id', ids)
+  const { data: people, error: e2 } = await db.from('profiles').select('id, handle, display_name, avatar, accent, bio, status').in('id', ids)
   fail(e2)
   const byId = new Map((people ?? []).map(p => [p.id as string, p as Person]))
   return rows.flatMap(r => {
@@ -55,7 +55,7 @@ export async function listBlocked(): Promise<Person[]> {
   fail(error)
   const ids = (data ?? []).map(r => r.blocked as string)
   if (!ids.length) return []
-  const { data: people, error: e2 } = await db.from('profiles').select('id, handle, display_name').in('id', ids)
+  const { data: people, error: e2 } = await db.from('profiles').select('id, handle, display_name, avatar, accent, bio, status').in('id', ids)
   fail(e2)
   return (people ?? []) as Person[]
 }
@@ -67,11 +67,11 @@ export async function friendMap(id: string): Promise<MapRow[]> {
 }
 
 /** The public page behind a shared link. Works without signing in. */
-export async function publicProfile(handle: string): Promise<{ handle: string; display_name: string | null; trips: MapRow[] } | null> {
+export async function publicProfile(handle: string): Promise<(Person & { trips: MapRow[] }) | null> {
   if (!supabase) return null
   const { data, error } = await supabase.rpc('public_profile', { h: handle })
   if (error || !data) return null
-  return data as { handle: string; display_name: string | null; trips: MapRow[] }
+  return data as Person & { trips: MapRow[] }
 }
 
 /** Tells the app when friend requests change, so a badge and a toast can appear while it is open. */

@@ -18,7 +18,7 @@ export interface FriendsCtx {
   /** the countries I have been to, for comparing */
   myIsos(): Set<string>
   /** paints a friend's places on my map (null clears it) */
-  overlay(rows: MapRow[] | null, handle?: string, id?: string): void
+  overlay(rows: MapRow[] | null, handle?: string, id?: string, who?: Person): void
   overlayOf(): string | undefined
 }
 
@@ -142,7 +142,7 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
 
   function drawFriend(p: Link, moveFocus = true) {
     root.innerHTML = `<div class="sheet">${head()}<button class="back" data-ax="home">${icons.back}${t('fr.title')}</button>
-      <div class="friend-head">${avatarHtml(p, 'lg')}<h2 class="title">${esc(name(p))}</h2></div><p class="lede" id="fr-sub">…</p><div id="fr-body"></div></div>`
+      <div class="friend-head">${avatarHtml(p, 'lg')}<h2 class="title">${esc(name(p))}</h2></div>${p.status ? `<p class="prof-status">${esc(p.status)}</p>` : ''}${p.bio ? `<p class="t-note">${esc(p.bio)}</p>` : ''}<p class="lede" id="fr-sub">…</p><div id="fr-body"></div></div>`
     if (moveFocus) focusTitle()
     const my = ++seq
     cache = null; expanded = new Set()
@@ -177,7 +177,7 @@ export function renderFriends(root: HTMLElement, ctx: FriendsCtx) {
         case 'home': open = null; draw(true); break
         case 'more': expanded.add(el.dataset.key!); if (open) paintFriend(open); break
         case 'overlay': if (open && cache) {
-          if (ctx.overlayOf() === open.handle) { ctx.overlay(null); paintFriend(open) } else { ctx.overlay(cache, open.handle, open.id); ctx.close() }
+          if (ctx.overlayOf() === open.handle) { ctx.overlay(null); paintFriend(open) } else { ctx.overlay(cache, open.handle, open.id, open); ctx.close() }
         } break
         case 'remove': if (open) { const p = open; await removeLink(p.id); if (ctx.overlayOf() === p.handle) ctx.overlay(null); open = null; toast(t('fr.removed', { name: name(p) })); await load() } break
         case 'block': if (open && (await ask({ title: t('fr.blockTitle', { name: name(open) }), body: t('fr.blockBody'), confirm: t('fr.block'), danger: true })) !== null) {
@@ -222,6 +222,7 @@ export async function renderPublic(root: HTMLElement, handle: string, ctx: { geo
   const on = ctx.overlayOf?.() === p.handle
   root.innerHTML = `<div class="sheet">${head()}
     <div class="friend-head">${avatarHtml(p, 'lg')}<h2 class="title">${t('pub.title', { name: esc(p.display_name || '@' + p.handle) })}</h2></div>
+    ${p.status ? `<p class="prof-status">${esc(p.status)}</p>` : ''}${p.bio ? `<p class="t-note">${esc(p.bio)}</p>` : ''}
     <p class="lede">${count('country', isos.length)} · ${count('city', cities)}</p>
     <ul class="flags">${isos.map(i => `<li><span class="flagchip">${flag(ctx.geo, i)}<span class="fc-name">${esc(ctx.geo.byIso.get(i) ? cname(ctx.geo.byIso.get(i)!) : i)}</span></span></li>`).join('')}</ul>
     <div class="foot-actions"><button class="solid" data-ax="map">${on ? t('fr.hideOverlay') : t('pub.onMap')}</button><button class="text" data-ax="close">${t('pub.cta')}</button></div></div>`

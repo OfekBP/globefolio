@@ -49,7 +49,7 @@ export async function getMembers(tripId: string): Promise<Member[]> {
   const { data, error } = await db.from('shared_trip_members').select('user_id, role').eq('trip_id', tripId)
   fail(error)
   const ids = (data ?? []).map(m => m.user_id as string)
-  const { data: people } = await db.from('profiles').select('id, handle, display_name').in('id', ids)
+  const { data: people } = await db.from('profiles').select('id, handle, display_name, avatar, accent').in('id', ids)
   const by = new Map((people ?? []).map(p => [p.id as string, p as Person]))
   return (data ?? []).map(m => ({ ...(by.get(m.user_id) ?? { id: m.user_id, handle: '?', display_name: null }), role: m.role as Role }))
 }

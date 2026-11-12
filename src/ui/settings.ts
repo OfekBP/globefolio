@@ -4,6 +4,7 @@ import { currentTheme, setTheme } from '../theme'
 import { contactEmail } from '../auth'
 import { syncState } from '../sync'
 import { esc } from './format'
+import { swatchesHtml, wireSwatches } from './profile'
 import { icons } from './icons'
 
 export interface SettingsCtx {
@@ -53,6 +54,7 @@ export function renderSettings(root: HTMLElement, ctx: SettingsCtx) {
         <h3 class="sub-title">${t('set.secLook')}</h3>
         <ul class="setting">
           <li class="ctl"><b>${t('set.theme')}</b>${seg('data-theme', t('set.theme'), currentTheme(), [['light', t('set.themeLight')], ['dark', t('set.themeDark')]])}</li>
+          <li class="ctl ctl-col"><b>${t('acct.accent')}</b>${swatchesHtml()}</li>
           ${row('language', icons.globe, t('set.language'), esc(lang))}
         </ul>
 
@@ -76,6 +78,8 @@ export function renderSettings(root: HTMLElement, ctx: SettingsCtx) {
         ${ctx.cloud ? `<p class="fine"><a href="./privacy.html" target="_blank" rel="noopener">${t('acct.privacy')}</a> · <a href="./terms.html" target="_blank" rel="noopener">${t('acct.terms')}</a> · <a href="mailto:${esc(contactEmail)}">${t('set.contact')}</a></p>` : ''}
         <p class="fine">${t('set.version', { v: esc(__APP_VERSION__) })}</p>
       </div>`
+
+    wireSwatches(root, ctx.signedIn)
   }
   render()
 

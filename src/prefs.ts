@@ -1,9 +1,9 @@
 /** Small per-device preferences. They live in localStorage and never sync, because they describe this screen, not the trips. */
 export type Units = 'km' | 'mi'
-export interface Prefs { units: Units; spin: boolean; haptics: boolean }
+export interface Prefs { units: Units; spin: boolean; haptics: boolean; accent: string }
 
 const KEY = 'tripglobe:prefs'
-const DEFAULTS: Prefs = { units: 'km', spin: true, haptics: true }
+const DEFAULTS: Prefs = { units: 'km', spin: true, haptics: true, accent: '' }
 
 // the United States, Liberia and Myanmar default to miles; everyone else to kilometres
 const MILES = /^(en-US|en-LR|my)\b/i
@@ -12,7 +12,7 @@ const guess = (): Units => { try { return MILES.test(navigator.language) ? 'mi' 
 let cur: Prefs = { ...DEFAULTS }
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<Prefs> | null
-  cur = { ...DEFAULTS, units: raw?.units ?? guess(), spin: raw?.spin ?? true, haptics: raw?.haptics ?? true }
+  cur = { ...DEFAULTS, units: raw?.units ?? guess(), spin: raw?.spin ?? true, haptics: raw?.haptics ?? true, accent: typeof raw?.accent === 'string' ? raw.accent : '' }
 } catch { cur = { ...DEFAULTS, units: guess() } }
 
 const listeners = new Set<() => void>()

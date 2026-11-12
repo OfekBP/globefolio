@@ -19,10 +19,12 @@ import { onPrefs, prefs } from './prefs'
 import { cloudEnabled } from './supabase'
 import { getProfile, getSession, initAuth, isRecovering, onAuth } from './auth'
 import { startSync, stopSync } from './sync'
-import { watchFriendships, listLinks, friendMap, type MapRow } from './friends'
+import { watchFriendships, listLinks, friendMap, type MapRow, type Person } from './friends'
+import { avatarHtml } from './ui/avatar'
 import { FRIENDS_CHANGED, renderFriends, renderPublic } from './ui/friends'
 import { joinFromLink, renderShared } from './ui/shared'
 import { esc, fmtRange, localToday, yearOf } from './ui/format'
+import { currentAccent, initAccent, setAccent } from './accent'
 import { cname, initLocale, num as fmtNum, onLocale, t as L } from './i18n'
 import { icons } from './ui/icons'
 import { renderStory } from './ui/story'
@@ -44,6 +46,7 @@ const CONTINENT_VIEW: Record<string, [number, number, number]> = {
 
 async function boot() {
   const theme0 = initTheme()
+  initAccent()
   const [, geo, { createGlobe }] = await Promise.all([initLocale(), geoData, globeCode])
   let trips: Trip[] = []
   let wishes: Wish[] = []
@@ -54,6 +57,7 @@ async function boot() {
   let friendRows: MapRow[] | null = null // a friend's places painted over my map
   let friendHandle: string | undefined
   let friendId: string | undefined
+  let friendWho: Person | undefined
 
   // ── globe ──────────────────────────────────────────────
   const globe = createGlobe($('globe'), geo, theme0, {
@@ -227,7 +231,7 @@ async function boot() {
       upcoming, wishes: wishRows,
       farthest: far, hasHome: !!home, asOf: year ?? undefined,
       homeName: home?.name, theme: currentTheme(),
-      account: cloudEnabled ? { handle: getProfile()?.handle, signedIn: !!getSession() } : undefined,
+      account: cloudEnabled ? { handle: getProfile()?.handle, name: getProfile()?.display_name ?? undefined, signedIn: !!getSession() } : undefined,
     })
 
     const stampCountries = [...byCountry].map(([iso, r]) => ({ country: geo.byIso.get(iso)!, since: r.since }))
@@ -390,13 +394,13 @@ async function boot() {
   const paintChip = () => {
     chip.hidden = !friendHandle
     if (!friendHandle) return
-    chip.querySelector<HTMLElement>('.fc-main')!.innerHTML = `<span class="avatar" aria-hidden="true">${friendHandle.slice(0, 1).toUpperCase()}</span><span class="fc-text">${L('fr.chip', { name: `@${friendHandle}` })}</span>`
+    chip.querySelector<HTMLElement>('.fc-main')!.innerHTML = `${avatarHtml(friendWho ?? { handle: friendHandle })}<span class="fc-text">${L('fr.chip', { name: `@${friendHandle}` })}</span>`
     chip.querySelector<HTMLElement>('.fc-main')!.setAttribute('aria-label', L('fr.chipOpen', { name: `@${friendHandle}` }))
     chip.querySelector<HTMLElement>('.fc-x')!.setAttribute('aria-label', L('fr.chipHide', { name: `@${friendHandle}` }))
   }
-  const overlay = (rows: MapRow[] | null, handle?: string, id?: string) => {
+  const overlay = (rows: MapRow[] | null, handle?: string, id?: string, who?: Person) => {
     const was = friendHandle
-    friendRows = rows; friendHandle = rows ? handle : undefined; friendId = rows ? id : undefined
+    friendRows = rows; friendHandle = rows ? handle : undefined; friendId = rows ? id : undefined; friendWho = rows ? who : undefined
     paintChip()
     view()
     if (rows && handle) toast(L('fr.overlayOn', { handle }))
@@ -632,7 +636,8 @@ async function boot() {
         else { void stopSync({ wipe: false }); overlay(null); void paintBadge() }
       }
       const p = getProfile()
-      const key = `${s?.user.id ?? ''}|${p?.handle ?? ''}|${p?.visibility ?? ''}|${p?.display_name ?? ''}`
+      if (p?.accent && p.accent !== currentAccent()) setAccent(p.accent) // a signed-in person's color follows them to every device
+      const key = `${s?.user.id ?? ''}|${p?.handle ?? ''}|${p?.visibility ?? ''}|${p?.display_name ?? ''}|${p?.avatar ?? ''}|${p?.accent ?? ''}|${p?.bio ?? ''}|${p?.status ?? ''}`
       if (key === lastKey) return
       lastKey = key
       view()

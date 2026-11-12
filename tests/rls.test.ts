@@ -93,7 +93,7 @@ describe('friends', () => {
   it('handle search finds prefixes and never reveals other fields', async () => {
     const rows = await as(C, () => q(`select * from public.find_profiles('al')`))
     expect(rows).toHaveLength(1)
-    expect(Object.keys(rows[0]).sort()).toEqual(['display_name', 'handle', 'id'])
+    expect(Object.keys(rows[0]).sort()).toEqual(['accent', 'avatar', 'display_name', 'handle', 'id'])
     expect(await as(C, () => q(`select * from public.find_profiles('a')`))).toHaveLength(0)
     // a query with nothing searchable left in it must not list everyone, and '_' is not a wildcard
     expect(await as(C, () => q(`select * from public.find_profiles('@@')`))).toHaveLength(0)
@@ -192,5 +192,31 @@ describe('account lifecycle', () => {
       expect(await q(`select 1 from public.${t} where ${col} = $1`, [A])).toHaveLength(0)
     }
     expect(await q(`select 1 from public.friendships where $1 in (requester, addressee)`, [A])).toHaveLength(0)
+  })
+})
+
+describe('profile personalisation', () => {
+  it('lets people set a preset picture, a color, a bio and a status, and rejects bad values', async () => {
+    await as(B, async () => {
+      await q(`update public.profiles set avatar = 'a:explorer', accent = '#0e7490', bio = 'Chasing sunsets', status = 'Dreaming of Lisbon' where id = $1`, [B])
+      expect(await fails(`update public.profiles set accent = 'red' where id = $1`, [B])).toBe(true)
+      expect(await fails(`update public.profiles set avatar = 'javascript:alert(1)' where id = $1`, [B])).toBe(true)
+      expect(await fails(`update public.profiles set avatar = 'data:image/svg+xml;base64,AAAA' where id = $1`, [B])).toBe(true)
+      expect(await fails(`update public.profiles set avatar = $2 where id = $1`, [B, 'data:image/webp;base64,' + 'A'.repeat(9000)])).toBe(true)
+      expect(await fails(`update public.profiles set bio = $2 where id = $1`, [B, 'x'.repeat(121)])).toBe(true)
+      await q(`update public.profiles set avatar = $2 where id = $1`, [B, 'data:image/webp;base64,' + 'A'.repeat(2000)])
+    })
+    expect((await q('select avatar from public.profiles where id = $1', [B]))[0].avatar).toMatch(/^data:image\/webp/)
+  })
+  it('search also finds people by display name and shows their picture', async () => {
+    await db.query(`update public.profiles set display_name = 'Zed Traveller', avatar = 'a:pilot', accent = '#d94f8a' where id = $1`, [D])
+    const rows = await as(B, () => q(`select * from public.find_profiles('zed')`))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ handle: 'dave', avatar: 'a:pilot', accent: '#d94f8a' })
+  })
+  it('the public link carries the picture, color and bio of public profiles only', async () => {
+    await db.query(`update public.profiles set avatar = 'a:sailor', accent = '#2f9e6f', bio = 'Hi there' where id = $1`, [C])
+    const p = (await as(null, () => q(`select public.public_profile('carol') as p`)))[0].p
+    expect(p).toMatchObject({ avatar: 'a:sailor', accent: '#2f9e6f', bio: 'Hi there' })
   })
 })

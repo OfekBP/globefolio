@@ -3,6 +3,7 @@ import { t } from '../i18n'
 import { flush, onSyncState, stopSync, syncState } from '../sync'
 import { esc } from './format'
 import { icons } from './icons'
+import { profileHtml, wireProfile } from './profile'
 import { toast } from './toast'
 
 interface Ctx { back(): void; close(): void }
@@ -56,7 +57,7 @@ function wirePasswordArea(area: HTMLElement, say: (m: string, bad?: boolean) => 
         <button class="text center" type="button" data-mode="in">${t('acct.backToSignIn')}</button>`
     } else {
       const up = mode === 'up'
-      area.innerHTML = `<div class="seg" role="group">
+      area.innerHTML = `<div class="mode-seg" role="group">
           <button type="button" data-mode="in" aria-pressed="${!up}">${t('acct.signIn')}</button>
           <button type="button" data-mode="up" aria-pressed="${up}">${t('acct.signUp')}</button></div>
         <form id="pw-form" novalidate>${email}${passwordField('a-pw', t('acct.password'), up ? 'new-password' : 'current-password')}
@@ -226,8 +227,7 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
   root.innerHTML = `
     <div class="sheet">
       ${head}
-      <h2 class="title">@${esc(profile.handle)}</h2>
-      <p class="lede">${t('acct.signedIn', { email: esc(session.user.email ?? '') })}</p>
+      ${profileHtml(profile, session.user.email ?? '')}
       <p class="sync-line" id="sync-line" role="status"></p>
       <h3 class="sub-title">${t('acct.vis')}</h3>
       <fieldset class="vis">${vis('private')}${vis('friends')}${vis('public')}</fieldset>
@@ -247,6 +247,7 @@ export function renderAccount(root: HTMLElement, ctx: Ctx) {
       ${legal}
     </div>`
 
+  wireProfile(root)
   const line = root.querySelector<HTMLElement>('#sync-line')!
   const paint = () => { line.textContent = t(`acct.sync.${syncState() === 'off' ? 'syncing' : syncState()}`); line.dataset.state = syncState() }
   paint()
